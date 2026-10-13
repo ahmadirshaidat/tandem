@@ -17,11 +17,13 @@ import {
   ShieldCheck,
   UserPlus,
   Users,
+  Sparkles,
 } from "lucide-react";
 import { ErrorNotice, Field, Logo, ThemeToggle } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { AITrialPage } from "@/components/ai-trial";
 import {
   api,
   ApiError,
@@ -34,11 +36,12 @@ import {
   type Workspace,
 } from "@/lib/api";
 
-type Section = "home" | "members" | "settings" | "new";
+type Section = "home" | "members" | "settings" | "new" | "ai";
 const nav = [
   { href: "/", section: "home", label: "Getting started", Icon: Home },
   { href: "/members", section: "members", label: "Members", Icon: Users },
   { href: "/settings", section: "settings", label: "Settings", Icon: Settings },
+  { href: "/ai", section: "ai", label: "Try AI", Icon: Sparkles },
 ];
 function subscribeSelection(callback: () => void) {
   window.addEventListener("tandem-workspace", callback);
@@ -206,6 +209,8 @@ export function WorkspaceApp({ section }: { section: Section }) {
             <NoWorkspace />
           ) : section === "members" ? (
             <Members key={workspace.id} workspace={workspace} user={user} />
+          ) : section === "ai" ? (
+            <AITrialPage key={workspace.id} workspace={workspace} />
           ) : section === "settings" ? (
             <WorkspaceSettings
               key={`${workspace.id}:${workspace.name}`}

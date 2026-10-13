@@ -10,6 +10,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.ai.router import router as ai_router
 from app.auth.router import router as auth_router
 from app.core.db import engine
 from app.workspaces.router import invites
@@ -21,6 +22,7 @@ app = FastAPI(title="Tandem", version="0.1.0")
 app.include_router(auth_router)
 app.include_router(workspace_router)
 app.include_router(invites)
+app.include_router(ai_router)
 
 
 def error_response(status: int, message: str, request: Request, details=None, headers=None):

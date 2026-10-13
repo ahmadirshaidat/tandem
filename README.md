@@ -39,12 +39,24 @@ cd frontend
 npm ci
 cd ..
 python3 infra/cloud_build.py
-docker compose up -d --wait
+python3 infra/cloud_start.py
 cd frontend
 npm run dev
 ```
 
-`cloud_build.py` uses the machine's existing HTTPS proxy and `SSL_CERT_FILE`, resolves the proxy in the host, and supplies its trusted CA as an ephemeral BuildKit secret. It does not disable verification or store proxy credentials in the image. Later tasks must start services again; a saved environment snapshot does not retain running processes.
+`cloud_build.py` uses the machine's existing HTTPS proxy and `SSL_CERT_FILE`, resolves the proxy in the host, and supplies its trusted CA as an ephemeral BuildKit secret. `cloud_start.py` also supplies the proxy DNS and mounts the public CA for provider requests at runtime. Neither disables verification or stores proxy credentials in the image. Later tasks must start services again; a saved environment snapshot does not retain running processes.
+
+## Try AI on web and mobile
+
+Log in as a workspace Owner or Admin and open **Try AI** in the sidebar or mobile tab bar. Select Groq or Automatic, enter a small test question, and send it. A successful reply identifies its provider/model. Failures show safe categories in the recent-trial history. The same authenticated API and responsive screen serve desktop and mobile browsers.
+
+Provider keys live only on the backend. Configure `GROQ_API_KEY`, `GEMINI_API_KEY`, or `DEEPSEEK_API_KEY` in the private `.env` for local development or secure environment settings for cloud/deployment. Never put them in `NEXT_PUBLIC_` variables or frontend code. The supplied temporary keys are not committed. `AI_PRIMARY_PROVIDER=groq` is the default; Automatic mode tries Gemini, DeepSeek, then optional OpenAI on provider failures. Manual selection does not silently fall back.
+
+To add a future OpenAI key yourself, set `TANDEM_OPENAI_API_KEY` securely and use `AI_PRIMARY_PROVIDER=openai` or select OpenAI in the trial screen. The OpenAI adapter uses the official Python SDK and Responses API with `store=false`; Groq/DeepSeek use compatible Chat Completions endpoints, while Gemini uses the official Google Gen AI SDK. No OpenAI key has been supplied or validated. Codex is the development tool used to build this app, separate from the providers the app calls.
+
+Default models are `openai/gpt-oss-20b`, `gemini-3.8-flash`, `deepseek-flash`, and optional `gpt-5.5`; override their respective model variables when provider availability changes. Output is capped at 512 tokens and input at 4,000 characters, with five trials per user and per workspace per minute and four simultaneous calls per backend process. Switching workspaces does not reset the user's budget. Automatic fallbacks can incur multiple provider requests. Use synthetic test content; only the submitted question is sent externally, and prompt/answer text is not stored in the trial history.
+
+See [the AI provider report](docs/AI_PROVIDER_REPORT.md) for actual live-provider results and limitations. This is an isolated trial feature requested after Slice 1; the shared agent's channel integration, tools, memory and approvals are still future work. Mobile support is responsive web, not a native iOS/Android app. No public hosting deployment has been performed.
 
 ## What is implemented
 

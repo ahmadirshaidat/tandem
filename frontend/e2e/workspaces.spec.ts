@@ -65,6 +65,11 @@ test("two users register, create a workspace, accept an invite, and enforce role
   await expect(
     viewer.getByRole("button", { name: "Save changes" }),
   ).toBeDisabled();
+  await viewer.goto("/ai");
+  await expect(
+    viewer.getByRole("heading", { name: "An Admin or Owner can run trials." }),
+  ).toBeVisible();
+  await viewer.goto("/settings");
   await page.reload();
   const viewerRow = page.getByRole("row").filter({ hasText: viewerEmail });
   await expect(viewerRow).toBeVisible();
@@ -104,6 +109,23 @@ test("two users register, create a workspace, accept an invite, and enforce role
   ).toBe(true);
   await page.screenshot({
     path: "test-results/members-mobile-dark.png",
+    fullPage: true,
+  });
+  await page.goto("/ai");
+  await expect(
+    page.getByRole("heading", { name: "A first conversation." }),
+  ).toBeVisible();
+  await expect(page.getByLabel("Your test question")).toBeVisible();
+  await expect(
+    page.getByText("Not configured", { exact: true }).last(),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page.screenshot({
+    path: "test-results/ai-trial-mobile-dark.png",
     fullPage: true,
   });
   await context.close();

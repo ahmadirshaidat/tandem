@@ -2,10 +2,12 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import (
+    JSON,
     CheckConstraint,
     DateTime,
     ForeignKey,
     Index,
+    Integer,
     String,
     Text,
     UniqueConstraint,
@@ -87,3 +89,23 @@ class Invitation(Base):
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class AITrial(Base):
+    __tablename__ = "ai_trials"
+    __table_args__ = (
+        CheckConstraint("status IN ('completed', 'failed')", name="ck_ai_trial_status"),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    workspace_id: Mapped[str] = mapped_column(
+        ForeignKey("workspaces.id", ondelete="CASCADE"), index=True
+    )
+    actor_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    requested_provider: Mapped[str] = mapped_column(String(12))
+    provider_used: Mapped[str | None] = mapped_column(String(12))
+    status: Mapped[str] = mapped_column(String(12))
+    input_length: Mapped[int] = mapped_column(Integer)
+    attempts: Mapped[list] = mapped_column(JSON)
+    input_tokens: Mapped[int | None] = mapped_column(Integer)
+    output_tokens: Mapped[int | None] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

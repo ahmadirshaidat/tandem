@@ -2,6 +2,16 @@
 # No certificate or proxy settings are persisted in the image.
 services:
   backend:
+    environment:
+      HTTP_PROXY: ${HTTP_PROXY}
+      HTTPS_PROXY: ${HTTPS_PROXY}
+      NO_PROXY: ${NO_PROXY:-localhost,127.0.0.1,db}
+      SSL_CERT_FILE: /etc/ssl/certs/tandem-cloud-ca.pem
+      REQUESTS_CA_BUNDLE: /etc/ssl/certs/tandem-cloud-ca.pem
+    extra_hosts:
+      - "${TANDEM_PROXY_HOST:?Run infra/cloud_start.py}:${TANDEM_PROXY_IP:?Run infra/cloud_start.py}"
+    volumes:
+      - ./.local/cloud-ca.pem:/etc/ssl/certs/tandem-cloud-ca.pem:ro
     build:
       args:
         - HTTP_PROXY

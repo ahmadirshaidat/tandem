@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pydantic import Field, model_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -23,9 +23,30 @@ class Settings(BaseSettings):
     smtp_user: str | None = None
     smtp_password: str | None = None
     mail_from: str = "Tandem <no-reply@localhost>"
+    groq_api_key: SecretStr | None = None
+    deepseek_api_key: SecretStr | None = None
+    gemini_api_key: SecretStr | None = None
+    tandem_openai_api_key: SecretStr | None = None
+    groq_model: str = "openai/gpt-oss-20b"
+    deepseek_model: str = "deepseek-flash"
+    gemini_model: str = "gemini-3.8-flash"
+    openai_model: str = "gpt-5.5"
+    ai_primary_provider: str = "groq"
+    ai_provider_timeout_seconds: float = Field(default=10, ge=1, le=30)
+    ai_max_output_tokens: int = Field(default=512, ge=16, le=2048)
+    ai_requests_per_minute: int = Field(default=5, ge=1, le=60)
+
+    @field_validator(
+        "groq_api_key", "deepseek_api_key", "gemini_api_key", "tandem_openai_api_key", mode="before"
+    )
+    @classmethod
+    def empty_key_is_missing(cls, value):
+        return value or None
 
     @model_validator(mode="after")
     def validate_mail(self):
+        if self.ai_primary_provider not in {"groq", "gemini", "deepseek", "openai"}:
+            raise ValueError("AI_PRIMARY_PROVIDER must be groq, gemini, deepseek, or openai")
         if self.mail_mode not in {"outbox", "smtp"}:
             raise ValueError("MAIL_MODE must be outbox or smtp")
         if self.cookie_secure and self.mail_mode == "outbox":

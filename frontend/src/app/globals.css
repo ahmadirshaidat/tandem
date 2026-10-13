@@ -754,6 +754,47 @@ svg {
 .mobile-workspace {
   display: none;
 }
+.ai-provider-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.ai-prompt {
+  resize: vertical;
+  min-height: 140px;
+  font-size: 16px;
+}
+.ai-answer {
+  margin-top: 24px;
+  background: var(--agent-tint);
+}
+.ai-answer .icon-circle {
+  background: var(--agent);
+  color: var(--on-brand);
+}
+.ai-answer-text {
+  white-space: pre-wrap;
+  margin: 24px 0;
+  color: var(--ink-2);
+  font-size: 17px;
+}
+.ai-history-item {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+.ai-history-item:first-child {
+  padding-top: 0;
+}
+.ai-history-item:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.ai-attempts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
 @media (hover: hover) and (pointer: fine) {
   .button:hover:not(:disabled),
   .nav-item:hover {
@@ -880,9 +921,12 @@ svg {
     flex-direction: column;
     font-size: 12px;
     gap: 4px;
-    min-width: 80px;
+    min-width: 72px;
   }
   .invite-form {
+    grid-template-columns: 1fr;
+  }
+  .ai-provider-grid {
     grid-template-columns: 1fr;
   }
   .invite-form > .button {
