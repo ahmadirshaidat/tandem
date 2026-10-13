@@ -1,0 +1,85 @@
+name: CI
+on:
+  push:
+    branches: [v1, main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: postgresql+psycopg://tandem:tandem-ci-only@localhost:5432/tandem
+      JWT_SECRET: tandem-ci-only-signing-key-at-least-32-characters
+      FRONTEND_URL: http://localhost:3000
+      COOKIE_SECURE: 'false'
+      MAIL_MODE: outbox
+    services:
+      postgres:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_USER: tandem
+          POSTGRES_PASSWORD: tandem-ci-only
+          POSTGRES_DB: tandem
+        ports: [5432:5432]
+        options: --health-cmd "pg_isready -U tandem -d tandem" --health-interval 2s --health-timeout 5s --health-retries 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.12.23'
+          python-version: '3.12'
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - name: Install backend
+        run: uv sync --project backend --frozen
+      - name: Backend lint and integration tests
+        working-directory: backend
+        run: |
+          uv run --frozen ruff check app migrations tests
+          uv run --frozen ruff format --check app migrations tests
+          uv run --frozen pytest -q
+          uv run --frozen alembic upgrade head
+          uv run --frozen alembic check
+      - name: Install frontend
+        working-directory: frontend
+        run: npm ci
+      - name: Frontend checks
+        working-directory: frontend
+        run: |
+          npm run lint
+          npm run typecheck
+          npm test
+          npm run build
+      - name: Start backend
+        working-directory: backend
+        run: |
+          uv run --frozen uvicorn app.main:app --host 127.0.0.1 --port 8000 --no-access-log > /tmp/tandem-backend.log 2>&1 &
+          python - <<'PY'
+          import time, urllib.request
+          for attempt in range(30):
+              try:
+                  urllib.request.urlopen('http://localhost:8000/health', timeout=2)
+                  break
+              except OSError:
+                  time.sleep(1)
+          else:
+              raise SystemExit('Backend did not become healthy')
+          PY
+      - name: Install Chromium
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+      - name: Browser integration tests
+        working-directory: frontend
+        run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-test-results
+          path: frontend/test-results/

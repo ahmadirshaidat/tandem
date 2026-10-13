@@ -1,0 +1,16 @@
+# Optional: use the cloud's existing proxy and trusted CA for dependency builds.
+# No certificate or proxy settings are persisted in the image.
+services:
+  backend:
+    build:
+      args:
+        - HTTP_PROXY
+        - HTTPS_PROXY
+        - NO_PROXY
+      secrets:
+        - proxy_ca
+      extra_hosts:
+        - "${TANDEM_PROXY_HOST:?Run infra/cloud_build.py}:${TANDEM_PROXY_IP:?Run infra/cloud_build.py}"
+secrets:
+  proxy_ca:
+    file: ${SSL_CERT_FILE:?The cloud build requires its existing trusted CA file}

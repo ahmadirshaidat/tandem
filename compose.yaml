@@ -1,0 +1,48 @@
+name: tandem
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: tandem
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run python3 infra/bootstrap.py first}
+      POSTGRES_DB: tandem
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tandem -d tandem"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  backend:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://tandem:${POSTGRES_PASSWORD}@db:5432/tandem
+      JWT_SECRET: ${JWT_SECRET:?Run python3 infra/bootstrap.py first}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      MAIL_MODE: ${MAIL_MODE:-outbox}
+      MAIL_OUTBOX: /app/.local/mail
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-Tandem <no-reply@localhost>}
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - mail_outbox:/app/.local
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 3s
+      timeout: 5s
+      retries: 30
+volumes:
+  postgres_data:
+  mail_outbox:
