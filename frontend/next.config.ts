@@ -15,6 +15,7 @@ const config: NextConfig = {
       {
         source: "/:path*",
         headers: [
+          { key: "X-Tandem-Project", value: "tandem-workspace-v1" },
           { key: "Referrer-Policy", value: "no-referrer" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "X-Frame-Options", value: "DENY" },

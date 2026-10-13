@@ -37,20 +37,24 @@ Google/GitHub buttons are visibly unavailable; email authentication works. The l
 
 ## Localhost on your computer
 
-Your Codex desktop project is a separate checkout from this cloud machine. In a **Local** task or terminal in that checkout, update `v1`, install Node.js 24 and ensure Docker Desktop is running, then run:
+The older local project named **tandem** is a different project. This new project is **`ahmadirshaidat/tandem`, branch `v1`**. Clone it into a new folder, then open that folder as a Codex desktop project. With Node.js 24 and Docker Desktop running:
 
 ```bash
+git clone --branch v1 --single-branch https://github.com/ahmadirshaidat/tandem.git tandem-workspace-v1
+cd tandem-workspace-v1
 node infra/dev.mjs
 ```
 
 The launcher:
 
-1. Checks that port 3000 is available or serves Tandem.
+1. Checks that port 3001 is available or serves this new project's explicit `X-Tandem-Project` identity. An older app named Tandem is not reused.
 2. Preserves an existing `.env`, or creates random development database/JWT secrets in an ignored file. It never prints credentials.
-3. Installs frontend dependencies from the lockfile and starts the Docker database/backend with migrations and health checks.
-4. Starts Next.js on loopback, verifies the login page and proxied API, then opens `http://localhost:3000/login` in the computer's browser.
+3. Installs frontend dependencies from the lockfile and starts separate `tandem-workspace-v1` Docker containers and volumes, with API port 8001 and database port 5433. Cloud mode retains its existing ports/data.
+4. Starts Next.js on loopback, verifies the login page and proxied API, then opens `http://localhost:3001/login` in the computer's browser.
 
-Keep the terminal open. Ctrl+C stops only the frontend it started; database data remains. Repeated runs refresh the backend and reuse a running frontend. Another app on port 3000 is left untouched. The launcher diagnoses incompatible origin/secure-cookie settings without overwriting them. `--no-open` skips browser opening and `--skip-install` reuses installed dependencies.
+Keep the terminal open. Ctrl+C stops only the frontend it started; database data remains. Repeated runs refresh the backend and reuse this project's frontend. An older app on port 3000 is left untouched. The launcher diagnoses incompatible origin/secure-cookie settings without overwriting them. `--no-open` skips browser opening, `--skip-install` reuses installed dependencies, and `--skip-build` requires an already built backend image.
+
+Additional isolation checks passed after the project clarification: an older HTTP app named Tandem on port 3001 was rejected without touching it; the new launcher created fresh private configuration and started a separate real database/API/frontend; a browser registered a user and created a workspace on port 3001 while the original Docker container IDs stayed unchanged. This Linux validation reused the already verified backend image and dependencies. Only the newly created validation services/data were removed afterward.
 
 Local provider keys must be supplied securely in that computer's ignored `.env`. Cloud keys are not copied to your PC or Git. This cloud task cannot execute commands on your Windows computer or prove its browser has opened. The Windows command/browser paths are implemented; native Windows execution remains unverified here.
 

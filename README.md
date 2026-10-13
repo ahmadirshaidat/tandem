@@ -10,15 +10,22 @@ Python 3.12, [uv](https://docs.astral.sh/uv/), Node.js 24, Docker with Compose v
 
 ### Codex desktop / Windows
 
-Open your **local** Tandem project in Codex desktop, update your `v1` checkout, and ensure **Node.js 24** and **Docker Desktop** are installed with Docker running. From the repository root:
+This is the new **AI workspace** project at `ahmadirshaidat/tandem`, branch `v1`. An older local project named Tandem is a different project. Clone this repository into a **new folder** and open that folder in Codex desktop:
+
+```powershell
+git clone --branch v1 --single-branch https://github.com/ahmadirshaidat/tandem.git tandem-workspace-v1
+cd tandem-workspace-v1
+```
+
+Ensure **Node.js 24** and **Docker Desktop** are installed with Docker running. From this new repository folder:
 
 ```bash
 node infra/dev.mjs
 ```
 
-The launcher creates development configuration only if `.env` is missing, installs locked frontend dependencies, starts PostgreSQL and the backend with migrations, and starts the frontend. It opens `http://localhost:3000/login` only after checking both the page and the API. Sign up, create a workspace, and invite your team. Keep the terminal open; Ctrl+C stops its frontend. Existing `.env` files and database data are preserved. Python and uv are only needed inside the backend container for this workflow.
+The launcher creates development configuration only if `.env` is missing, installs locked frontend dependencies, starts PostgreSQL and the backend with migrations, and starts the frontend. It opens **`http://localhost:3001/login`** only after checking this project's identity and its API. The new desktop project uses separate `tandem-workspace-v1` Docker containers/volumes, API port **8001**, and database port **5433**. It leaves an older project on port 3000 alone. Sign up, create a workspace, and invite your team. Keep the terminal open; Ctrl+C stops its frontend. Existing `.env` files and database data are preserved. Python and uv are only needed inside the backend container for this workflow.
 
-If the frontend is already running, the launcher refreshes the backend configuration and reuses the frontend. If port 3000 belongs to another app, it stops with an explanation instead of killing that app. Use `--no-open` to leave browser opening to Codex and `--skip-install` when dependencies are already installed. Local provider keys belong in the ignored `.env`; keys saved in a cloud workspace do not automatically appear on your computer.
+If this frontend is already running, the launcher refreshes the backend configuration and reuses it. It verifies the `X-Tandem-Project` header rather than identifying an app by its name alone. If port 3001 belongs to another app, it stops with an explanation instead of killing that app. Use `--no-open` to leave browser opening to Codex and `--skip-install` when dependencies are already installed. Local provider keys belong in this new folder's ignored `.env`; keys saved in a cloud workspace do not automatically appear on your computer.
 
 This cloud task cannot start processes on your desktop. A cloud service on port 3000 is separate from your computer's localhost. Run the launcher in a **Local** Codex task or your computer's terminal.
 

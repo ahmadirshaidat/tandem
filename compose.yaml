@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run python3 infra/bootstrap.py first}
       POSTGRES_DB: tandem
     ports:
-      - "127.0.0.1:5432:5432"
+      - "127.0.0.1:${TANDEM_DB_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -44,7 +44,7 @@ services:
       AI_MAX_OUTPUT_TOKENS: ${AI_MAX_OUTPUT_TOKENS:-512}
       AI_REQUESTS_PER_MINUTE: ${AI_REQUESTS_PER_MINUTE:-5}
     ports:
-      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:${TANDEM_API_PORT:-8000}:8000"
     volumes:
       - mail_outbox:/app/.local
     depends_on:

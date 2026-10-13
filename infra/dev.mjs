@@ -10,9 +10,18 @@ import { fileURLToPath } from "node:url";
 const root = fileURLToPath(new URL("../", import.meta.url));
 const frontend = path.join(root, "frontend");
 const flags = new Set(process.argv.slice(2));
-const supported = new Set(["--cloud", "--no-open", "--skip-install", "--help"]);
+const supported = new Set([
+  "--cloud",
+  "--no-open",
+  "--skip-install",
+  "--skip-build",
+  "--help",
+]);
 const windows = process.platform === "win32";
-const url = "http://localhost:3000/login";
+const cloud = flags.has("--cloud");
+const port = cloud ? 3000 : 3001;
+const originUrl = `http://localhost:${port}`;
+const url = `${originUrl}/login`;
 let server;
 
 function command(program, args) {
@@ -42,7 +51,11 @@ function run(program, args, cwd = root) {
 async function frontendReady() {
   try {
     const page = await fetch(url, { signal: AbortSignal.timeout(4000) });
-    if (!page.ok || !(await page.text()).includes("Tandem")) return false;
+    if (
+      !page.ok ||
+      page.headers.get("x-tandem-project") !== "tandem-workspace-v1"
+    )
+      return false;
     return true;
   } catch {
     return false;
@@ -52,7 +65,7 @@ async function frontendReady() {
 async function ready() {
   if (!(await frontendReady())) return false;
   try {
-    const api = await fetch("http://localhost:3000/api/auth/csrf", {
+    const api = await fetch(`${originUrl}/api/auth/csrf`, {
       signal: AbortSignal.timeout(4000),
     });
     return api.ok && typeof (await api.json()).csrf_token === "string";
@@ -67,11 +80,11 @@ async function requireFreePort() {
     probe.once("error", () =>
       reject(
         new Error(
-          "Port 3000 is occupied by an app that is not ready. Stop that app before starting Tandem.",
+          `Port ${port} is occupied by another project or an older server. It was left untouched. Use a free port before starting this new Tandem project.`,
         ),
       ),
     );
-    probe.listen(3000, "0.0.0.0", () => probe.close(resolve));
+    probe.listen(port, "0.0.0.0", () => probe.close(resolve));
   });
 }
 
@@ -83,9 +96,16 @@ function bootstrap() {
       envFile,
       [
         `POSTGRES_PASSWORD=${password}`,
-        `DATABASE_URL=postgresql+psycopg://tandem:${password}@localhost:5432/tandem`,
+        `DATABASE_URL=postgresql+psycopg://tandem:${password}@localhost:${cloud ? 5432 : 5433}/tandem`,
         `JWT_SECRET=${randomBytes(32).toString("hex")}`,
-        "FRONTEND_URL=http://localhost:3000",
+        `FRONTEND_URL=${originUrl}`,
+        ...(cloud
+          ? []
+          : [
+              "COMPOSE_PROJECT_NAME=tandem-workspace-v1",
+              "TANDEM_API_PORT=8001",
+              "TANDEM_DB_PORT=5433",
+            ]),
         "COOKIE_SECURE=false",
         "MAIL_MODE=outbox",
         "",
@@ -106,9 +126,9 @@ function bootstrap() {
       .match(/^FRONTEND_URL=(.*)$/m)?.[1]
       ?.trim()
       .replace(/^["']|["']$/g, "");
-  if (origin && origin !== "http://localhost:3000") {
+  if (origin && origin !== originUrl) {
     throw new Error(
-      "This localhost launcher needs FRONTEND_URL=http://localhost:3000 in your development configuration. The existing value was preserved.",
+      `This new project's launcher needs FRONTEND_URL=${originUrl} in its own development configuration. The existing value was preserved.`,
     );
   }
   const secure =
@@ -154,7 +174,7 @@ try {
     if (!supported.has(flag)) throw new Error(`Unknown option: ${flag}`);
   if (flags.has("--help")) {
     console.log(
-      "node infra/dev.mjs [--no-open] [--skip-install] [--cloud]\nRequires Node.js 24 and running Docker Desktop. Starts the API/database, installs locked frontend dependencies, starts Next.js, then opens the browser. Ctrl+C stops the frontend; database data remains. --cloud uses the existing Codex proxy/trust helper.",
+      "node infra/dev.mjs [--no-open] [--skip-install] [--skip-build] [--cloud]\nRequires Node.js 24 and running Docker Desktop. This new desktop project uses localhost:3001, API 8001, database 5433, and separate tandem-workspace-v1 Docker data. Starts real services then opens the browser. Ctrl+C stops its frontend. --skip-build requires an existing backend image. --cloud preserves the existing cloud ports and proxy/trust helper.",
     );
   } else {
     if (Number(process.versions.node.split(".")[0]) < 24)
@@ -174,11 +194,21 @@ try {
       process.env.DOCKER_CONFIG = path.join(root, ".local", "docker");
       run("python3", ["infra/cloud_start.py"]);
     } else {
+      process.env.TANDEM_API_PORT = "8001";
+      process.env.TANDEM_DB_PORT = "5433";
+      process.env.FRONTEND_URL = originUrl;
+      process.env.BACKEND_URL = "http://127.0.0.1:8001";
       run("docker", [
         "compose",
+        "--ansi",
+        "never",
+        "--progress",
+        "plain",
+        "--project-name",
+        "tandem-workspace-v1",
         "up",
         "-d",
-        "--build",
+        ...(flags.has("--skip-build") ? ["--no-build"] : ["--build"]),
         "--wait",
         "--wait-timeout",
         "120",
@@ -199,7 +229,7 @@ try {
         "dev",
         "--",
         "--port",
-        "3000",
+        String(port),
         "--hostname",
         flags.has("--cloud") ? "0.0.0.0" : "127.0.0.1",
       ]);
