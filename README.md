@@ -8,6 +8,22 @@ Python 3.12, [uv](https://docs.astral.sh/uv/), Node.js 24, Docker with Compose v
 
 ## Run locally
 
+### Codex desktop / Windows
+
+Open your **local** Tandem project in Codex desktop, update your `v1` checkout, and ensure **Node.js 24** and **Docker Desktop** are installed with Docker running. From the repository root:
+
+```bash
+node infra/dev.mjs
+```
+
+The launcher creates development configuration only if `.env` is missing, installs locked frontend dependencies, starts PostgreSQL and the backend with migrations, and starts the frontend. It opens `http://localhost:3000/login` only after checking both the page and the API. Sign up, create a workspace, and invite your team. Keep the terminal open; Ctrl+C stops its frontend. Existing `.env` files and database data are preserved. Python and uv are only needed inside the backend container for this workflow.
+
+If the frontend is already running, the launcher refreshes the backend configuration and reuses the frontend. If port 3000 belongs to another app, it stops with an explanation instead of killing that app. Use `--no-open` to leave browser opening to Codex and `--skip-install` when dependencies are already installed. Local provider keys belong in the ignored `.env`; keys saved in a cloud workspace do not automatically appear on your computer.
+
+This cloud task cannot start processes on your desktop. A cloud service on port 3000 is separate from your computer's localhost. Run the launcher in a **Local** Codex task or your computer's terminal.
+
+### Individual development commands
+
 From the repository root:
 
 ```bash
@@ -67,7 +83,7 @@ See [the AI provider report](docs/AI_PROVIDER_REPORT.md) for actual live-provide
 - Sign-up, login, forgot/reset password, workspace creation, workspace switcher, getting started, members/role matrix, invitation acceptance and general settings screens. Light/dark mode, responsive layout and keyboard-accessible controls.
 - PostgreSQL migrations including pgvector, structured logs without passwords/tokens, database-aware health checks, consistent API errors, CI and real-database/browser tests.
 
-The Claude canvas could not be fetched through the current network policy. The implementation follows the supplied written design tokens and screen definitions; exact canvas comparison remains outstanding.
+The frontend now uses the uploaded **Workspace UI UX - Web + Mobile.html** canvas for the auth, invitation, getting-started, members and general settings screens. Its colors, fonts, indigo linked-circle logo, panel layout, proposal illustration, checklist, tables and mobile sheets were compared with extracted reference screens. See [the frontend design report](docs/FRONTEND_DESIGN_REPORT.md) for screenshots and deliberate differences where the canvas shows future features.
 
 ## Password-reset email
 

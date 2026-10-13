@@ -9,8 +9,20 @@ import { Label } from "@/components/ui/label";
 export function Logo() {
   return (
     <Link href="/" className="logo" aria-label="Tandem home">
-      <span className="logo-mark" aria-hidden="true" />
-      <span className="wordmark">tandem</span>
+      <span className="logo-mark" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <circle cx="9" cy="12" r="5" stroke="currentColor" strokeWidth="2" />
+          <circle
+            cx="15"
+            cy="12"
+            r="5"
+            stroke="currentColor"
+            strokeWidth="2"
+            opacity=".7"
+          />
+        </svg>
+      </span>
+      <span className="wordmark">Tandem</span>
     </Link>
   );
 }
@@ -27,15 +39,20 @@ export function Field({
   label,
   id,
   help,
+  labelAction,
   ...props
 }: React.ComponentProps<typeof Input> & {
   label: string;
   id: string;
   help?: string;
+  labelAction?: React.ReactNode;
 }) {
   return (
     <div className="field">
-      <Label htmlFor={id}>{label}</Label>
+      <div className="field-label-row">
+        <Label htmlFor={id}>{label}</Label>
+        {labelAction}
+      </div>
       <Input
         id={id}
         aria-describedby={help ? `${id}-help` : undefined}

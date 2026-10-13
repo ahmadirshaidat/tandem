@@ -51,92 +51,101 @@ export function InvitationPage() {
   });
   const next = `/accept-invitation?token=${token ?? ""}`;
   return (
-    <main className="auth-main" style={{ minHeight: "100dvh" }}>
-      <header className="row-between">
-        <Logo />
-        <ThemeToggle />
-      </header>
-      <div className="auth-form">
-        <span className="icon-circle">
-          <Users />
-        </span>
-        <h1>You’re invited.</h1>
-        {!token ? (
-          <div className="error" role="alert">
-            Open the invitation link your teammate shared with you.
-          </div>
-        ) : invitation.isPending ? (
-          <p role="status">Opening your invitation…</p>
-        ) : invitation.error ? (
-          <>
-            <ErrorNotice error={invitation.error} />
-            <p className="text-muted">
-              Ask an Admin or Owner for a new invitation.
-            </p>
-            <Button asChild variant="secondary">
-              <Link href="/">Back to your workspace</Link>
-            </Button>
-          </>
-        ) : (
-          invitation.data && (
+    <div className="invitation-layout">
+      <main className="invitation-panel">
+        <header className="invitation-top row-between">
+          <Logo />
+          <ThemeToggle />
+        </header>
+        <div className="card invitation-card">
+          <span className="invitation-symbol">
+            <Users size={24} />
+          </span>
+          <h1>
+            {invitation.data
+              ? `You’re invited to join ${invitation.data.workspace_name}`
+              : "You’re invited."}
+          </h1>
+          {!token ? (
+            <div className="error" role="alert">
+              Open the invitation link your teammate shared with you.
+            </div>
+          ) : invitation.isPending ? (
+            <p role="status">Opening your invitation…</p>
+          ) : invitation.error ? (
             <>
+              <ErrorNotice error={invitation.error} />
               <p className="text-muted">
-                Join <strong>{invitation.data.workspace_name}</strong> as an{" "}
-                <strong>{roleLabels[invitation.data.role]}</strong>.
+                Ask an Admin or Owner for a new invitation.
               </p>
-              <div className="notice">
-                This invitation is for {invitation.data.email}.
-              </div>
-              <ErrorNotice error={accept.error ?? logout.error} />
-              {me.isPending ? (
-                <p role="status">Checking your account…</p>
-              ) : me.data ? (
-                me.data.email === invitation.data.email ? (
-                  <Button
-                    className="button-full"
-                    disabled={accept.isPending}
-                    onClick={() => accept.mutate()}
-                  >
-                    {accept.isPending ? "Joining…" : "Accept invitation"}
-                    <ArrowRight size={16} />
-                  </Button>
-                ) : (
-                  <>
-                    <p className="text-muted">
-                      You’re signed in as {me.data.email}. Switch to the invited
-                      account to join.
-                    </p>
+              <Button asChild variant="secondary">
+                <Link href="/">Back to your workspace</Link>
+              </Button>
+            </>
+          ) : (
+            invitation.data && (
+              <>
+                <p className="text-muted">
+                  You will join as an{" "}
+                  <strong>{roleLabels[invitation.data.role]}</strong>.
+                </p>
+                <span className="chip chip-brand">
+                  {roleLabels[invitation.data.role]}
+                </span>
+                <p className="text-small text-muted">
+                  This invitation is for {invitation.data.email}.
+                </p>
+                <ErrorNotice error={accept.error ?? logout.error} />
+                {me.isPending ? (
+                  <p role="status">Checking your account…</p>
+                ) : me.data ? (
+                  me.data.email === invitation.data.email ? (
                     <Button
                       className="button-full"
-                      onClick={() => logout.mutate()}
-                      disabled={logout.isPending}
+                      disabled={accept.isPending}
+                      onClick={() => accept.mutate()}
                     >
-                      Switch account
+                      {accept.isPending ? "Joining…" : "Accept invitation"}
+                      <ArrowRight size={16} />
                     </Button>
-                  </>
-                )
-              ) : (
-                <div className="stack">
-                  <Button asChild className="button-full">
-                    <Link
-                      href={`/signup?next=${encodeURIComponent(next)}&email=${encodeURIComponent(invitation.data.email)}`}
-                    >
-                      Create an account and join <ArrowRight size={16} />
-                    </Link>
-                  </Button>
-                  <Button asChild variant="secondary" className="button-full">
-                    <Link
-                      href={`/login?next=${encodeURIComponent(next)}&email=${encodeURIComponent(invitation.data.email)}`}
-                    >
-                      Log in to accept
-                    </Link>
-                  </Button>
-                </div>
-              )}
-            </>
-          )
-        )}
-      </div>
-    </main>
+                  ) : (
+                    <>
+                      <p className="text-muted">
+                        You’re signed in as {me.data.email}. Switch to the
+                        invited account to join.
+                      </p>
+                      <Button
+                        className="button-full"
+                        onClick={() => logout.mutate()}
+                        disabled={logout.isPending}
+                      >
+                        Switch account
+                      </Button>
+                    </>
+                  )
+                ) : (
+                  <div className="stack">
+                    <Button asChild className="button-full">
+                      <Link
+                        href={`/signup?next=${encodeURIComponent(next)}&email=${encodeURIComponent(invitation.data.email)}`}
+                      >
+                        Create an account and join <ArrowRight size={16} />
+                      </Link>
+                    </Button>
+                    <Button asChild variant="secondary" className="button-full">
+                      <Link
+                        href={`/login?next=${encodeURIComponent(next)}&email=${encodeURIComponent(invitation.data.email)}`}
+                      >
+                        I already have an account
+                      </Link>
+                    </Button>
+                  </div>
+                )}
+              </>
+            )
+          )}
+        </div>
+      </main>
+    </div>
   );
 }

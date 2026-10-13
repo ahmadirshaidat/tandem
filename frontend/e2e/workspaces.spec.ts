@@ -16,7 +16,13 @@ test("two users register, create a workspace, accept an invite, and enforce role
   const suffix = `${Date.now()}`;
   const ownerEmail = `owner-${suffix}@example.com`;
   const viewerEmail = `viewer-${suffix}@example.com`;
+  await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/signup");
+  await page.screenshot({
+    path: "test-results/signup-desktop-light.png",
+    fullPage: true,
+    caret: "initial",
+  });
   await register(page, ownerEmail, "Team Owner");
   await expect(
     page.getByRole("heading", { name: "Your team starts here." }),
@@ -29,17 +35,32 @@ test("two users register, create a workspace, accept an invite, and enforce role
     .getByRole("button", { name: "Create workspace", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "A good place to begin." }),
+    page.getByRole("heading", { name: /^Welcome to/ }),
   ).toBeVisible();
+  await page.screenshot({
+    path: "test-results/getting-started-desktop-light.png",
+    fullPage: true,
+  });
   await page
     .getByRole("link", { name: "Invite your team", exact: true })
     .click();
+  await page.getByRole("button", { name: "Invite", exact: true }).click();
   await page.getByLabel("Their email address").fill(viewerEmail);
   await page.getByLabel("Role", { exact: true }).selectOption("viewer");
   await page.getByRole("button", { name: "Create invitation" }).click();
   const link = page.getByLabel("Invitation link", { exact: true });
   await expect(link).toBeVisible();
+  const oldUrl = await link.inputValue();
+  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await page.getByRole("button", { name: "Renew link", exact: true }).click();
+  await expect(link).toBeVisible();
   const url = await link.inputValue();
+  expect(url).not.toBe(oldUrl);
+  const oldToken = new URL(oldUrl).searchParams.get("token");
+  expect(
+    (await page.request.get(`/api/invitations/${oldToken}`)).status(),
+  ).toBe(410);
+  await page.getByRole("button", { name: "Done", exact: true }).click();
   const context = await browser.newContext();
   const viewer = await context.newPage();
   await viewer.goto(url);
@@ -54,14 +75,14 @@ test("two users register, create a workspace, accept an invite, and enforce role
     .getByRole("button", { name: "Accept invitation", exact: true })
     .click();
   await expect(
-    viewer.getByRole("heading", { name: "A good place to begin." }),
+    viewer.getByRole("heading", { name: /^Welcome to/ }),
   ).toBeVisible();
   await viewer.getByRole("link", { name: "Meet your team" }).click();
   await expect(viewer.getByText("Team Viewer (you)")).toBeVisible();
   await expect(
     viewer.getByRole("button", { name: "Create invitation" }),
   ).toHaveCount(0);
-  await viewer.getByRole("link", { name: "Settings", exact: true }).click();
+  await viewer.getByRole("link", { name: "General", exact: true }).click();
   await expect(
     viewer.getByRole("button", { name: "Save changes" }),
   ).toBeDisabled();
@@ -89,7 +110,7 @@ test("two users register, create a workspace, accept an invite, and enforce role
     .getByRole("button", { name: "Create workspace", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "A good place to begin." }),
+    page.getByRole("heading", { name: /^Welcome to/ }),
   ).toBeVisible();
   await page
     .getByRole("combobox", { name: "Switch workspace" })
@@ -111,6 +132,19 @@ test("two users register, create a workspace, accept an invite, and enforce role
     path: "test-results/members-mobile-dark.png",
     fullPage: true,
   });
+  await page.getByRole("button", { name: "Invite", exact: true }).click();
+  const inviteSheet = page.getByRole("dialog", { name: "Invite a teammate" });
+  await expect(inviteSheet).toBeVisible();
+  await expect(page.getByLabel("Their email address")).toBeFocused();
+  await page.screenshot({
+    path: "test-results/invite-mobile-dark.png",
+    fullPage: true,
+  });
+  await page.keyboard.press("Escape");
+  await expect(inviteSheet).not.toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Invite", exact: true }),
+  ).toBeFocused();
   await page.goto("/ai");
   await expect(
     page.getByRole("heading", { name: "A first conversation." }),
@@ -128,6 +162,18 @@ test("two users register, create a workspace, accept an invite, and enforce role
     path: "test-results/ai-trial-mobile-dark.png",
     fullPage: true,
   });
+  await page.goto("/settings");
+  await page.getByLabel("Workspace name").fill(`North ${suffix} revised`);
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(
+    page.getByText("Workspace updated.", { exact: true }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: "test-results/settings-mobile-dark.png",
+    fullPage: true,
+  });
+  await page.goto("/");
+  await expect(page.locator(".setup-progress > span")).toHaveText("3 of 4");
   await context.close();
 });
 
@@ -137,7 +183,10 @@ test("mobile login is usable at 390px and respects dark mode", async ({
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/login");
   await expect(
-    page.getByRole("heading", { name: "Good to see you again." }),
+    page.getByRole("button", { name: "Continue with Google" }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("heading", { name: "Welcome back" }),
   ).toBeVisible();
   await expect(page.getByLabel("Email address")).toBeVisible();
   expect(
@@ -156,4 +205,13 @@ test("mobile login is usable at 390px and respects dark mode", async ({
     path: "test-results/mobile-login-dark.png",
     fullPage: true,
   });
+  await page.setViewportSize({ width: 844, height: 390 });
+  await expect(
+    page.getByRole("button", { name: "Log in", exact: true }),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
 });

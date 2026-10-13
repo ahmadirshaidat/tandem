@@ -7,14 +7,14 @@ import {
   ArrowRight,
   Check,
   ChevronRight,
-  CircleCheck,
+  ChevronLeft,
+  ChevronDown,
   Copy,
   FolderPlus,
   Home,
   LogOut,
   Plus,
   Settings,
-  ShieldCheck,
   UserPlus,
   Users,
   Sparkles,
@@ -115,7 +115,9 @@ export function WorkspaceApp({ section }: { section: Section }) {
   const user = me.data;
   const picker = (id: string) => (
     <div className="workspace-picker">
-      <Label htmlFor={id}>Workspace</Label>
+      <Label htmlFor={id} className="sr-only">
+        Workspace
+      </Label>
       <select
         id={id}
         className="input"
@@ -133,16 +135,40 @@ export function WorkspaceApp({ section }: { section: Section }) {
     </div>
   );
   return (
-    <div className="app-shell">
+    <div
+      className={`app-shell ${section === "home" && workspace ? "app-shell-with-aside" : ""} ${section === "settings" || section === "members" ? "settings-shell" : ""}`}
+    >
       <aside className="sidebar">
-        <Logo />
-        {picker("desktop-workspace-select")}
+        {(section === "settings" || section === "members") && workspace ? (
+          <Link href="/" className="workspace-back">
+            <ChevronLeft size={18} />
+            Back to {workspace.name}
+          </Link>
+        ) : (
+          <div className="workspace-identity">
+            <span className="workspace-avatar">
+              {workspace?.name.slice(0, 1).toUpperCase() ?? "T"}
+            </span>
+            <div className="workspace-identity-text">
+              {picker("desktop-workspace-select")}
+              <span className="text-small text-muted">
+                {workspace ? roleLabels[workspace.role] : "Your account"}
+              </span>
+            </div>
+          </div>
+        )}
+        {(section === "settings" || section === "members") && (
+          <div className="settings-workspace-picker">
+            {picker("desktop-workspace-select")}
+          </div>
+        )}
         <Button asChild variant="ghost">
           <Link href="/workspaces/new">
             <Plus size={16} /> New workspace
           </Link>
         </Button>
         <nav className="sidebar-nav" aria-label="Main navigation">
+          <div className="nav-group-label">Workspace</div>
           {nav.map(({ href, section: key, label, Icon }) => (
             <Link
               className="nav-item"
@@ -151,20 +177,34 @@ export function WorkspaceApp({ section }: { section: Section }) {
               aria-current={section === key ? "page" : undefined}
             >
               <Icon size={18} />
-              {label}
+              {key === "settings" &&
+              (section === "settings" || section === "members")
+                ? "General"
+                : label}
             </Link>
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <ThemeToggle />
+          <Link href="/ai" className="sidebar-agent">
+            <span className="agent-avatar">
+              <Sparkles size={16} />
+            </span>
+            <span>
+              <strong>Try AI</strong>
+              <span className="text-small">Your AI teammate</span>
+            </span>
+          </Link>
           <div className="row sidebar-user">
             <span className="avatar">
               {user.name.slice(0, 2).toUpperCase()}
             </span>
             <div>
               <div className="sidebar-user-name">{user.name}</div>
-              <div className="text-small text-muted">{user.email}</div>
+              <div className="text-small text-muted">
+                {workspace ? roleLabels[workspace.role] : user.email}
+              </div>
             </div>
+            <ThemeToggle />
           </div>
           <Button
             variant="ghost"
@@ -177,8 +217,21 @@ export function WorkspaceApp({ section }: { section: Section }) {
         </div>
       </aside>
       <main className="main-panel">
-        <header className="app-header row-between">
-          <Logo />
+        <header className="app-header mobile-app-header row-between">
+          {section === "settings" || section === "members" ? (
+            <div className="row">
+              <Link
+                href="/"
+                className="mobile-back"
+                aria-label="Back to workspace"
+              >
+                <ChevronLeft size={20} />
+              </Link>
+              <h1>{section === "members" ? "Members" : "Settings"}</h1>
+            </div>
+          ) : (
+            <Logo />
+          )}
           <div className="row">
             <span className="chip">
               {workspace ? roleLabels[workspace.role] : "Your account"}
@@ -186,8 +239,22 @@ export function WorkspaceApp({ section }: { section: Section }) {
             <ThemeToggle />
           </div>
         </header>
-        <div className="content">
-          <div className="mobile-workspace">
+        {(section === "settings" || section === "members") && workspace && (
+          <header className="settings-header">
+            <h1>{section === "settings" ? "General" : "Members"}</h1>
+            <p>
+              {section === "settings"
+                ? "Manage how your workspace looks and where it lives."
+                : "Invite teammates and decide what each role can do."}
+            </p>
+          </header>
+        )}
+        <div className={`content ${section === "home" ? "home-content" : ""}`}>
+          <details className="mobile-workspace">
+            <summary>
+              {workspace?.name ?? "Your account"}
+              <ChevronDown size={16} />
+            </summary>
             {picker("mobile-workspace-select")}
             <div className="row-between">
               <Link href="/workspaces/new" className="button button-ghost">
@@ -202,7 +269,7 @@ export function WorkspaceApp({ section }: { section: Section }) {
               </Button>
             </div>
             <ErrorNotice error={logout.error} />
-          </div>
+          </details>
           {section === "new" ? (
             <CreateWorkspace user={user} />
           ) : !workspace ? (
@@ -213,14 +280,43 @@ export function WorkspaceApp({ section }: { section: Section }) {
             <AITrialPage key={workspace.id} workspace={workspace} />
           ) : section === "settings" ? (
             <WorkspaceSettings
-              key={`${workspace.id}:${workspace.name}`}
+              key={workspace.id}
               workspace={workspace}
+              user={user}
             />
           ) : (
             <GettingStarted workspace={workspace} user={user} />
           )}
         </div>
       </main>
+      {section === "home" && workspace && (
+        <aside className="context-panel" aria-label="AI teammate">
+          <div className="card context-card">
+            <div className="row">
+              <span className="agent-avatar">
+                <Sparkles size={16} />
+              </span>
+              <div>
+                <strong>Your AI teammate</strong>
+                <p className="text-small text-muted">
+                  Start a first conversation
+                </p>
+              </div>
+            </div>
+            <p>Start with a small question:</p>
+            <ul className="prompt-ideas">
+              <li>Help me break down a task</li>
+              <li>Explain a piece of code</li>
+              <li>Draft a short team update</li>
+            </ul>
+            <Button asChild variant="secondary" className="button-full">
+              <Link href="/ai">
+                Open Try AI <ArrowRight size={16} />
+              </Link>
+            </Button>
+          </div>
+        </aside>
+      )}
       <nav className="mobile-tabs" aria-label="Main navigation">
         {nav.map(({ href, section: key, label, Icon }) => (
           <Link
@@ -311,97 +407,102 @@ function GettingStarted({
     queryFn: () => api<Member[]>(`/workspaces/${workspace.id}/members`),
   });
   const canManage = ["owner", "admin"].includes(workspace.role);
+  const configured = useSyncExternalStore(
+    subscribeSelection,
+    () =>
+      localStorage.getItem(`tandem-configured:${user.id}:${workspace.id}`) ===
+      "true",
+    () => false,
+  );
+  const trials = useQuery({
+    queryKey: ["ai-trials", workspace.id],
+    queryFn: () =>
+      api<{ status: string }[]>(`/workspaces/${workspace.id}/ai/trials`),
+    enabled: canManage,
+  });
+  const hasTeammate = (members.data?.length ?? 0) > 1;
+  const steps = [
+    {
+      title: "Create your workspace",
+      description: `${workspace.name} is ready.`,
+      complete: true,
+    },
+    {
+      title: "Invite a teammate",
+      description: hasTeammate
+        ? `${members.data!.length} people are working together.`
+        : "Work is better with two. Add someone by email or link.",
+      complete: hasTeammate,
+      href: "/members",
+      action: canManage ? "Invite your team" : "Meet your team",
+    },
+    {
+      title: "Make it your own",
+      description: "Give your workspace a name your whole team knows.",
+      complete: configured,
+      href: "/settings",
+      action: "Workspace settings",
+    },
+    {
+      title: "Ask your AI teammate",
+      description: canManage
+        ? "Start a conversation with a small question of your own."
+        : "An Admin or Owner can start an AI conversation.",
+      complete:
+        trials.data?.some((trial) => trial.status === "completed") ?? false,
+      href: canManage ? "/ai" : undefined,
+      action: "Try AI",
+    },
+  ];
+  const complete = steps.filter((step) => step.complete).length;
   return (
     <>
-      <div className="page-heading row-between">
-        <div>
-          <div className="eyebrow">{workspace.name}</div>
-          <h1>A good place to begin.</h1>
-          <p>
-            Welcome, {user.name.split(" ")[0]}. Let’s bring your people
-            together.
-          </p>
-        </div>
-        <span className="chip chip-agent">
-          <CircleCheck size={14} /> Workspace created
-        </span>
+      <div className="page-heading">
+        <div className="eyebrow sr-only">{workspace.name}</div>
+        <h1>
+          Welcome to {workspace.name}, {user.name.split(" ")[0]}
+        </h1>
+        <p>Get your people and your workspace ready to work together.</p>
       </div>
-      <div className="welcome">
-        <div>
-          <span className="chip chip-brand">Your team, your workspace</span>
-          <h2 style={{ marginTop: 20 }}>
-            Great work starts
-            <br />
-            with the right people.
-          </h2>
-          <p className="text-muted">
-            Invite your teammates and give everyone the access they need. You’re
-            building this together.
-          </p>
-          <Button asChild>
-            <Link href="/members">
-              <UserPlus size={16} />
-              {canManage ? "Invite your team" : "Meet your team"}
-            </Link>
-          </Button>
-        </div>
-        <div className="welcome-art" aria-hidden="true">
-          <div className="card">
-            <div className="row">
-              <span className="avatar">
-                {workspace.name.slice(0, 2).toUpperCase()}
-              </span>
-              <strong>{workspace.name}</strong>
-            </div>
-            <div className="mini-line" />
-            <div className="mini-line" style={{ width: "70%" }} />
-            <div className="row" style={{ marginTop: 20 }}>
-              <span className="chip chip-agent">
-                <Check size={14} /> Ready to connect
-              </span>
-            </div>
-          </div>
-        </div>
+      <div className="setup-progress">
+        <progress
+          aria-label="Workspace setup progress"
+          value={complete}
+          max={4}
+        />
+        <span>{complete} of 4</span>
       </div>
       <ErrorNotice error={members.error} />
-      <div className="onboarding-grid">
-        <div className="card onboarding-card">
-          <span className="icon-circle">
-            <Users />
-          </span>
-          <h3>Bring everyone into the loop.</h3>
-          <p>
-            {members.data
-              ? `${members.data.length} ${members.data.length === 1 ? "person has" : "people have"} joined ${workspace.name}.`
-              : "Loading your team…"}{" "}
-            Give each teammate a role that fits how they work.
-          </p>
-          <Button asChild variant="secondary">
-            <Link href="/members">
-              View members <ChevronRight size={16} />
-            </Link>
-          </Button>
-        </div>
-        <div className="card onboarding-card">
-          <span className="icon-circle">
-            <ShieldCheck />
-          </span>
-          <h3>Make it feel like your team.</h3>
-          <p>
-            A clear workspace name and the right permissions help everyone feel
-            at home.
-          </p>
-          <Button asChild variant="secondary">
-            <Link href="/settings">
-              Workspace settings <ChevronRight size={16} />
-            </Link>
-          </Button>
-        </div>
+      <div className="setup-steps">
+        {steps.map((step) => (
+          <section className="card setup-step" key={step.title}>
+            <span
+              className={`step-check ${step.complete ? "step-complete" : ""}`}
+            >
+              {step.complete && <Check size={18} aria-label="Complete" />}
+            </span>
+            <div className="setup-step-copy">
+              <h3>{step.title}</h3>
+              <p>{step.description}</p>
+            </div>
+            {step.href && (
+              <Button asChild variant="secondary">
+                <Link href={step.href}>{step.action}</Link>
+              </Button>
+            )}
+          </section>
+        ))}
       </div>
     </>
   );
 }
-function WorkspaceSettings({ workspace }: { workspace: Workspace }) {
+function WorkspaceSettings({
+  workspace,
+  user,
+}: {
+  workspace: Workspace;
+  user: User;
+}) {
   const client = useQueryClient();
   const [saved, setSaved] = useState(false);
   const canManage = ["owner", "admin"].includes(workspace.role);
@@ -413,21 +514,28 @@ function WorkspaceSettings({ workspace }: { workspace: Workspace }) {
       }),
     onSuccess: async () => {
       setSaved(true);
+      localStorage.setItem(
+        `tandem-configured:${user.id}:${workspace.id}`,
+        "true",
+      );
+      window.dispatchEvent(new Event("tandem-workspace"));
       await client.invalidateQueries({ queryKey: ["workspaces"] });
     },
   });
   return (
     <>
-      <div className="page-heading">
-        <div className="eyebrow">WORKSPACE SETTINGS</div>
-        <h1>A little more yours.</h1>
-        <p>Manage the basics for {workspace.name}.</p>
-      </div>
-      <div className="card card-body form-card">
-        <h2>General</h2>
-        <p className="text-muted">
-          Your workspace name is visible to everyone on your team.
-        </p>
+      <div className="card card-body workspace-details">
+        <h2>Workspace</h2>
+        <p className="text-muted">Basic details your whole team sees.</p>
+        <div className="workspace-logo-row">
+          <span className="workspace-avatar">
+            {workspace.name.slice(0, 1).toUpperCase()}
+          </span>
+          <div>
+            <strong>{workspace.name}</strong>
+            <p className="text-small text-muted">Your shared workspace</p>
+          </div>
+        </div>
         <ErrorNotice error={mutation.error} />
         {saved && (
           <div role="status" className="notice">
@@ -450,15 +558,37 @@ function WorkspaceSettings({ workspace }: { workspace: Workspace }) {
             maxLength={80}
             disabled={!canManage}
           />
-          <Button type="submit" disabled={!canManage || mutation.isPending}>
-            {mutation.isPending ? "Saving…" : "Save changes"}
-          </Button>
+          <div className="settings-actions">
+            <Button
+              type="reset"
+              variant="secondary"
+              disabled={mutation.isPending}
+              onClick={() => setSaved(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={!canManage || mutation.isPending}>
+              {mutation.isPending ? "Saving…" : "Save changes"}
+            </Button>
+          </div>
           {!canManage && (
             <p className="text-small text-muted" style={{ marginTop: 16 }}>
               An Admin or Owner can update workspace settings.
             </p>
           )}
         </form>
+      </div>
+      <div className="card card-body ownership-card">
+        <h2>Ownership and access</h2>
+        <p className="text-muted">
+          Owners manage ownership. Admins can invite teammates and update their
+          roles.
+        </p>
+        <Button asChild variant="secondary">
+          <Link href="/members">
+            Manage members <ChevronRight size={16} />
+          </Link>
+        </Button>
       </div>
     </>
   );
@@ -471,46 +601,45 @@ function PermissionMatrix() {
   ];
   return (
     <>
-      <div className="section-heading">
-        <h2>A role for every kind of teammate.</h2>
-        <p className="text-muted">
-          Owners manage ownership. Admins manage the team. Editors and Viewers
-          cannot change members or roles.
+      <div className="card card-body permissions-card">
+        <h2>What each role can do</h2>
+        <p className="text-small text-muted">
+          Owners manage ownership. Admins manage the team.
         </p>
-      </div>
-      <div className="card table-scroll">
-        <table className="permission-table">
-          <caption className="sr-only">Workspace role permissions</caption>
-          <thead>
-            <tr>
-              <th scope="col">Permission</th>
-              <th scope="col">Owner / Admin</th>
-              <th scope="col">Editor / Developer</th>
-              <th scope="col">Viewer</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr key={row.name}>
-                <td>{row.name}</td>
-                {row.values.map((allowed, index) => (
-                  <td key={index}>
-                    {allowed ? (
-                      <span className="chip chip-success">
-                        <Check size={14} />
-                        Allowed
-                      </span>
-                    ) : (
-                      <span className="text-muted">
-                        —<span className="sr-only">Not allowed</span>
-                      </span>
-                    )}
-                  </td>
-                ))}
+        <div className="table-scroll">
+          <table className="permission-table">
+            <caption className="sr-only">Workspace role permissions</caption>
+            <thead>
+              <tr>
+                <th scope="col">Permission</th>
+                <th scope="col">Owner / Admin</th>
+                <th scope="col">Editor / Developer</th>
+                <th scope="col">Viewer</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr key={row.name}>
+                  <td>{row.name}</td>
+                  {row.values.map((allowed, index) => (
+                    <td key={index}>
+                      {allowed ? (
+                        <span className="chip chip-success">
+                          <Check size={14} />
+                          Allowed
+                        </span>
+                      ) : (
+                        <span className="text-muted">
+                          —<span className="sr-only">Not allowed</span>
+                        </span>
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </>
   );
@@ -522,6 +651,7 @@ function Members({ workspace, user }: { workspace: Workspace; user: User }) {
   const [inviteLink, setInviteLink] = useState("");
   const [copied, setCopied] = useState(false);
   const [copyError, setCopyError] = useState<Error | null>(null);
+  const [inviteOpen, setInviteOpen] = useState(false);
   const members = useQuery({
     queryKey: ["members", workspace.id],
     queryFn: () => api<Member[]>(`/workspaces/${workspace.id}/members`),
@@ -592,25 +722,24 @@ function Members({ workspace, user }: { workspace: Workspace; user: User }) {
     members.data?.filter((item) => item.role === "owner").length ?? 0;
   return (
     <>
-      <div className="page-heading row-between">
-        <div>
-          <div className="eyebrow">{workspace.name} / PEOPLE</div>
-          <h1>Your people. In one place.</h1>
-          <p>Build a team where everyone knows their role.</p>
-        </div>
-        <span className="chip">{members.data?.length ?? "…"} members</span>
-      </div>
-      <ErrorNotice error={members.error ?? changeRole.error ?? revoke.error} />
-      {canManage ? (
-        <div className="card card-body" style={{ marginBottom: 24 }}>
-          <h2>Invite someone to the team.</h2>
-          <p className="text-muted">
-            Create a personal link, then share it with your teammate. It expires
-            in 7 days.
-          </p>
+      <ErrorNotice
+        error={
+          members.error ?? changeRole.error ?? revoke.error ?? invite.error
+        }
+      />
+      {canManage && (
+        <ConfirmDialog
+          open={inviteOpen}
+          onOpenChange={(open) => {
+            if (!invite.isPending) setInviteOpen(open);
+          }}
+          title="Invite a teammate"
+          description="Create a personal link to share with your teammate. It expires in 7 days."
+          actions={false}
+        >
           <ErrorNotice error={invite.error} />
           <form
-            className="invite-form"
+            className="invite-dialog-form"
             onSubmit={(event) => {
               event.preventDefault();
               invite.mutate(new FormData(event.currentTarget));
@@ -637,10 +766,19 @@ function Members({ workspace, user }: { workspace: Workspace; user: User }) {
                 <option value="viewer">Viewer</option>
               </select>
             </div>
-            <Button type="submit" disabled={invite.isPending}>
-              <UserPlus size={16} />
-              {invite.isPending ? "Creating…" : "Create invitation"}
-            </Button>
+            <div className="dialog-actions">
+              <Button
+                variant="secondary"
+                disabled={invite.isPending}
+                onClick={() => setInviteOpen(false)}
+              >
+                {inviteLink ? "Done" : "Cancel"}
+              </Button>
+              <Button type="submit" disabled={invite.isPending}>
+                <UserPlus size={16} />
+                {invite.isPending ? "Creating…" : "Create invitation"}
+              </Button>
+            </div>
           </form>
           {inviteLink && (
             <>
@@ -670,150 +808,199 @@ function Members({ workspace, user }: { workspace: Workspace; user: User }) {
               <ErrorNotice error={copyError} />
             </>
           )}
-        </div>
-      ) : (
-        <div className="notice">
-          An Admin or Owner can invite teammates and manage roles.
-        </div>
+        </ConfirmDialog>
       )}
-      <div className="card table-scroll">
-        <div
-          className="member-table"
-          role="table"
-          aria-label="Workspace members"
-        >
-          <div className="table-row table-head" role="row">
-            <span role="columnheader">Member</span>
-            <span role="columnheader">Role</span>
-            <span role="columnheader">Actions</span>
-          </div>
-          {members.isPending && (
-            <p role="status" className="card-body text-muted">
-              Loading members…
+      <div className="card members-card">
+        <div className="members-card-header row-between">
+          <div>
+            <h2>Members</h2>
+            <p className="text-small text-muted">
+              {members.data?.length ?? "…"}{" "}
+              {members.data?.length === 1 ? "member" : "members"} in{" "}
+              {workspace.name}.
             </p>
+          </div>
+          {canManage && (
+            <Button
+              onClick={() => {
+                invite.reset();
+                setInviteLink("");
+                setCopyError(null);
+                setInviteOpen(true);
+              }}
+            >
+              <Plus size={16} />
+              Invite
+            </Button>
           )}
-          {members.data?.map((member) => {
-            const protectedOwner =
-              member.role === "owner" &&
-              (workspace.role !== "owner" || ownerCount <= 1);
-            const canEdit = canManage && !protectedOwner;
-            return (
-              <div className="table-row" role="row" key={member.id}>
-                <div role="cell" className="row">
-                  <span className="avatar">
-                    {member.name.slice(0, 2).toUpperCase()}
-                  </span>
-                  <div>
-                    <div className="member-name">
-                      {member.name}
-                      {member.user_id === user.id ? " (you)" : ""}
+        </div>
+        <div className="table-scroll">
+          <div
+            className="member-table"
+            role="table"
+            aria-label="Workspace members"
+          >
+            <div className="table-row table-head" role="row">
+              <span role="columnheader">Member</span>
+              <span role="columnheader">Role</span>
+              <span role="columnheader">Actions</span>
+            </div>
+            {members.isPending && (
+              <p role="status" className="card-body text-muted">
+                Loading members…
+              </p>
+            )}
+            {members.data?.map((member) => {
+              const protectedOwner =
+                member.role === "owner" &&
+                (workspace.role !== "owner" || ownerCount <= 1);
+              const canEdit = canManage && !protectedOwner;
+              return (
+                <div className="table-row" role="row" key={member.id}>
+                  <div role="cell" className="row">
+                    <span
+                      className={`avatar avatar-color-${(members.data!.indexOf(member) % 3) + 1}`}
+                    >
+                      {member.name.slice(0, 1).toUpperCase()}
+                    </span>
+                    <div>
+                      <div className="member-name">
+                        {member.name}
+                        {member.user_id === user.id ? " (you)" : ""}
+                      </div>
+                      <div className="text-small text-muted">
+                        {member.email}
+                      </div>
                     </div>
-                    <div className="text-small text-muted">{member.email}</div>
+                  </div>
+                  <div role="cell">
+                    {canEdit ? (
+                      <>
+                        <Label
+                          htmlFor={`role-${member.id}`}
+                          className="sr-only"
+                        >
+                          Role for {member.name}
+                        </Label>
+                        <select
+                          id={`role-${member.id}`}
+                          className="input role-select"
+                          value={member.role}
+                          disabled={changeRole.isPending || remove.isPending}
+                          onChange={(event) =>
+                            changeRole.mutate({
+                              member,
+                              role: event.target.value as Role,
+                            })
+                          }
+                        >
+                          {Object.entries(roleLabels)
+                            .filter(
+                              ([role]) =>
+                                role !== "owner" || workspace.role === "owner",
+                            )
+                            .map(([role, label]) => (
+                              <option key={role} value={role}>
+                                {label}
+                              </option>
+                            ))}
+                        </select>
+                      </>
+                    ) : (
+                      <span className="chip chip-brand">
+                        {roleLabels[member.role]}
+                      </span>
+                    )}
+                  </div>
+                  <div role="cell">
+                    {canEdit ? (
+                      <Button
+                        variant="ghost"
+                        aria-label={`Remove ${member.name}`}
+                        onClick={() => {
+                          remove.reset();
+                          setRemoveTarget(member);
+                        }}
+                      >
+                        Remove
+                      </Button>
+                    ) : (
+                      <span className="text-small text-muted member-protection">
+                        {protectedOwner && ownerCount <= 1 ? "Last Owner" : "—"}
+                      </span>
+                    )}
                   </div>
                 </div>
-                <div role="cell">
-                  {canEdit ? (
-                    <>
-                      <Label htmlFor={`role-${member.id}`} className="sr-only">
-                        Role for {member.name}
-                      </Label>
-                      <select
-                        id={`role-${member.id}`}
-                        className="input role-select"
-                        value={member.role}
-                        disabled={changeRole.isPending || remove.isPending}
-                        onChange={(event) =>
-                          changeRole.mutate({
-                            member,
-                            role: event.target.value as Role,
-                          })
-                        }
-                      >
-                        {Object.entries(roleLabels)
-                          .filter(
-                            ([role]) =>
-                              role !== "owner" || workspace.role === "owner",
-                          )
-                          .map(([role, label]) => (
-                            <option key={role} value={role}>
-                              {label}
-                            </option>
-                          ))}
-                      </select>
-                    </>
-                  ) : (
-                    <span className="chip chip-brand">
-                      {roleLabels[member.role]}
-                    </span>
-                  )}
-                </div>
-                <div role="cell">
-                  {canEdit ? (
-                    <Button
-                      variant="ghost"
-                      aria-label={`Remove ${member.name}`}
-                      onClick={() => {
-                        remove.reset();
-                        setRemoveTarget(member);
-                      }}
-                    >
-                      Remove
-                    </Button>
-                  ) : (
-                    <span className="text-small text-muted">
-                      {protectedOwner && ownerCount <= 1 ? "Last Owner" : "—"}
-                    </span>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
       {canManage && (
         <>
-          <div className="section-heading">
-            <h2>Invitations</h2>
-            <p className="text-muted">
+          <div className="card card-body pending-card">
+            <h2>Pending invitations</h2>
+            <p className="text-small text-muted">
               Only the invited email address can use each link.
             </p>
-          </div>
-          <div className="card card-body">
             <ErrorNotice error={invitations.error} />
             {invitations.isPending ? (
               <p role="status">Loading invitations…</p>
-            ) : !invitations.data?.length ? (
+            ) : !invitations.data?.some(
+                (item) =>
+                  item.status === "pending" || item.status === "expired",
+              ) ? (
               <p className="text-muted" style={{ margin: 0 }}>
-                No invitations yet. Your next teammate could be one link away.
+                No pending invitations. Your next teammate could be one link
+                away.
               </p>
             ) : (
-              invitations.data.map((item) => (
-                <div className="invitation-item" key={item.id}>
-                  <div>
-                    <div className="member-name">{item.email}</div>
-                    <div className="text-small text-muted">
-                      {roleLabels[item.role]} · Expires{" "}
-                      {new Date(item.expires_at).toLocaleDateString()}
+              invitations.data
+                ?.filter(
+                  (item) =>
+                    item.status === "pending" || item.status === "expired",
+                )
+                .map((item) => (
+                  <div className="invitation-item" key={item.id}>
+                    <div>
+                      <div className="member-name">{item.email}</div>
+                      <div className="text-small text-muted">
+                        {roleLabels[item.role]} · Expires{" "}
+                        {new Date(item.expires_at).toLocaleDateString()}
+                      </div>
+                    </div>
+                    <div className="row">
+                      <span
+                        className={`chip ${item.status === "accepted" ? "chip-success" : "chip-warning"}`}
+                      >
+                        {item.status}
+                      </span>
+                      <Button
+                        variant="secondary"
+                        disabled={invite.isPending || revoke.isPending}
+                        onClick={() => {
+                          const form = new FormData();
+                          form.set("email", item.email);
+                          form.set("role", item.role);
+                          invite.mutate(form, {
+                            onSuccess: () => setInviteOpen(true),
+                          });
+                        }}
+                      >
+                        Renew link
+                      </Button>
+                      {item.status === "pending" && (
+                        <Button
+                          variant="ghost"
+                          disabled={revoke.isPending}
+                          onClick={() => revoke.mutate(item.id)}
+                        >
+                          Revoke
+                        </Button>
+                      )}
                     </div>
                   </div>
-                  <div className="row">
-                    <span
-                      className={`chip ${item.status === "accepted" ? "chip-success" : "chip-warning"}`}
-                    >
-                      {item.status}
-                    </span>
-                    {item.status === "pending" && (
-                      <Button
-                        variant="ghost"
-                        disabled={revoke.isPending}
-                        onClick={() => revoke.mutate(item.id)}
-                      >
-                        Revoke
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ))
+                ))
             )}
           </div>
         </>
