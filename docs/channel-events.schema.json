@@ -1,0 +1,125 @@
+{
+  "event": {
+    "properties": {
+      "type": {
+        "enum": [
+          "message.created",
+          "message.updated",
+          "message.deleted",
+          "thread.reply_created",
+          "channel.created",
+          "channel.updated",
+          "channel.archived",
+          "member.joined",
+          "member.left",
+          "presence.update",
+          "typing.start",
+          "typing.stop",
+          "read.updated",
+          "error"
+        ],
+        "title": "Type",
+        "type": "string"
+      },
+      "workspace_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Workspace Id"
+      },
+      "channel_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Channel Id"
+      },
+      "seq": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Seq"
+      },
+      "data": {
+        "additionalProperties": true,
+        "title": "Data",
+        "type": "object"
+      }
+    },
+    "required": [
+      "type",
+      "data"
+    ],
+    "title": "SocketEvent",
+    "type": "object"
+  },
+  "command": {
+    "properties": {
+      "type": {
+        "enum": [
+          "subscribe",
+          "unsubscribe",
+          "ping",
+          "typing.start",
+          "typing.stop"
+        ],
+        "title": "Type",
+        "type": "string"
+      },
+      "workspace_id": {
+        "anyOf": [
+          {
+            "maxLength": 36,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Workspace Id"
+      },
+      "channel_id": {
+        "anyOf": [
+          {
+            "maxLength": 36,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Channel Id"
+      },
+      "last_seq": {
+        "default": 0,
+        "minimum": 0,
+        "title": "Last Seq",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "type"
+    ],
+    "title": "SocketCommand",
+    "type": "object"
+  }
+}

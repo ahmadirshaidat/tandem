@@ -1,0 +1,13 @@
+# ADR 0005: Transactional event sequences and exact catch-up
+
+Status: accepted for Slice 2.
+
+A message creation sequence alone cannot replay a missed edit or deletion. Add workspace-scoped `channel_events` alongside the requested entities. All durable changes increment `channels.last_seq` and insert their event in the same transaction. A message's `seq` is its creation event's sequence and never changes. Edits, deletions, replies and read/member changes consume later event numbers; gaps between message creation numbers are expected.
+
+Writes acquire the workspace row lock before the channel row lock, matching existing workspace membership mutations. PostgreSQL uniqueness enforces `(channel_id, seq)` for messages and events and `(channel_id, author_id, client_message_id)` for sends. Concurrent retry returns the same saved message with HTTP 200, even after archiving. New sends return 201. The client UUID is retained for failed-send retries and optimistic acknowledgement.
+
+The gateway stores only each connection's last emitted cursor, queries journal rows greater than that cursor ordered ascending in bounded batches, and advances after transmission. Replay and live delivery use the same path under a connection lock. The in-memory fan-out only wakes readers: it cannot race separate replay/live streams or lose a committed event on a restart. Clients ignore already-seen event sequences and deduplicate message IDs/client IDs. History reads its watermark before rows, so a concurrent commit is replayed; overlapping message snapshots are upserts.
+
+Every new workspace gets a public `general`. The migration backfills existing Slice 1 workspaces and joins existing members without replacing their account/workspace data. Invitations join all public channels. Public membership tracks participation; leaving does not hide a public channel from a workspace member. Private channels require explicit membership, including for Owners/Admins; a channel keeps at least one managing member. Workspace removal cascades channel memberships/read state so reinvitation cannot resurrect private access.
+
+Every workspace-owned table has a workspace foreign key/index; compound foreign keys enforce message/thread/attachment channel scope. `channels.project_id` is nullable text with no foreign key because projects are Slice 3. Events retain authorized conversation snapshots, including old versions; retention/compaction must eventually define a snapshot-reset protocol. No arbitrary event truncation can silently invalidate reconnect cursors. @Agent is a stored mention only and never calls a provider.

@@ -46,6 +46,10 @@ def isolated_state(migrated_database, tmp_path):
         connection.execute(text(f"TRUNCATE {tables} CASCADE"))
     limiter.hits.clear()
     settings.mail_outbox = tmp_path / "mail"
+    settings.attachment_dir = tmp_path / "attachments"
+    from app.channels.service import send_limiter
+
+    send_limiter.hits.clear()
     yield
 
 

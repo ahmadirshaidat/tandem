@@ -23,6 +23,12 @@ class Settings(BaseSettings):
     smtp_user: str | None = None
     smtp_password: str | None = None
     mail_from: str = "Tandem <no-reply@localhost>"
+    attachment_dir: Path = ROOT / ".local" / "attachments"
+    message_requests_per_minute: int = Field(default=60, ge=1, le=600)
+    ws_connections_per_user: int = Field(default=5, ge=1, le=50)
+    ws_connections_per_ip: int = Field(default=30, ge=1, le=300)
+    ws_frames_per_minute: int = Field(default=120, ge=10, le=1200)
+    ws_idle_seconds: int = Field(default=60, ge=10, le=600)
     groq_api_key: SecretStr | None = None
     deepseek_api_key: SecretStr | None = None
     gemini_api_key: SecretStr | None = None

@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.channels.service import default_channel, join_public
 from app.core.config import settings
 from app.core.db import get_db
 from app.core.models import Invitation, Membership, User, Workspace, new_id
@@ -62,6 +63,7 @@ def create_workspace(
     db.add(workspace)
     db.flush()
     db.add(Membership(workspace_id=workspace.id, user_id=user.id, role="owner"))
+    default_channel(db, workspace.id, user.id)
     db.commit()
     return workspace_out(workspace, "owner")
 
@@ -291,6 +293,8 @@ def accept_invitation(
     if existing:
         raise HTTPException(409, "You are already a member of this workspace")
     db.add(Membership(workspace_id=item.workspace_id, user_id=user.id, role=item.role))
+    db.flush()
+    join_public(db, item.workspace_id, user.id)
     item.accepted_at = now()
     workspace = db.get(Workspace, item.workspace_id)
     db.commit()
