@@ -46,6 +46,7 @@ Documentation and tools: ADRs 0008–0011 (numbering, ordering, links, optimisti
 | Extended task flow with source message older than 50-message history | Passed separately (7.9 s) |
 | Production Docker cloud build/start | Passed; database/backend healthy |
 | Native-mode `node infra/dev.mjs --skip-install --skip-build --no-open` | Passed in a task-owned Linux fixture on 3001/8001/5433, using a freshly verified backend image and installed dependencies |
+| Cloud launcher reuse, `--cloud --skip-install --skip-build --no-open` | Passed; existing project/API ready at localhost:3000/login |
 | Native-mode browser, 390 px | Real signup/workspace and UI-created project/task passed; X-Tandem-Project was tandem-workspace-v1 |
 
 The task tests verify concurrent numbering, concurrent edits/moves, activity values/actors, normal single-card reordering, rollback of invalid/bulk operations, roles, workspace isolation, private link filtering, channel/project scope, removal/unassignment, archive/deletion and read-only agent inputs. The live test checks ordered replay after missed edit/create/link events, privacy of event payloads, deduplication and membership revocation. Browser tests use two independent sessions for creates, edits, moves, assignment, comments, both conflict choices, reconnect, private-link Viewer behavior, keyboard/touch/drag flows, mobile/landscape, dark mode and offline reload of board/table/details.
@@ -80,7 +81,7 @@ Actual synthetic data from browser acceptance and native-mode checks, using the 
 
 ## Remote CI
 
-Slice 2's repaired GitHub run is verified green as linked above. Slice 3's final pushed run will be checked on GitHub; verification is pending while this report is prepared. No unobserved run is claimed green.
+Slice 3 GitHub run [38630125874](https://github.com/ahmadirshaidat/tandem/actions/runs/38630125874), on `3a2122eaf7f982d8b05c7b2dfd62d790250deccc`, completed successfully. This includes backend integration, shared schema, frontend checks/build and all browser flows with the corrected production server. This report-only follow-up records the observed result; the latest documentation commit is also checked before delivery.
 
 ## Limits, risks and open questions
 
