@@ -88,3 +88,7 @@ node infra/dev.mjs
 The launcher opens `http://localhost:3001/login`. Sign up, create a workspace and open **Chat**. Keep the terminal open. If this new folder already exists, update that verified new repository; do not clone over it or pull into the older unrelated Tandem project. Local provider credentials are optional for Slice 2 and do not transfer from this cloud machine.
 
 Reusable cloud installation/start instructions and the current repository commit are saved in the environment draft for review. Saving does not apply or publish it; use environment settings Review/Save/Publish for future tasks. Actual secrets are never included in those instructions.
+
+## CI follow-up before Slice 3
+
+GitHub run `38553394965` on `9a58536` passed backend, schema and frontend checks, but failed the browser suite. The workflow started Next in development mode while the channel acceptance test required a production service worker for offline reload. Reproducing the suite with `CI=true` and no pre-existing server failed at `page.reload` with `ERR_INTERNET_DISCONNECTED`. The Playwright server command now uses `npm run start`, following the build step already present in CI. Remote verification is recorded after the replacement run completes; the original local production results do not prove the original CI configuration was green.

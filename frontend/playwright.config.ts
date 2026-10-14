@@ -13,7 +13,8 @@ export default defineConfig({
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
-    command: "npm run dev",
+    // Offline reloads use the production service worker; build before this suite.
+    command: "npm run start",
     url: "http://localhost:3000/login",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

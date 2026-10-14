@@ -148,6 +148,6 @@ backend/.venv/bin/python infra/export_events.py --check
 backend/.venv/bin/python infra/measure_channels.py --origin http://localhost:3000
 ```
 
-On Windows use `backend\.venv\Scripts\python.exe` if running Python checks natively, and `--origin http://localhost:3001` for the desktop launcher. The benchmark creates synthetic accounts/workspace, sends 30 messages between two real WebSocket clients through Next.js, loads history 20 times, and prints timing JSON. It never calls a provider. Browser tests include two sessions, exact reconnect replay, image lightbox, XSS, offline reload/drafts, and 390 px/landscape layouts.
+On Windows use `backend\.venv\Scripts\python.exe` if running Python checks natively, and `--origin http://localhost:3001` for the desktop launcher. The benchmark creates synthetic accounts/workspace, sends 30 messages between two real WebSocket clients through Next.js, loads history 20 times, and prints timing JSON. It never calls a provider. Browser tests include two sessions, exact reconnect replay, image lightbox, XSS, offline reload/drafts, and 390 px/landscape layouts. Playwright starts the production server: run `npm run build` before `npm run test:e2e`, as CI already does.
 
 See [the Slice 2 report](docs/SLICE2_REPORT.md) for actual validation and measurements, and ADRs [transport](docs/adr/0004-websocket-contract.md), [ordering](docs/adr/0005-channel-ordering.md), [images](docs/adr/0006-image-storage.md), and [fan-out](docs/adr/0007-event-fanout.md) for decisions and scale limits.
