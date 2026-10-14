@@ -1,6 +1,6 @@
 # Tandem
 
-An AI-native collaborative workspace for software teams. This repository implements **Slice 0 (foundation) and Slice 1 (authentication and workspaces)** from [the PRD](docs/PRD.md), with [the UI specification](docs/UI_SPEC.md). Development is on `v1`; `main` has not been created.
+An AI-native collaborative workspace for software teams. This repository implements **Slice 0 (foundation), Slice 1 (authentication and workspaces), and Slice 2 (real-time channels and messaging)** from [the PRD](docs/PRD.md), with [the UI specification](docs/UI_SPEC.md). Slice 2 is on `slice-2-channels`, branched from `v1`; `main` has not been created.
 
 ## Requirements
 
@@ -10,10 +10,10 @@ Python 3.12, [uv](https://docs.astral.sh/uv/), Node.js 24, Docker with Compose v
 
 ### Codex desktop / Windows
 
-This is the new **AI workspace** project at `ahmadirshaidat/tandem`, branch `v1`. An older local project named Tandem is a different project. Clone this repository into a **new folder** and open that folder in Codex desktop:
+This is the new **AI workspace** project at `ahmadirshaidat/tandem`, branch `slice-2-channels`. An older local project named Tandem is a different project. Clone this repository into a **new folder** and open that folder in Codex desktop:
 
 ```powershell
-git clone --branch v1 --single-branch https://github.com/ahmadirshaidat/tandem.git tandem-workspace-v1
+git clone --branch slice-2-channels --single-branch https://github.com/ahmadirshaidat/tandem.git tandem-workspace-v1
 cd tandem-workspace-v1
 ```
 
@@ -23,7 +23,7 @@ Ensure **Node.js 24** and **Docker Desktop** are installed with Docker running. 
 node infra/dev.mjs
 ```
 
-The launcher creates development configuration only if `.env` is missing, installs locked frontend dependencies, starts PostgreSQL and the backend with migrations, and starts the frontend. It opens **`http://localhost:3001/login`** only after checking this project's identity and its API. The new desktop project uses separate `tandem-workspace-v1` Docker containers/volumes, API port **8001**, and database port **5433**. It leaves an older project on port 3000 alone. Sign up, create a workspace, and invite your team. Keep the terminal open; Ctrl+C stops its frontend. Existing `.env` files and database data are preserved. Python and uv are only needed inside the backend container for this workflow.
+The launcher creates development configuration only if `.env` is missing, installs locked frontend dependencies, starts PostgreSQL and the backend with migrations, and starts the frontend. It opens **`http://localhost:3001/login`** only after checking this project's identity and its API. The new desktop project uses separate `tandem-workspace-v1` Docker containers/volumes, API port **8001**, and database port **5433**. It leaves an older project on port 3000 alone. Sign up, create a workspace, invite your team, and open Chat. Your new workspace includes #general. Keep the terminal open; Ctrl+C stops its frontend. Existing `.env` files and database data are preserved. Python and uv are only needed inside the backend container for this workflow.
 
 If this frontend is already running, the launcher refreshes the backend configuration and reuses it. It verifies the `X-Tandem-Project` header rather than identifying an app by its name alone. If port 3001 belongs to another app, it stops with an explanation instead of killing that app. Use `--no-open` to leave browser opening to Codex and `--skip-install` when dependencies are already installed. Local provider keys belong in this new folder's ignored `.env`; keys saved in a cloud workspace do not automatically appear on your computer.
 
@@ -126,4 +126,28 @@ PLAYWRIGHT_CHROMIUM_EXECUTABLE=/usr/bin/chromium npm run test:e2e
 
 Playwright starts Next.js if needed, but expects the backend to be running. Browser tests exercise two independent user sessions, invitations, role changes, workspace switching and a 390px mobile login. Backend tests cover all workspace routes for isolation, role boundaries, concurrent invitation acceptance, invalid/expired/replayed tokens, session revocation, CSRF, password reset and rate limiting. CI runs lint, tests, production build and browser tests against PostgreSQL.
 
-See [session strategy](docs/adr/0001-authentication-and-sessions.md) and [repository layout](docs/adr/0002-repository-layout.md). Next planned slice: real-time channels and messaging. Chat, tasks, agent, RAG, documents, marketing and billing are not implemented in these slices.
+See [session strategy](docs/adr/0001-authentication-and-sessions.md) and [repository layout](docs/adr/0002-repository-layout.md). Next planned slice: projects and tasks (Slice 3). Shared agent execution, RAG, collaborative documents, marketing and billing remain future work.
+
+
+## Slice 2: channels and messaging
+
+Open **Chat** after creating or selecting a workspace. A public `general` channel is created for new workspaces and backfilled when upgrading Slice 1. Public channels automatically include workspace members; leaving tracks participation and keeps public reading access. Editors, Admins and Owners create public channels. Viewers can post and reply. Only Admins/Owners create private channels and manage their membership, and even they must belong to a private channel to see it.
+
+Create a channel from the sidebar (mobile: Channels). Channel details supports topic/name updates, archive/unarchive, public join/leave and private membership. Messages support threads, own edits/deletion, Admin deletion, member mentions, safe bold/italic/code/links, optimistic sends and explicit Retry. @Agent only stores a mention; it never calls Try AI or a model. Board/Docs tabs are disabled with Coming soon.
+
+The authenticated `/api/ws` gateway uses the same origin and cookie as REST, with reconnect/catch-up including edits/deletions. Keep **one backend worker**; no Redis is required. The browser sends a ping every 15 seconds. Settings in `.env.example` are `MESSAGE_REQUESTS_PER_MINUTE` (60/user), `WS_CONNECTIONS_PER_USER` (5), `WS_CONNECTIONS_PER_IP` (30), `WS_FRAMES_PER_MINUTE` (120), `WS_IDLE_SECONDS` (60), and `ATTACHMENT_DIR` (native backend only; Compose uses its private `image_attachments` volume). Incoming frames are capped at 8 KiB, subscriptions at 50 channels/10 workspaces per connection, and typing expires after five seconds.
+
+Attach up to **four PNG/JPEG/WebP/GIF images**, each at most **5 MiB** and 20 million pixels. The API accepts raw image bytes, validates magic and image structure, and serves authenticated channel URLs with no-store/nosniff. Neither files nor storage keys are public. Removed private/workspace members lose serving and live access. The dedicated image volume is initialized for the non-root backend user on a fresh start.
+
+Channels and the last 150 synced message/reply records per visited channel remain readable from a per-account browser cache. Drafts stay local, with **no queued offline sends**. Cached image metadata remains visible; image bytes require an online authenticated request. The production build additionally caches the visited Chat shell and static assets for offline reloads; `npm run dev` supports in-page offline reading/drafts, while production offline reload validation uses `npm run build` and `npm run start`. Logout/account switch clears this app's cache; observed access revocation evicts affected channel histories. An offline device cannot discover a server-side revocation until reconnecting.
+
+Additional checks from the repository root:
+
+```bash
+backend/.venv/bin/python infra/export_events.py --check
+backend/.venv/bin/python infra/measure_channels.py --origin http://localhost:3000
+```
+
+On Windows use `backend\.venv\Scripts\python.exe` if running Python checks natively, and `--origin http://localhost:3001` for the desktop launcher. The benchmark creates synthetic accounts/workspace, sends 30 messages between two real WebSocket clients through Next.js, loads history 20 times, and prints timing JSON. It never calls a provider. Browser tests include two sessions, exact reconnect replay, image lightbox, XSS, offline reload/drafts, and 390 px/landscape layouts.
+
+See [the Slice 2 report](docs/SLICE2_REPORT.md) for actual validation and measurements, and ADRs [transport](docs/adr/0004-websocket-contract.md), [ordering](docs/adr/0005-channel-ordering.md), [images](docs/adr/0006-image-storage.md), and [fan-out](docs/adr/0007-event-fanout.md) for decisions and scale limits.

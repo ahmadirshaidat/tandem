@@ -1,0 +1,13 @@
+{
+  "origin": "http://localhost:3000",
+  "delivery_samples": 30,
+  "delivery_p50_ms": 16.14,
+  "delivery_p95_ms": 19.53,
+  "delivery_max_ms": 30.31,
+  "history_samples": 20,
+  "history_message_count": 30,
+  "history_p50_ms": 24.77,
+  "history_p95_ms": 34.05,
+  "target_delivery_p95_ms": 300,
+  "target_met": true
+}
