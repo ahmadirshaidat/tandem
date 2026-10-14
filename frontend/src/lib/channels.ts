@@ -3,6 +3,7 @@ import type { SocketEvent } from "./events.generated";
 export type Channel = {
   id: string;
   workspace_id: string;
+  project_id: string | null;
   name: string;
   topic: string;
   is_private: boolean;

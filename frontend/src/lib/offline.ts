@@ -42,6 +42,10 @@ export function removeWorkspaceCache(
   for (const key of Object.keys(localStorage))
     if (key.startsWith(historyPrefix)) localStorage.removeItem(key);
   removeCache(`channels:${userId}:${workspaceId}`);
+  // Task details may contain links to this channel. Evict them on any observed revocation.
+  for (const key of Object.keys(localStorage))
+    if (key.startsWith(PREFIX + `tasks:${userId}:${workspaceId}:`))
+      localStorage.removeItem(key);
 }
 export function clearChatCache() {
   for (const key of Object.keys(localStorage))
@@ -52,7 +56,7 @@ export function clearChatCache() {
     });
 }
 
-export async function prepareChatShell() {
+export async function prepareChatShell(path = "/channels") {
   if (!("serviceWorker" in navigator) || !navigator.onLine) return;
   await navigator.serviceWorker.register("/chat-sw.js");
   await navigator.serviceWorker.ready;
@@ -69,7 +73,7 @@ export async function prepareChatShell() {
         );
       }),
   );
-  assets.add(location.origin + "/channels");
+  assets.add(location.origin + path);
   await Promise.all(
     [...assets].map(async (url) => {
       try {
@@ -78,10 +82,7 @@ export async function prepareChatShell() {
           cache: "reload",
         });
         if (response.ok)
-          await shell.put(
-            url.endsWith("/channels") ? "/channels" : url,
-            response,
-          );
+          await shell.put(url.endsWith(path) ? path : url, response);
       } catch {}
     }),
   );

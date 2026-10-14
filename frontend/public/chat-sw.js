@@ -7,12 +7,12 @@ self.addEventListener("fetch", event => {
   const request = event.request, url = new URL(request.url);
   if (request.method !== "GET" || url.origin !== self.location.origin) return;
   if (url.pathname.startsWith("/api/")) return;
-  const shell = request.mode === "navigate" && url.pathname === "/channels";
+  const shell = request.mode === "navigate" && ["/channels", "/tasks"].includes(url.pathname);
   const immutable = url.pathname.startsWith("/_next/static/");
   if (!shell && !immutable) return;
   event.respondWith((async () => {
     const cache = await caches.open(SHELL);
-    try { const response = await fetch(request); if (response.ok) await cache.put(shell ? "/channels" : request, response.clone()); return response; }
-    catch (error) { const saved = await cache.match(shell ? "/channels" : request); if (saved) return saved; throw error; }
+    try { const response = await fetch(request); if (response.ok) await cache.put(shell ? url.pathname : request, response.clone()); return response; }
+    catch (error) { const saved = await cache.match(shell ? url.pathname : request); if (saved) return saved; throw error; }
   })());
 });

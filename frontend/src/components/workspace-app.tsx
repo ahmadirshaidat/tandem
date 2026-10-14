@@ -11,6 +11,7 @@ import {
   ChevronDown,
   Copy,
   FolderPlus,
+  LayoutGrid,
   Home,
   MessageSquare,
   LogOut,
@@ -39,7 +40,10 @@ import {
   type Workspace,
 } from "@/lib/api";
 
-type Section = "home" | "members" | "settings" | "new" | "ai" | "channels";
+type Section =
+  "home" | "members" | "settings" | "new" | "ai" | "channels" | "tasks";
+import { ProjectNavigation, TasksPage } from "@/components/tasks-page";
+
 const nav = [
   {
     href: "/channels",
@@ -47,6 +51,7 @@ const nav = [
     label: "Chat",
     Icon: MessageSquare,
   },
+  { href: "/tasks", section: "tasks", label: "Tasks", Icon: LayoutGrid },
   { href: "/", section: "home", label: "Getting started", Icon: Home },
   { href: "/members", section: "members", label: "Members", Icon: Users },
   { href: "/settings", section: "settings", label: "Settings", Icon: Settings },
@@ -167,7 +172,7 @@ export function WorkspaceApp({ section }: { section: Section }) {
   );
   return (
     <div
-      className={`app-shell ${section === "channels" ? "chat-shell" : ""} ${section === "home" && workspace ? "app-shell-with-aside" : ""} ${section === "settings" || section === "members" ? "settings-shell" : ""}`}
+      className={`app-shell ${section === "channels" ? "chat-shell" : ""} ${section === "tasks" ? "tasks-shell" : ""} ${section === "home" && workspace ? "app-shell-with-aside" : ""} ${section === "settings" || section === "members" ? "settings-shell" : ""}`}
     >
       <aside className="sidebar">
         {(section === "settings" || section === "members") && workspace ? (
@@ -229,6 +234,7 @@ export function WorkspaceApp({ section }: { section: Section }) {
             }
           />
         )}
+        {workspace && <ProjectNavigation workspace={workspace} user={user} />}
         <div className="sidebar-bottom">
           <Link href="/ai" className="sidebar-agent">
             <span className="agent-avatar">
@@ -295,7 +301,7 @@ export function WorkspaceApp({ section }: { section: Section }) {
           </header>
         )}
         <div
-          className={`content ${section === "channels" ? "chat-content" : ""} ${section === "home" ? "home-content" : ""}`}
+          className={`content ${section === "channels" ? "chat-content" : ""} ${section === "tasks" ? "tasks-content" : ""} ${section === "home" ? "home-content" : ""}`}
         >
           <details className="mobile-workspace">
             <summary>
@@ -327,6 +333,8 @@ export function WorkspaceApp({ section }: { section: Section }) {
               workspace={workspace}
               user={user}
             />
+          ) : section === "tasks" ? (
+            <TasksPage key={workspace.id} workspace={workspace} user={user} />
           ) : section === "members" ? (
             <Members key={workspace.id} workspace={workspace} user={user} />
           ) : section === "ai" ? (

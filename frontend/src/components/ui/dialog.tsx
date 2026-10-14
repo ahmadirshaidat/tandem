@@ -9,6 +9,7 @@ export function ConfirmDialog({
   description,
   children,
   actions = true,
+  modal = true,
 }: {
   open: boolean;
   onOpenChange: (value: boolean) => void;
@@ -16,14 +17,18 @@ export function ConfirmDialog({
   description: string;
   children: ReactNode;
   actions?: boolean;
+  modal?: boolean;
 }) {
   const opener = useRef<HTMLElement | null>(null);
   return (
-    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
+    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange} modal={modal}>
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="dialog-overlay" />
         <DialogPrimitive.Content
           className="dialog-content"
+          onInteractOutside={(event) => {
+            if (!modal) event.preventDefault();
+          }}
           onOpenAutoFocus={() => {
             opener.current =
               document.activeElement instanceof HTMLElement

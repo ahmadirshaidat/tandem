@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
   useCallback,
@@ -50,6 +51,7 @@ import { ErrorNotice, Field } from "./common";
 import { Button } from "./ui/button";
 import { ConfirmDialog } from "./ui/dialog";
 import { SafeMarkdown } from "./safe-markdown";
+import { NewTaskDialog } from "./task-dialogs";
 
 function watchChannelSelection(callback: () => void) {
   window.addEventListener("tandem-channel-selection", callback);
@@ -641,6 +643,7 @@ function ChannelRoom({
   user: User;
   channel: Channel;
 }) {
+  const router = useRouter();
   const room = useRoom(user, workspace, channel);
   const { base, live, setLive, online } = room;
   const [thread, setThread] = useState<string | null>(null);
@@ -648,6 +651,8 @@ function ChannelRoom({
   const [lightbox, setLightbox] = useState<Attachment | null>(null);
   const [edit, setEdit] = useState<Message | null>(null);
   const [remove, setRemove] = useState<Message | null>(null);
+  const [taskMessage, setTaskMessage] = useState<Message | null>(null);
+  const jumped = useRef(false);
   const list = useRef<HTMLDivElement>(null);
   const pin = useRef(true);
   const replyOpener = useRef<HTMLButtonElement | null>(null);
@@ -678,6 +683,42 @@ function ChannelRoom({
     },
   });
   useEffect(() => {
+    const id = new URLSearchParams(location.search).get("message");
+    if (!id || !live.ready || live.denied || !online || jumped.current) return;
+    jumped.current = true;
+    pin.current = false;
+    let alive = true;
+    void api<Message>(base + `/messages/${id}`)
+      .then(async (message) => {
+        let incoming = [message];
+        if (message.thread_root_id) {
+          const root = await api<Message>(
+            base + `/messages/${message.thread_root_id}`,
+          );
+          incoming = [root, message];
+          if (alive) setThread(root.id);
+        }
+        if (!alive) return;
+        setLive((previous) => ({
+          ...previous,
+          messages: mergeMessages(previous.messages, incoming),
+        }));
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => {
+            const target = document.querySelector<HTMLElement>(
+              `[data-message-id="${message.id}"]`,
+            );
+            target?.scrollIntoView({ block: "center" });
+            target?.focus({ preventScroll: true });
+          }),
+        );
+      })
+      .catch(room.setError);
+    return () => {
+      alive = false;
+    };
+  }, [base, live.ready, live.denied, online, setLive, room.setError]);
+  useEffect(() => {
     if (pin.current && list.current)
       list.current.scrollTop = list.current.scrollHeight;
   }, [live.messages.length, thread]);
@@ -685,7 +726,7 @@ function ChannelRoom({
     const element = list.current;
     if (!element) return;
     const observer = new ResizeObserver(() => {
-      element.scrollTop = element.scrollHeight;
+      if (pin.current) element.scrollTop = element.scrollHeight;
     });
     observer.observe(element);
     return () => observer.disconnect();
@@ -834,6 +875,7 @@ function ChannelRoom({
         key={message.id}
         className={`chat-message ${grouped ? "grouped-message" : ""} ${message.pending ? "pending-message" : ""}`}
         data-message-id={message.id}
+        tabIndex={-1}
       >
         {!grouped && (
           <span
@@ -911,7 +953,7 @@ function ChannelRoom({
               )}
               {!message.pending &&
                 (message.author.id === user.id ||
-                  ["owner", "admin"].includes(workspace.role)) && (
+                  workspace.role !== "viewer") && (
                   <details className="message-actions">
                     <summary
                       aria-label={`Actions for message by ${message.author.name}`}
@@ -919,6 +961,15 @@ function ChannelRoom({
                       <MoreHorizontal size={18} />
                     </summary>
                     <div className="message-action-menu">
+                      {workspace.role !== "viewer" && (
+                        <Button
+                          variant="ghost"
+                          disabled={!online}
+                          onClick={() => setTaskMessage(message)}
+                        >
+                          Create task from message
+                        </Button>
+                      )}
                       {message.author.id === user.id && (
                         <Button
                           variant="ghost"
@@ -978,6 +1029,20 @@ function ChannelRoom({
   );
   return (
     <div className={`channel-room ${thread ? "has-thread" : ""}`}>
+      {taskMessage && (
+        <NewTaskDialog
+          workspace={workspace}
+          user={user}
+          projectId={channel.project_id ?? undefined}
+          message={taskMessage}
+          onClose={() => setTaskMessage(null)}
+          onCreated={(task) => {
+            router.push(
+              `/tasks?task=${task.id}&project=${task.project_id}`,
+            );
+          }}
+        />
+      )}
       <section className="channel-main" aria-label={`Channel ${channel.name}`}>
         <header className="channel-header">
           <div>
