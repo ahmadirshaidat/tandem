@@ -1,0 +1,14 @@
+{
+  "origin": "http://localhost:3000",
+  "task_count": 1000,
+  "rendered_cards": 120,
+  "http_samples": 20,
+  "http_p50_ms": 61.88,
+  "http_p95_ms": 82.49,
+  "cold_board_navigation_to_paint_ms": 655.55,
+  "board_target_met": true,
+  "delivery_samples": 30,
+  "delivery_p50_ms": 34.01,
+  "delivery_p95_ms": 67.42,
+  "delivery_max_ms": 153.71
+}

@@ -139,6 +139,7 @@ def test_private_and_workspace_isolation_on_every_surface(client_factory):
             ("POST", "/leave", None),
             ("GET", "/messages", None),
             ("POST", "/messages", {"body": "x", "client_message_id": "x"}),
+            ("GET", f"/messages/{m['id']}", None),
             ("PATCH", f"/messages/{m['id']}", {"body": "x"}),
             ("DELETE", f"/messages/{m['id']}", None),
             ("GET", f"/threads/{m['id']}", None),

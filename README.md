@@ -1,6 +1,6 @@
 # Tandem
 
-An AI-native collaborative workspace for software teams. This repository implements **Slice 0 (foundation), Slice 1 (authentication and workspaces), and Slice 2 (real-time channels and messaging)** from [the PRD](docs/PRD.md), with [the UI specification](docs/UI_SPEC.md). Slice 2 is on `slice-2-channels`, branched from `v1`; `main` has not been created.
+An AI-native collaborative workspace for software teams. This repository implements **Slice 0 (foundation), Slice 1 (authentication and workspaces), Slice 2 (real-time channels and messaging), and Slice 3 (projects and tasks)** from [the PRD](docs/PRD.md), with [the UI specification](docs/UI_SPEC.md). Slice 2 is merged into `v1` after verified green CI. Slice 3 is on `slice-3-tasks`, branched from that verified `v1`; `main` has not been created.
 
 ## Requirements
 
@@ -10,12 +10,23 @@ Python 3.12, [uv](https://docs.astral.sh/uv/), Node.js 24, Docker with Compose v
 
 ### Codex desktop / Windows
 
-This is the new **AI workspace** project at `ahmadirshaidat/tandem`, branch `slice-2-channels`. An older local project named Tandem is a different project. Clone this repository into a **new folder** and open that folder in Codex desktop:
+This is the new **AI workspace** project at `ahmadirshaidat/tandem`, branch `slice-3-tasks`. An older local project named Tandem is a different project. Clone this repository into a **new folder** and open that folder in Codex desktop:
 
 ```powershell
-git clone --branch slice-2-channels --single-branch https://github.com/ahmadirshaidat/tandem.git tandem-workspace-v1
+git clone --branch slice-3-tasks --single-branch https://github.com/ahmadirshaidat/tandem.git tandem-workspace-v1
 cd tandem-workspace-v1
 ```
+
+If you already cloned the new project into `C:\Users\ahmad\Documents\tandem-workspace-v1`, update that folder without cloning again:
+
+```powershell
+cd "C:\Users\ahmad\Documents\tandem-workspace-v1"
+git fetch origin refs/heads/slice-3-tasks:refs/remotes/origin/slice-3-tasks
+git switch slice-3-tasks
+node infra/dev.mjs
+```
+
+A refused branch switch preserves your local changes; do not reset or overwrite them. This explicit fetch also works for the earlier single-branch Slice 2 clone.
 
 Ensure **Node.js 24** and **Docker Desktop** are installed with Docker running. From this new repository folder:
 
@@ -23,7 +34,7 @@ Ensure **Node.js 24** and **Docker Desktop** are installed with Docker running. 
 node infra/dev.mjs
 ```
 
-The launcher creates development configuration only if `.env` is missing, installs locked frontend dependencies, starts PostgreSQL and the backend with migrations, and starts the frontend. It opens **`http://localhost:3001/login`** only after checking this project's identity and its API. The new desktop project uses separate `tandem-workspace-v1` Docker containers/volumes, API port **8001**, and database port **5433**. It leaves an older project on port 3000 alone. Sign up, create a workspace, invite your team, and open Chat. Your new workspace includes #general. Keep the terminal open; Ctrl+C stops its frontend. Existing `.env` files and database data are preserved. Python and uv are only needed inside the backend container for this workflow.
+The launcher creates development configuration only if `.env` is missing, installs locked frontend dependencies, starts PostgreSQL and the backend with migrations, and starts the frontend. It opens **`http://localhost:3001/login`** only after checking this project's identity and its API. The new desktop project uses separate `tandem-workspace-v1` Docker containers/volumes, API port **8001**, and database port **5433**. It leaves an older project on port 3000 alone. Sign up, create a workspace, invite your team, and open Chat or Tasks. Your new workspace includes #general. Owners and Admins create projects, then Editors can add tasks. Keep the terminal open; Ctrl+C stops its frontend. Existing `.env` files and database data are preserved. Python and uv are only needed inside the backend container for this workflow.
 
 If this frontend is already running, the launcher refreshes the backend configuration and reuses it. It verifies the `X-Tandem-Project` header rather than identifying an app by its name alone. If port 3001 belongs to another app, it stops with an explanation instead of killing that app. Use `--no-open` to leave browser opening to Codex and `--skip-install` when dependencies are already installed. Local provider keys belong in this new folder's ignored `.env`; keys saved in a cloud workspace do not automatically appear on your computer.
 
@@ -151,3 +162,27 @@ backend/.venv/bin/python infra/measure_channels.py --origin http://localhost:300
 On Windows use `backend\.venv\Scripts\python.exe` if running Python checks natively, and `--origin http://localhost:3001` for the desktop launcher. The benchmark creates synthetic accounts/workspace, sends 30 messages between two real WebSocket clients through Next.js, loads history 20 times, and prints timing JSON. It never calls a provider. Browser tests include two sessions, exact reconnect replay, image lightbox, XSS, offline reload/drafts, and 390 px/landscape layouts. Playwright starts the production server: run `npm run build` before `npm run test:e2e`, as CI already does.
 
 See [the Slice 2 report](docs/SLICE2_REPORT.md) for actual validation and measurements, and ADRs [transport](docs/adr/0004-websocket-contract.md), [ordering](docs/adr/0005-channel-ordering.md), [images](docs/adr/0006-image-storage.md), and [fan-out](docs/adr/0007-event-fanout.md) for decisions and scale limits.
+
+## Projects and tasks (Slice 3)
+
+Open **Tasks** or a project in the sidebar. Owners/Admins create projects and manage their names, keys, colors, descriptions, archive state and linked channels. Editors create/edit/assign/move tasks and comment; Viewers read only. Task keys remain immutable even when the type changes. Board cards support drag-and-drop within a project and a keyboard/touch **Actions → Move to** alternative. Table filters, sorting, status grouping and selection support atomic bulk status/assignee changes (up to 100 tasks).
+
+Task details show safe Markdown, field editing, comments, linked tasks/conversations and transactional activity. **Create task from message** shares the chosen title/description with the workspace and preserves a protected conversation link. Private links and their activity are visible only to people who can access both endpoints. Stale task edits require an explicit **Keep mine** or **Take server's** choice; writes are never silently queued offline. Previously synced board/table/details remain readable offline, subject to browser storage availability. Sign-out clears cached application data.
+
+The board fetches up to 1,000 tasks and initially renders at most 40 cards per status. **Show more** expands a column; **Load more tasks** follows the API cursor beyond 1,000. Task filters operate on loaded records, and the UI shows when more records remain. Use a specific project when ordering cards. The server also supports filter/sort/cursor queries directly.
+
+Seed a separate synthetic workspace for an existing local account, without changing its credentials or existing workspaces:
+
+```bash
+docker compose exec backend .venv/bin/python -m app.tasks.seed --owner-email you@example.com
+```
+
+For host development, from `backend`, use `.venv/bin/python -m app.tasks.seed --owner-email you@example.com` (Windows: `.venv/Scripts/python.exe`). Default count is 1,000; `--count` accepts 1–10,000. The output contains only workspace/project IDs and task count. The new workspace appears after refreshing the workspace picker.
+
+With the local app and host backend dependencies running:
+
+```bash
+node infra/measure_tasks.mjs http://localhost:3000
+```
+
+This creates synthetic accounts/workspace, seeds 1,000 tasks, measures 20 board HTTP reads, cold board navigation-to-paint and 30 HTTP-edit-to-second-browser-WebSocket deliveries, then signs the test accounts out. `PLAYWRIGHT_CHROMIUM_EXECUTABLE` optionally selects an installed browser. For the desktop launcher origin use `http://localhost:3001` and matching host database configuration. No provider calls occur. See [Slice 3 report](docs/SLICE3_REPORT.md) and ADRs 0008–0011 for validation, measured limits and design decisions.
