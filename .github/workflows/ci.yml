@@ -1,7 +1,7 @@
 name: CI
 on:
   push:
-    branches: [v1, main, slice-2-channels]
+    branches: [v1, main, slice-2-channels, slice-3-tasks]
   pull_request:
 permissions:
   contents: read
@@ -91,7 +91,7 @@ jobs:
               kill "$tandem_backend_pid"
             fi
           fi
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2, Node.js 24
         if: failure()
         with:
           name: browser-test-results

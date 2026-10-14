@@ -24,6 +24,11 @@ class Channel(Base):
     __tablename__ = "channels"
     __table_args__ = (
         UniqueConstraint("workspace_id", "name", name="uq_channel_name"),
+        ForeignKeyConstraint(
+            ["workspace_id", "project_id"],
+            ["projects.workspace_id", "projects.id"],
+            name="fk_channel_project_workspace",
+        ),
         UniqueConstraint("workspace_id", "id", name="uq_channel_scope"),
         CheckConstraint("last_seq >= 0", name="ck_channel_seq"),
     )

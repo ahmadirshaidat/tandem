@@ -15,6 +15,7 @@ from app.auth.router import router as auth_router
 from app.channels.gateway import router as socket_router
 from app.channels.router import router as channel_router
 from app.core.db import engine
+from app.tasks.router import router as task_router
 from app.workspaces.router import invites
 from app.workspaces.router import router as workspace_router
 
@@ -27,6 +28,7 @@ app.include_router(invites)
 app.include_router(ai_router)
 app.include_router(channel_router)
 app.include_router(socket_router)
+app.include_router(task_router)
 
 
 def error_response(status: int, message: str, request: Request, details=None, headers=None):
@@ -46,7 +48,13 @@ def error_response(status: int, message: str, request: Request, details=None, he
 @app.exception_handler(StarletteHTTPException)
 async def http_error(request: Request, exception: StarletteHTTPException):
     return error_response(
-        exception.status_code, str(exception.detail), request, headers=exception.headers
+        exception.status_code,
+        str(exception.detail),
+        request,
+        details={"kind": "task_conflict", "current": exception.current_task}
+        if hasattr(exception, "current_task")
+        else None,
+        headers=exception.headers,
     )
 
 

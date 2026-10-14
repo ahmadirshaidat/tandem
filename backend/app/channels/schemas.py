@@ -2,7 +2,15 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
+from app.tasks.schemas import ProjectOut, TaskCommentOut, TaskOut
+
 EventType = Literal[
+    "task.created",
+    "task.updated",
+    "task.moved",
+    "task.deleted",
+    "task.comment_created",
+    "project.updated",
     "message.created",
     "message.updated",
     "message.deleted",
@@ -65,6 +73,7 @@ class SocketCommand(BaseModel):
     workspace_id: str | None = Field(default=None, max_length=36)
     channel_id: str | None = Field(default=None, max_length=36)
     last_seq: int = Field(default=0, ge=0)
+    workspace_seq: int | None = Field(default=None, ge=0)
 
 
 class AuthorOut(BaseModel):
@@ -120,6 +129,9 @@ class ChannelOut(BaseModel):
 
 
 class EventData(BaseModel):
+    task: TaskOut | None = None
+    project: ProjectOut | None = None
+    comment: TaskCommentOut | None = None
     message: MessageOut | str | None = None
     thread_root: MessageOut | None = None
     channel: ChannelOut | None = None

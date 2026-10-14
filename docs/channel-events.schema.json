@@ -1,6 +1,24 @@
 {
   "event": {
     "$defs": {
+      "ActorOut": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "ActorOut",
+        "type": "object"
+      },
       "AttachmentOut": {
         "properties": {
           "id": {
@@ -134,6 +152,39 @@
       },
       "EventData": {
         "properties": {
+          "task": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/TaskOut"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "project": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ProjectOut"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "comment": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/TaskCommentOut"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
           "message": {
             "anyOf": [
               {
@@ -371,11 +422,301 @@
         ],
         "title": "MessageOut",
         "type": "object"
+      },
+      "ProjectOut": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "workspace_id": {
+            "title": "Workspace Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "color": {
+            "title": "Color",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "archived": {
+            "title": "Archived",
+            "type": "boolean"
+          },
+          "deleted_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deleted At"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "workspace_id",
+          "name",
+          "key",
+          "color",
+          "description",
+          "archived",
+          "deleted_at",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ProjectOut",
+        "type": "object"
+      },
+      "TaskCommentOut": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "task_id": {
+            "title": "Task Id",
+            "type": "string"
+          },
+          "author": {
+            "$ref": "#/$defs/ActorOut"
+          },
+          "body": {
+            "title": "Body",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "edited_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Edited At"
+          },
+          "deleted_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deleted At"
+          }
+        },
+        "required": [
+          "id",
+          "task_id",
+          "author",
+          "body",
+          "version",
+          "created_at",
+          "edited_at",
+          "deleted_at"
+        ],
+        "title": "TaskCommentOut",
+        "type": "object"
+      },
+      "TaskOut": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "workspace_id": {
+            "title": "Workspace Id",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "bug",
+              "task"
+            ],
+            "title": "Type",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "todo",
+              "in_progress",
+              "done"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "priority": {
+            "enum": [
+              "P1",
+              "P2",
+              "P3"
+            ],
+            "title": "Priority",
+            "type": "string"
+          },
+          "assignee_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assignee Id"
+          },
+          "assignee": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ActorOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reporter": {
+            "$ref": "#/$defs/ActorOut"
+          },
+          "due_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Date"
+          },
+          "created_by_agent": {
+            "title": "Created By Agent",
+            "type": "boolean"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          },
+          "rank": {
+            "title": "Rank",
+            "type": "string"
+          },
+          "comment_count": {
+            "title": "Comment Count",
+            "type": "integer"
+          },
+          "last_event_seq": {
+            "title": "Last Event Seq",
+            "type": "integer"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          },
+          "deleted_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deleted At"
+          }
+        },
+        "required": [
+          "id",
+          "workspace_id",
+          "project_id",
+          "key",
+          "number",
+          "title",
+          "description",
+          "type",
+          "status",
+          "priority",
+          "assignee_id",
+          "assignee",
+          "reporter",
+          "due_date",
+          "created_by_agent",
+          "version",
+          "rank",
+          "comment_count",
+          "last_event_seq",
+          "created_at",
+          "updated_at",
+          "deleted_at"
+        ],
+        "title": "TaskOut",
+        "type": "object"
       }
     },
     "properties": {
       "type": {
         "enum": [
+          "task.created",
+          "task.updated",
+          "task.moved",
+          "task.deleted",
+          "task.comment_created",
+          "project.updated",
           "message.created",
           "message.updated",
           "message.deleted",
@@ -485,6 +826,19 @@
         "minimum": 0,
         "title": "Last Seq",
         "type": "integer"
+      },
+      "workspace_seq": {
+        "anyOf": [
+          {
+            "minimum": 0,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Workspace Seq"
       }
     },
     "required": [

@@ -19,6 +19,8 @@ from app.core.config import settings
 from app.core.db import SessionLocal
 from app.core.models import Session
 from app.core.security import ACCESS_COOKIE, now
+from app.tasks.models import WorkspaceEvent, WorkspaceTaskState
+from app.workspaces.permissions import membership
 
 router = APIRouter(tags=["live"])
 MAX_FRAME_BYTES = 8192
@@ -97,6 +99,7 @@ class Connection:
     ip: str
     channels: dict[str, tuple[str, int]] = field(default_factory=dict)
     workspaces: dict[str, dict] = field(default_factory=dict)
+    workspace_cursors: dict[str, int] = field(default_factory=dict)
     ephemeral: dict = field(default_factory=dict)
     frames: deque = field(default_factory=deque)
     active_at: float = field(default_factory=time.monotonic)
@@ -151,6 +154,16 @@ class Connection:
                     if connection_id in typing_ids:
                         typing.add(uid)
                 ephemeral[cid] = (wid, sorted(users), sorted(typing))
+            for wid, cursor in list(self.workspace_cursors.items()):
+                if wid not in workspace_snapshots:
+                    continue
+                rows = db.scalars(
+                    select(WorkspaceEvent)
+                    .where(WorkspaceEvent.workspace_id == wid, WorkspaceEvent.seq > cursor)
+                    .order_by(WorkspaceEvent.seq)
+                    .limit(200)
+                )
+                events.extend((wid, None, row.seq, row.type, row.payload) for row in rows)
             return workspace_snapshots, events, revoked, ephemeral
 
     async def pump(self):
@@ -165,6 +178,7 @@ class Connection:
                     self.channels.pop(cid, None)
                 else:
                     self.workspaces.pop(wid, None)
+                    self.workspace_cursors.pop(wid, None)
                     for channel in [key for key, value in self.channels.items() if value[0] == wid]:
                         del self.channels[channel]
                 await self.emit("error", {"message": NOT_FOUND, "code": "access_revoked"}, wid, cid)
@@ -195,12 +209,20 @@ class Connection:
                         if not authenticated(db, self.session_id, self.user_id, self.expires):
                             return False
                         try:
-                            channel_access(db, wid, cid, self.user_id)
+                            if cid:
+                                channel_access(db, wid, cid, self.user_id)
+                            else:
+                                membership(db, wid, self.user_id)
                             return True
                         except HTTPException:
                             return False
 
-                if cid in self.channels and await anyio.to_thread.run_sync(allowed):
+                if cid is None:
+                    if wid in self.workspace_cursors and await anyio.to_thread.run_sync(allowed):
+                        if seq > self.workspace_cursors[wid]:
+                            await self.emit(type, payload, wid, None, seq)
+                            self.workspace_cursors[wid] = seq
+                elif cid in self.channels and await anyio.to_thread.run_sync(allowed):
                     if seq > self.channels[cid][1]:
                         await self.emit(type, payload, wid, cid, seq)
                         self.channels[cid] = (wid, seq)
@@ -215,6 +237,11 @@ class Connection:
                 self.ephemeral[cid] = (users, typing)
             if any(sum(event[1] == cid for event in events) == 200 for cid in self.channels):
                 fanout.publish()  # Drain the next bounded replay page without waiting.
+            if any(
+                sum(e[0] == wid and e[1] is None for e in events) == 200
+                for wid in self.workspace_cursors
+            ):
+                fanout.publish()
 
     async def command(self, data):
         tick = time.monotonic()
@@ -249,6 +276,10 @@ class Connection:
                             raise HTTPException(400, "Invalid replay cursor")
                     else:
                         visible_channels(db, command.workspace_id, self.user_id)
+                        if command.workspace_seq is not None:
+                            counter = db.get(WorkspaceTaskState, command.workspace_id)
+                            if command.workspace_seq > (counter.last_seq if counter else 0):
+                                raise HTTPException(400, "Invalid replay cursor")
 
             try:
                 await anyio.to_thread.run_sync(validate)
@@ -285,6 +316,8 @@ class Connection:
                     self.ephemeral.pop(command.channel_id, None)
                 else:
                     self.workspaces.setdefault(command.workspace_id, {})
+                    if command.workspace_seq is not None:
+                        self.workspace_cursors[command.workspace_id] = command.workspace_seq
                 fanout.publish()
             elif command.type == "unsubscribe":
                 if command.channel_id:
@@ -292,6 +325,7 @@ class Connection:
                     state.set_typing(self, command.channel_id, False)
                 else:
                     self.workspaces.pop(command.workspace_id, None)
+                    self.workspace_cursors.pop(command.workspace_id, None)
                     self.channels = {
                         key: value
                         for key, value in self.channels.items()

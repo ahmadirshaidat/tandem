@@ -341,6 +341,18 @@ def send_message(
     return out
 
 
+@router.get("/{channel_id}/messages/{message_id}")
+def get_message(
+    workspace_id: str,
+    channel_id: str,
+    message_id: str,
+    user: User = Depends(current_user),
+    db: Session = Depends(get_db),
+):
+    channel_access(db, workspace_id, channel_id, user.id)
+    return message_out(db, find_message(db, channel_id, message_id))
+
+
 @router.patch("/{channel_id}/messages/{message_id}", dependencies=write)
 def edit_message(
     workspace_id: str,

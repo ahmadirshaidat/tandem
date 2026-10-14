@@ -10,6 +10,7 @@ from app.core.config import settings
 from app.core.db import get_db
 from app.core.models import Invitation, Membership, User, Workspace, new_id
 from app.core.security import csrf_check, current_user, digest, now
+from app.tasks.service import unassign_removed_member
 from app.workspaces.permissions import lock_workspace, require_role
 from app.workspaces.schemas import InviteInput, RoleInput, WorkspaceInput
 
@@ -164,6 +165,7 @@ def remove_member(
     actor = lock_workspace(db, workspace_id, member.user_id)
     target = target_member(db, workspace_id, member_id, actor)
     protect_last_owner(db, workspace_id, target)
+    unassign_removed_member(db, workspace_id, target.user_id, actor.user_id)
     db.delete(target)
     db.commit()
 
