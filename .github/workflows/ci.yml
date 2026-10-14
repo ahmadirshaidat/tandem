@@ -50,6 +50,8 @@ jobs:
       - name: Install frontend
         working-directory: frontend
         run: npm ci
+      - name: Check shared live event contract
+        run: backend/.venv/bin/python infra/export_events.py --check
       - name: Frontend checks
         working-directory: frontend
         run: |
@@ -61,7 +63,7 @@ jobs:
         working-directory: backend
         run: |
           # A long-lived uv run holds the cache lock and blocks setup-uv's post-job pruning.
-          .venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --no-access-log > "$RUNNER_TEMP/tandem-backend.log" 2>&1 &
+          .venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --no-access-log --ws-max-size 8192 --ws-ping-interval 15 --ws-ping-timeout 20 > "$RUNNER_TEMP/tandem-backend.log" 2>&1 &
           printf '%s\n' "$!" > "$RUNNER_TEMP/tandem-backend.pid"
           python - <<'PY'
           import time, urllib.request

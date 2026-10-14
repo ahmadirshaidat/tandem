@@ -12,4 +12,4 @@ ENV PATH="/app/.venv/bin:$PATH"
 RUN useradd --create-home --uid 10001 tandem && mkdir -p /app/.local/mail /app/.local/attachments && chown -R tandem:tandem /app
 USER tandem
 EXPOSE 8000
-CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --no-access-log"]
+CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --no-access-log --ws-max-size 8192 --ws-ping-interval 15 --ws-ping-timeout 20"]

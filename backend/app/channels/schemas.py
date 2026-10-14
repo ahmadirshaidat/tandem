@@ -67,9 +67,72 @@ class SocketCommand(BaseModel):
     last_seq: int = Field(default=0, ge=0)
 
 
+class AuthorOut(BaseModel):
+    id: str
+    name: str
+
+
+class AttachmentOut(BaseModel):
+    id: str
+    content_type: str
+    size: int
+    width: int
+    height: int
+    url: str
+
+
+class MentionOut(BaseModel):
+    user_id: str | None
+    is_agent: bool
+
+
+class MessageOut(BaseModel):
+    id: str
+    workspace_id: str
+    channel_id: str
+    author: AuthorOut
+    body: str
+    seq: int
+    client_message_id: str
+    thread_root_id: str | None
+    created_at: str
+    edited_at: str | None
+    deleted_at: str | None
+    mentions: list[MentionOut]
+    mentions_agent: bool
+    attachments: list[AttachmentOut]
+    reply_count: int
+
+
+class ChannelOut(BaseModel):
+    id: str
+    workspace_id: str
+    project_id: str | None
+    name: str
+    topic: str
+    is_private: bool
+    archived: bool
+    last_seq: int
+    unread_count: int
+    mention_count: int
+    joined: bool
+    last_read_seq: int
+
+
+class EventData(BaseModel):
+    message: MessageOut | str | None = None
+    thread_root: MessageOut | None = None
+    channel: ChannelOut | None = None
+    channel_id: str | None = None
+    user_id: str | None = None
+    user_ids: list[str] | None = None
+    last_read_seq: int | None = None
+    code: str | None = None
+
+
 class SocketEvent(BaseModel):
     type: EventType
-    workspace_id: str | None = None
-    channel_id: str | None = None
-    seq: int | None = None
-    data: dict
+    workspace_id: str | None
+    channel_id: str | None
+    seq: int | None
+    data: EventData

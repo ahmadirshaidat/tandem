@@ -9,7 +9,7 @@ from sqlalchemy import func, select
 from starlette.websockets import WebSocketDisconnect
 from test_workspaces import add_member, workspace
 
-from app.channels.models import ChannelEvent, Message, MessageMention
+from app.channels.models import ChannelEvent, ChannelMember, Message, MessageMention
 from app.channels.service import send_limiter
 from app.core.config import settings
 
@@ -320,6 +320,11 @@ def test_origin_session_frame_limits_and_send_limit(client_factory, monkeypatch)
         with pytest.raises(WebSocketDisconnect) as error:
             ws.receive_json()
         assert error.value.code == 1009
+    with socket(owner) as ws:
+        ws.send_bytes(b"binary commands are not supported")
+        with pytest.raises(WebSocketDisconnect) as binary:
+            ws.receive_json()
+        assert binary.value.code == 1003
     wid = workspace(owner)["id"]
     base = path(wid, channel(owner, wid)["id"])
     send_limiter.hits.clear()
@@ -331,3 +336,89 @@ def test_origin_session_frame_limits_and_send_limit(client_factory, monkeypatch)
         ).status_code
         == 429
     )
+
+
+def test_migration_backfills_existing_workspace_without_replacing_data(db):
+    from pathlib import Path
+
+    from alembic import command
+    from alembic.config import Config
+
+    from app.channels.models import Channel
+    from app.core.models import Membership, User, Workspace
+
+    config = Config(str(Path(__file__).parents[1] / "alembic.ini"))
+    config.set_main_option("script_location", str(Path(__file__).parents[1] / "migrations"))
+    db.commit()
+    command.downgrade(config, "5ef693bcfd14")
+    try:
+        user = User(
+            name="Existing member", email="existing@example.com", password_hash="fixture-no-login"
+        )
+        db.add(user)
+        db.flush()
+        existing = Workspace(name="Existing workspace")
+        db.add(existing)
+        db.flush()
+        db.add(Membership(workspace_id=existing.id, user_id=user.id, role="owner"))
+        db.commit()
+        command.upgrade(config, "head")
+        channel = db.scalar(select(Channel).where(Channel.workspace_id == existing.id))
+        assert channel.name == "general" and not channel.is_private
+        assert (
+            db.scalar(select(ChannelMember.user_id).where(ChannelMember.channel_id == channel.id))
+            == user.id
+        )
+        assert db.get(Workspace, existing.id).name == "Existing workspace"
+        assert db.get(User, user.id).email == "existing@example.com"
+    finally:
+        db.rollback()
+        command.upgrade(config, "head")
+
+
+def test_workspace_removal_and_reinvite_does_not_restore_private_membership(client_factory, db):
+    from test_workspaces import invite
+
+    owner, _ = client_factory("owner@example.com")
+    wid = workspace(owner)["id"]
+    member, record = add_member(owner, client_factory, wid, "member@example.com", "viewer")
+    cid = channel(owner, wid, private=True)["id"]
+    base = path(wid, cid)
+    owner.post(base + "/members", json={"user_id": record["user_id"]})
+    assert owner.delete(f"/api/workspaces/{wid}/members/{record['id']}").status_code == 204
+    assert not db.scalar(
+        select(ChannelMember.id).where(
+            ChannelMember.channel_id == cid, ChannelMember.user_id == record["user_id"]
+        )
+    )
+    token, _ = invite(owner, wid, "member@example.com", "viewer")
+    assert member.post(f"/api/invitations/{token}/accept").status_code == 200
+    assert member.get(base).status_code == 404
+
+
+def test_socket_commands_limiter_and_expired_typing(client_factory, monkeypatch):
+    import time
+
+    from app.channels.gateway import state
+
+    owner, _ = client_factory("owner@example.com")
+    wid = workspace(owner)["id"]
+    member, _ = add_member(owner, client_factory, wid, "member@example.com", "viewer")
+    cid = channel(owner, wid)["id"]
+    with socket(owner) as a, socket(member) as b:
+        subscribe(a, wid, cid, 1)
+        subscribe(b, wid, cid, 1)
+        until(a, "presence.update")
+        b.send_json({"type": "typing.start", "workspace_id": wid, "channel_id": cid})
+        until(a, "typing.start")
+        with state.lock:
+            for key in state.typing:
+                state.typing[key] = time.monotonic() - 1
+        assert until(a, "typing.stop")["data"]["user_id"]
+    monkeypatch.setattr(settings, "ws_frames_per_minute", 10)
+    with socket(owner) as ws:
+        for _ in range(11):
+            ws.send_json({"type": "ping"})
+        with pytest.raises(WebSocketDisconnect) as error:
+            ws.receive_json()
+        assert error.value.code == 1008

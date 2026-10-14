@@ -333,9 +333,10 @@ def send_message(
     parse_mentions(db, c, m)
     db.flush()
     out = message_out(db, m)
-    record_event(
-        db, c, "thread.reply_created" if m.thread_root_id else "message.created", {"message": out}
-    )
+    payload = {"message": out}
+    if m.thread_root_id:
+        payload["thread_root"] = message_out(db, root)
+    record_event(db, c, "thread.reply_created" if m.thread_root_id else "message.created", payload)
     db.commit()
     return out
 

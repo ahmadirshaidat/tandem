@@ -12,6 +12,7 @@ import {
   Copy,
   FolderPlus,
   Home,
+  MessageSquare,
   LogOut,
   Plus,
   Settings,
@@ -23,6 +24,8 @@ import { ErrorNotice, Field, Logo, ThemeToggle } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { ChannelNavigation, ChannelsPage } from "@/components/channel-room";
+import { cached, clearChatCache, saveCache } from "@/lib/offline";
 import { AITrialPage } from "@/components/ai-trial";
 import {
   api,
@@ -36,8 +39,14 @@ import {
   type Workspace,
 } from "@/lib/api";
 
-type Section = "home" | "members" | "settings" | "new" | "ai";
+type Section = "home" | "members" | "settings" | "new" | "ai" | "channels";
 const nav = [
+  {
+    href: "/channels",
+    section: "channels",
+    label: "Chat",
+    Icon: MessageSquare,
+  },
   { href: "/", section: "home", label: "Getting started", Icon: Home },
   { href: "/members", section: "members", label: "Members", Icon: Users },
   { href: "/settings", section: "settings", label: "Settings", Icon: Settings },
@@ -60,11 +69,30 @@ export function WorkspaceApp({ section }: { section: Section }) {
   const client = useQueryClient();
   const me = useQuery({
     queryKey: ["me"],
-    queryFn: () => api<User>("/auth/me"),
+    queryFn: async () => {
+      if (!navigator.onLine) {
+        const bootstrap = cached<User>("account");
+        if (bootstrap) return bootstrap.value;
+      }
+      const user = await api<User>("/auth/me");
+      if (cached<User>("account")?.value.id !== user.id) clearChatCache();
+      saveCache("account", user);
+      return user;
+    },
+    networkMode: "always",
   });
   const workspaces = useQuery({
     queryKey: ["workspaces", me.data?.id],
-    queryFn: () => api<Workspace[]>("/workspaces"),
+    queryFn: async () => {
+      if (!navigator.onLine) {
+        const bootstrap = cached<Workspace[]>(`workspaces:${me.data?.id}`);
+        if (bootstrap) return bootstrap.value;
+      }
+      const result = await api<Workspace[]>("/workspaces");
+      saveCache(`workspaces:${me.data?.id}`, result);
+      return result;
+    },
+    networkMode: "always",
     enabled: !!me.data,
   });
   const chosenId = useSyncExternalStore(
@@ -79,13 +107,16 @@ export function WorkspaceApp({ section }: { section: Section }) {
   const logout = useMutation({
     mutationFn: () => api("/auth/logout", { method: "POST" }),
     onSuccess: () => {
+      clearChatCache();
       client.clear();
       router.replace("/login");
     },
   });
   useEffect(() => {
-    if (me.error instanceof ApiError && me.error.status === 401)
+    if (me.error instanceof ApiError && me.error.status === 401) {
+      clearChatCache();
       router.replace("/login");
+    }
   }, [me.error, router]);
   if (
     me.isPending ||
@@ -136,7 +167,7 @@ export function WorkspaceApp({ section }: { section: Section }) {
   );
   return (
     <div
-      className={`app-shell ${section === "home" && workspace ? "app-shell-with-aside" : ""} ${section === "settings" || section === "members" ? "settings-shell" : ""}`}
+      className={`app-shell ${section === "channels" ? "chat-shell" : ""} ${section === "home" && workspace ? "app-shell-with-aside" : ""} ${section === "settings" || section === "members" ? "settings-shell" : ""}`}
     >
       <aside className="sidebar">
         {(section === "settings" || section === "members") && workspace ? (
@@ -184,6 +215,20 @@ export function WorkspaceApp({ section }: { section: Section }) {
             </Link>
           ))}
         </nav>
+        {workspace && (
+          <ChannelNavigation
+            workspace={workspace}
+            user={user}
+            choose={
+              section === "channels"
+                ? (id) =>
+                    window.dispatchEvent(
+                      new CustomEvent("tandem-channel", { detail: id }),
+                    )
+                : undefined
+            }
+          />
+        )}
         <div className="sidebar-bottom">
           <Link href="/ai" className="sidebar-agent">
             <span className="agent-avatar">
@@ -249,7 +294,9 @@ export function WorkspaceApp({ section }: { section: Section }) {
             </p>
           </header>
         )}
-        <div className={`content ${section === "home" ? "home-content" : ""}`}>
+        <div
+          className={`content ${section === "channels" ? "chat-content" : ""} ${section === "home" ? "home-content" : ""}`}
+        >
           <details className="mobile-workspace">
             <summary>
               {workspace?.name ?? "Your account"}
@@ -274,6 +321,12 @@ export function WorkspaceApp({ section }: { section: Section }) {
             <CreateWorkspace user={user} />
           ) : !workspace ? (
             <NoWorkspace />
+          ) : section === "channels" ? (
+            <ChannelsPage
+              key={workspace.id}
+              workspace={workspace}
+              user={user}
+            />
           ) : section === "members" ? (
             <Members key={workspace.id} workspace={workspace} user={user} />
           ) : section === "ai" ? (

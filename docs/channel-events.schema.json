@@ -1,5 +1,378 @@
 {
   "event": {
+    "$defs": {
+      "AttachmentOut": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "content_type": {
+            "title": "Content Type",
+            "type": "string"
+          },
+          "size": {
+            "title": "Size",
+            "type": "integer"
+          },
+          "width": {
+            "title": "Width",
+            "type": "integer"
+          },
+          "height": {
+            "title": "Height",
+            "type": "integer"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "content_type",
+          "size",
+          "width",
+          "height",
+          "url"
+        ],
+        "title": "AttachmentOut",
+        "type": "object"
+      },
+      "AuthorOut": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "AuthorOut",
+        "type": "object"
+      },
+      "ChannelOut": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "workspace_id": {
+            "title": "Workspace Id",
+            "type": "string"
+          },
+          "project_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "topic": {
+            "title": "Topic",
+            "type": "string"
+          },
+          "is_private": {
+            "title": "Is Private",
+            "type": "boolean"
+          },
+          "archived": {
+            "title": "Archived",
+            "type": "boolean"
+          },
+          "last_seq": {
+            "title": "Last Seq",
+            "type": "integer"
+          },
+          "unread_count": {
+            "title": "Unread Count",
+            "type": "integer"
+          },
+          "mention_count": {
+            "title": "Mention Count",
+            "type": "integer"
+          },
+          "joined": {
+            "title": "Joined",
+            "type": "boolean"
+          },
+          "last_read_seq": {
+            "title": "Last Read Seq",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "workspace_id",
+          "project_id",
+          "name",
+          "topic",
+          "is_private",
+          "archived",
+          "last_seq",
+          "unread_count",
+          "mention_count",
+          "joined",
+          "last_read_seq"
+        ],
+        "title": "ChannelOut",
+        "type": "object"
+      },
+      "EventData": {
+        "properties": {
+          "message": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/MessageOut"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Message"
+          },
+          "thread_root": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/MessageOut"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "channel": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ChannelOut"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "channel_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Channel Id"
+          },
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "User Id"
+          },
+          "user_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "User Ids"
+          },
+          "last_read_seq": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Last Read Seq"
+          },
+          "code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Code"
+          }
+        },
+        "title": "EventData",
+        "type": "object"
+      },
+      "MentionOut": {
+        "properties": {
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          },
+          "is_agent": {
+            "title": "Is Agent",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "user_id",
+          "is_agent"
+        ],
+        "title": "MentionOut",
+        "type": "object"
+      },
+      "MessageOut": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "workspace_id": {
+            "title": "Workspace Id",
+            "type": "string"
+          },
+          "channel_id": {
+            "title": "Channel Id",
+            "type": "string"
+          },
+          "author": {
+            "$ref": "#/$defs/AuthorOut"
+          },
+          "body": {
+            "title": "Body",
+            "type": "string"
+          },
+          "seq": {
+            "title": "Seq",
+            "type": "integer"
+          },
+          "client_message_id": {
+            "title": "Client Message Id",
+            "type": "string"
+          },
+          "thread_root_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thread Root Id"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "edited_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Edited At"
+          },
+          "deleted_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deleted At"
+          },
+          "mentions": {
+            "items": {
+              "$ref": "#/$defs/MentionOut"
+            },
+            "title": "Mentions",
+            "type": "array"
+          },
+          "mentions_agent": {
+            "title": "Mentions Agent",
+            "type": "boolean"
+          },
+          "attachments": {
+            "items": {
+              "$ref": "#/$defs/AttachmentOut"
+            },
+            "title": "Attachments",
+            "type": "array"
+          },
+          "reply_count": {
+            "title": "Reply Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "workspace_id",
+          "channel_id",
+          "author",
+          "body",
+          "seq",
+          "client_message_id",
+          "thread_root_id",
+          "created_at",
+          "edited_at",
+          "deleted_at",
+          "mentions",
+          "mentions_agent",
+          "attachments",
+          "reply_count"
+        ],
+        "title": "MessageOut",
+        "type": "object"
+      }
+    },
     "properties": {
       "type": {
         "enum": [
@@ -30,7 +403,6 @@
             "type": "null"
           }
         ],
-        "default": null,
         "title": "Workspace Id"
       },
       "channel_id": {
@@ -42,7 +414,6 @@
             "type": "null"
           }
         ],
-        "default": null,
         "title": "Channel Id"
       },
       "seq": {
@@ -54,17 +425,17 @@
             "type": "null"
           }
         ],
-        "default": null,
         "title": "Seq"
       },
       "data": {
-        "additionalProperties": true,
-        "title": "Data",
-        "type": "object"
+        "$ref": "#/$defs/EventData"
       }
     },
     "required": [
       "type",
+      "workspace_id",
+      "channel_id",
+      "seq",
       "data"
     ],
     "title": "SocketEvent",

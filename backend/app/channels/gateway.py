@@ -106,7 +106,9 @@ class Connection:
         event = SocketEvent(
             type=type, data=data, workspace_id=workspace_id, channel_id=channel_id, seq=seq
         )
-        await self.socket.send_json(event.model_dump())
+        output = event.model_dump()
+        output["data"] = {key: value for key, value in output["data"].items() if value is not None}
+        await self.socket.send_json(output)
 
     def inspect(self):
         with SessionLocal() as db:
@@ -342,7 +344,13 @@ async def gateway(socket: WebSocket):
 
     async def receive():
         while True:
-            raw = await socket.receive_text()
+            frame = await socket.receive()
+            if frame["type"] == "websocket.disconnect":
+                raise WebSocketDisconnect(frame.get("code", 1000))
+            raw = frame.get("text")
+            if raw is None:
+                await socket.close(code=1003, reason="Text commands required")
+                return
             if len(raw.encode()) > MAX_FRAME_BYTES:
                 await socket.close(code=1009)
                 return
