@@ -1,7 +1,7 @@
 name: CI
 on:
   push:
-    branches: [v1, main, slice-2-channels, slice-3-tasks, slice-4-agent]
+    branches: [v1, main, slice-2-channels, slice-3-tasks, slice-4-agent, slice-5-approvals]
   pull_request:
 permissions:
   contents: read

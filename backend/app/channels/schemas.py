@@ -5,6 +5,9 @@ from pydantic import BaseModel, Field, field_validator
 from app.tasks.schemas import ProjectOut, TaskCommentOut, TaskOut
 
 EventType = Literal[
+    "proposal.created",
+    "proposal.updated",
+    "proposal.executed",
     "agent.run_started",
     "agent.step",
     "agent.message_created",
@@ -153,7 +156,38 @@ class ChannelOut(BaseModel):
     last_read_seq: int
 
 
+class ProposalSourceOut(BaseModel):
+    type: str
+    id: str
+    label: str
+    url: str
+
+
+class ProposalOut(BaseModel):
+    id: str
+    workspace_id: str
+    run_id: str
+    channel_id: str
+    trigger_message_id: str
+    kind: str
+    risk: str
+    status: str
+    payload: dict
+    payload_hash: str
+    sources: list[ProposalSourceOut]
+    requested_by: AuthorOut
+    decided_by: AuthorOut | None
+    decided_at: str | None
+    decision_reason: str | None
+    execution_result: dict | None
+    expires_at: str
+    created_at: str
+    version: int
+    required_role: str
+
+
 class EventData(BaseModel):
+    proposal: ProposalOut | None = None
     run: AgentRunOut | None = None
     task: TaskOut | None = None
     project: ProjectOut | None = None

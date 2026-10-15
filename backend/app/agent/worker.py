@@ -26,7 +26,7 @@ from app.channels.models import Channel, Message, MessageMention
 from app.channels.service import message_out, record_event
 from app.core.config import settings
 from app.core.db import SessionLocal
-from app.core.models import Workspace
+from app.core.models import Workspace, new_id
 from app.core.security import now
 
 FRIENDLY = {
@@ -271,7 +271,7 @@ async def orchestrate(rid, llm):
         }
         # Deterministic refusal before a provider is contacted; tools cannot mutate in any case.
         if re.search(
-            r"\b(create|delete|remove|assign|move|update|edit|change)\b.{0,60}\b(task|project|channel|message|member)s?\b",
+            r"\b(create|delete|remove|assign|move|update|edit|change)\b.{0,60}\b(project|channel|member|document)s?\b",
             prompt,
             re.I,
         ):
@@ -407,8 +407,16 @@ def recover_stale():
 
 
 async def worker_loop():
+    next_expiry = 0.0
     while True:
         try:
+            if time.monotonic() >= next_expiry:
+                from app.proposals.service import expire_pending
+
+                with SessionLocal() as db:
+                    expire_pending(db, new_id())
+                    db.commit()
+                next_expiry = time.monotonic() + 30
             recover_stale()
             rid = claim()
             if rid:

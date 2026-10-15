@@ -1,7 +1,7 @@
 from datetime import date
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 Status = Literal["todo", "in_progress", "done"]
 Priority = Literal["P1", "P2", "P3"]
@@ -96,11 +96,20 @@ class FromMessageInput(TaskInput):
 
 
 class LinkInput(StrictInput):
+    relation: Literal["related", "depends_on"] = "related"
     source_type: Literal["task", "message"]
     source_id: str = Field(min_length=1, max_length=36)
     target_type: Literal["task", "message"]
     target_id: str = Field(min_length=1, max_length=36)
     version: int = Field(ge=1)
+
+    @model_validator(mode="after")
+    def dependency_endpoints(self):
+        if self.relation == "depends_on" and (
+            self.source_type != "task" or self.target_type != "task"
+        ):
+            raise ValueError("Dependencies must connect tasks")
+        return self
 
 
 class ChannelProjectInput(StrictInput):

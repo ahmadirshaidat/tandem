@@ -6,7 +6,7 @@ from datetime import timedelta
 from typing import Literal
 
 from fastapi import HTTPException
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, create_model
 from sqlalchemy import func, select, text
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -56,9 +56,27 @@ REGISTRY = {
 }
 
 
+from app.proposals.schemas import PAYLOADS, Source  # noqa: E402
+from app.proposals.service import create_proposal  # noqa: E402
+
+PROPOSAL_TOOLS = {
+    "propose_" + kind: create_model(
+        "Propose" + kind.title().replace("_", ""),
+        __base__=schema,
+        sources=(list[Source], Field(default_factory=list, max_length=10)),
+    )
+    for kind, schema in PAYLOADS.items()
+}
+REGISTRY.update(PROPOSAL_TOOLS)
+
+
 def descriptors():
     return [
-        {"name": name, "mode": "read", "arguments_schema": schema.model_json_schema()}
+        {
+            "name": name,
+            "mode": "proposal" if name in PROPOSAL_TOOLS else "read",
+            "arguments_schema": schema.model_json_schema(),
+        }
         for name, schema in REGISTRY.items()
     ]
 
@@ -154,7 +172,24 @@ def execute(db, run, name, arguments):
         parsed = REGISTRY[name].model_validate(arguments)
         with db.begin_nested():
             db.execute(text("SET LOCAL statement_timeout = '3000ms'"))
-            result = read_tool(db, run, name, parsed)
+            if name in PROPOSAL_TOOLS:
+                payload = parsed.model_dump(mode="json", exclude={"sources"})
+                if name == "propose_update_task":
+                    payload["changes"] = parsed.changes.model_dump(mode="json", exclude_unset=True)
+                p = create_proposal(
+                    db,
+                    run,
+                    name.removeprefix("propose_"),
+                    payload,
+                    [s.model_dump() for s in parsed.sources],
+                )
+                result = {
+                    "proposal_id": p.id,
+                    "status": p.status,
+                    "item_count": len(p.payload.get("items", [p.payload])),
+                }
+            else:
+                result = read_tool(db, run, name, parsed)
         # Bound the whole JSON payload while preserving valid JSON and marking truncation.
         encoded = json.dumps(result, default=str)
         if len(encoded) > 16000:
@@ -166,7 +201,9 @@ def execute(db, run, name, arguments):
     count = (
         len(result)
         if isinstance(result, list)
-        else len(result.get("messages", [])) + len(result.get("tasks", []))
+        else len(result.get("messages", []))
+        + len(result.get("tasks", []))
+        + result.get("item_count", 0)
         if isinstance(result, dict)
         else 0
     )

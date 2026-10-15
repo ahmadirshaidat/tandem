@@ -1,0 +1,7 @@
+# ADR 0019: Human execution, transaction and idempotency
+
+Accepted for Slice 5. Only CSRF-protected human decision endpoints invoke domain execution. The agent registry contains reads and six propose_* tools; those persist proposal/item records only. The model cannot call approval or task mutations. The requester may be a Viewer; an eligible human approver supplies the actual domain permissions.
+
+A workspace lock serializes membership/rule/task changes; the proposal row lock serializes competing decisions. A matching successful operation key/user retries return the existing execution result. Other terminal decisions return 409. Concurrent approval/rejection has one winner. Approval is audited before a savepoint; revalidation and every task/comment/dependency mutation occur inside it. Any item failure rolls all domain work back and commits a failed proposal/audit result. Completed state and result IDs commit in the same enclosing transaction. A crash before commit leaves no partial execution.
+
+Execution reuses create_task/update_task and extracted shared comment/delete services, with current approver authorization. Created tasks are marked created_by_agent before their creation event. Attribution activity records Agent proposal plus the approving human, without leaking private source text. New task dependency links are dependent → prerequisite. The existing typed event journal carries creation/update/execution snapshots and normal task events for live replay.

@@ -273,6 +273,17 @@
       },
       "EventData": {
         "properties": {
+          "proposal": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ProposalOut"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
           "run": {
             "anyOf": [
               {
@@ -631,6 +642,173 @@
         "title": "ProjectOut",
         "type": "object"
       },
+      "ProposalOut": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "workspace_id": {
+            "title": "Workspace Id",
+            "type": "string"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "channel_id": {
+            "title": "Channel Id",
+            "type": "string"
+          },
+          "trigger_message_id": {
+            "title": "Trigger Message Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "risk": {
+            "title": "Risk",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "title": "Payload",
+            "type": "object"
+          },
+          "payload_hash": {
+            "title": "Payload Hash",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/$defs/ProposalSourceOut"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "requested_by": {
+            "$ref": "#/$defs/AuthorOut"
+          },
+          "decided_by": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/AuthorOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "decided_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided At"
+          },
+          "decision_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision Reason"
+          },
+          "execution_result": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Execution Result"
+          },
+          "expires_at": {
+            "title": "Expires At",
+            "type": "string"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          },
+          "required_role": {
+            "title": "Required Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "workspace_id",
+          "run_id",
+          "channel_id",
+          "trigger_message_id",
+          "kind",
+          "risk",
+          "status",
+          "payload",
+          "payload_hash",
+          "sources",
+          "requested_by",
+          "decided_by",
+          "decided_at",
+          "decision_reason",
+          "execution_result",
+          "expires_at",
+          "created_at",
+          "version",
+          "required_role"
+        ],
+        "title": "ProposalOut",
+        "type": "object"
+      },
+      "ProposalSourceOut": {
+        "properties": {
+          "type": {
+            "title": "Type",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "id",
+          "label",
+          "url"
+        ],
+        "title": "ProposalSourceOut",
+        "type": "object"
+      },
       "TaskCommentOut": {
         "properties": {
           "id": {
@@ -854,6 +1032,9 @@
     "properties": {
       "type": {
         "enum": [
+          "proposal.created",
+          "proposal.updated",
+          "proposal.executed",
           "agent.run_started",
           "agent.step",
           "agent.message_created",

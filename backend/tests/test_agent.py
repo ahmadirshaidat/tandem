@@ -69,7 +69,7 @@ class Scripted:
 def test_registry_read_only_mutation_refusal_viewer_and_loop(client_factory, db):
     owner, wid, cid = setup_agent(client_factory)
     viewer, _ = add_member(owner, client_factory, wid, "viewer@example.com", "viewer")
-    assert set(REGISTRY) == {
+    assert {k for k in REGISTRY if not k.startswith("propose_")} == {
         "search_messages",
         "search_workspace",
         "list_tasks",
@@ -80,16 +80,18 @@ def test_registry_read_only_mutation_refusal_viewer_and_loop(client_factory, db)
         "generate_progress_report",
         "get_channel_context",
     }
-    assert all(d["mode"] == "read" for d in descriptors())
+    assert all(d["mode"] in {"read", "proposal"} for d in descriptors())
     for schema in REGISTRY.values():
         assert schema.model_config["extra"] == "forbid"
     send(viewer, path(wid, cid), "@Agent create a task called forbidden")
-    provider = Scripted([])
+    provider = Scripted(
+        [AgentTurn(answer="I can only propose changes; human approval is required.")]
+    )
     run = run_latest(db, provider)
-    assert run.status == "completed" and provider.providers == []
+    assert run.status == "completed" and provider.providers == ["groq"]
     assert db.scalar(select(func.count()).select_from(Task)) == 0
     answer = db.scalar(select(Message).where(Message.actor_type == "agent"))
-    assert "cannot make changes" in answer.body and "Tasks" in answer.body
+    assert "human approval" in answer.body
     assert answer.author_id is None
     assert enqueue(db, db.get(Channel, cid), answer, run.request_id) is None
     assert db.scalar(select(func.count()).select_from(AgentRun)) == 1

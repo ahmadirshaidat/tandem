@@ -8,7 +8,15 @@ from app.channels.models import Message
 from app.channels.service import channel_access
 from app.core.models import User, Workspace, new_id
 from app.core.security import now
-from app.tasks.models import Link, Project, Task, TaskActivity, WorkspaceEvent, WorkspaceTaskState
+from app.tasks.models import (
+    Link,
+    Project,
+    Task,
+    TaskActivity,
+    TaskComment,
+    WorkspaceEvent,
+    WorkspaceTaskState,
+)
 from app.workspaces.permissions import membership
 
 RANK_STEP = Decimal(1024)
@@ -265,7 +273,7 @@ def rank_for(db, task, status, before_id=None, after_id=None, *, actor_id, rebal
         return (left + right) / 2
 
 
-def create_task(db, workspace_id, data, user_id):
+def create_task(db, workspace_id, data, user_id, *, created_by_agent=False):
     access(db, workspace_id, user_id, "editor", lock=True)
     get_project(db, workspace_id, data.project_id, writable=True)
     valid_assignee(db, workspace_id, data.assignee_id)
@@ -279,7 +287,7 @@ def create_task(db, workspace_id, data, user_id):
         key=f"{'BUG' if data.type == 'bug' else 'TASK'}-{counter.last_number}",
         version=1,
         comment_count=0,
-        created_by_agent=False,
+        created_by_agent=created_by_agent,
         last_event_seq=0,
         **values,
     )
@@ -376,6 +384,7 @@ def visible_link(db, link, user_id):
         return None
     return {
         "id": link.id,
+        "relation": link.relation,
         "source": {key: value for key, value in source.items() if key not in {"message", "task"}},
         "target": {key: value for key, value in target.items() if key not in {"message", "task"}},
     }
@@ -394,6 +403,7 @@ def create_link(db, workspace_id, data, user_id, *, check_version=True):
             Link.source_id == data.source_id,
             Link.target_type == data.target_type,
             Link.target_id == data.target_id,
+            Link.relation == data.relation,
         )
     )
     if existing:
@@ -407,6 +417,7 @@ def create_link(db, workspace_id, data, user_id, *, check_version=True):
         target_type=data.target_type,
         target_id=data.target_id,
         created_by=user_id,
+        relation=data.relation,
     )
     db.add(link)
     db.flush()
@@ -445,3 +456,32 @@ def unassign_removed_member(db, workspace_id, user_id, actor_id):
         task.version += 1
         task.updated_at = now()
         event(db, workspace_id, "task.updated", {}, task)
+
+
+def add_task_comment(db, task, body, user_id):
+    access(db, task.workspace_id, user_id, "editor", lock=True)
+    get_project(db, task.workspace_id, task.project_id, writable=True)
+    comment = TaskComment(
+        workspace_id=task.workspace_id, task_id=task.id, author_id=user_id, body=body
+    )
+    db.add(comment)
+    db.flush()
+    activity(
+        db, task, user_id, "commented", "comment", None, {"id": comment.id, "body": comment.body}
+    )
+    task.comment_count += 1
+    task.version += 1
+    task.updated_at = now()
+    event(
+        db, task.workspace_id, "task.comment_created", {"comment": comment_out(db, comment)}, task
+    )
+    return comment
+
+
+def soft_delete_task(db, task, user_id, version):
+    access(db, task.workspace_id, user_id, "admin", lock=True)
+    require_version(db, task, version)
+    activity(db, task, user_id, "deleted", "deleted_at", None, now())
+    task.deleted_at, task.updated_at = now(), now()
+    task.version += 1
+    event(db, task.workspace_id, "task.deleted", {}, task)

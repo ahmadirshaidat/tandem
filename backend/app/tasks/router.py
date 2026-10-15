@@ -36,6 +36,7 @@ from app.tasks.service import (
     access,
     activity,
     actor_out,
+    add_task_comment,
     comment_out,
     create_link,
     create_task,
@@ -46,6 +47,7 @@ from app.tasks.service import (
     project_out,
     require_version,
     resolve_item,
+    soft_delete_task,
     task_out,
     tasks_out,
     update_task,
@@ -411,11 +413,7 @@ def delete_task(
 ):
     access(db, workspace_id, user.id, "admin", lock=True)
     task = get_task(db, workspace_id, task_id)
-    require_version(db, task, data.version)
-    activity(db, task, user.id, "deleted", "deleted_at", None, now())
-    task.deleted_at, task.updated_at = now(), now()
-    task.version += 1
-    event(db, workspace_id, "task.deleted", {}, task)
+    soft_delete_task(db, task, user.id, data.version)
     db.commit()
 
 
@@ -464,19 +462,7 @@ def new_comment(
 ):
     access(db, workspace_id, user.id, "editor", lock=True)
     task = get_task(db, workspace_id, task_id)
-    get_project(db, workspace_id, task.project_id, writable=True)
-    comment = TaskComment(
-        workspace_id=workspace_id, task_id=task.id, author_id=user.id, body=data.body
-    )
-    db.add(comment)
-    db.flush()
-    activity(
-        db, task, user.id, "commented", "comment", None, {"id": comment.id, "body": comment.body}
-    )
-    task.comment_count += 1
-    task.version += 1
-    task.updated_at = now()
-    event(db, workspace_id, "task.comment_created", {"comment": comment_out(db, comment)}, task)
+    comment = add_task_comment(db, task, data.body, user.id)
     db.commit()
     return comment_out(db, comment)
 
