@@ -216,7 +216,7 @@ def recent(workspace_id: str, user: User = Depends(current_user), db: Session = 
     ]
 
 
-def audit_query(db, wid, before, after, until, actor, action, status):
+def audit_query(db, wid, before, after, until, actor, action, status, actor_id=None):
     q = select(AuditEvent).where(AuditEvent.workspace_id == wid)
     for value, column, operator in [
         (after, AuditEvent.created_at, "ge"),
@@ -229,6 +229,8 @@ def audit_query(db, wid, before, after, until, actor, action, status):
             q = q.where(
                 {"ge": column.__ge__, "le": column.__le__, "eq": column.__eq__}[operator](value)
             )
+    if actor_id:
+        q = q.where(AuditEvent.actor_id == actor_id)
     if before:
         anchor = db.scalar(
             select(AuditEvent).where(AuditEvent.workspace_id == wid, AuditEvent.id == before)
@@ -272,6 +274,7 @@ def read_audit(
     after: datetime | None = None,
     until: datetime | None = None,
     actor: Literal["user", "agent", "system"] | None = None,
+    actor_id: str | None = Query(None, max_length=36),
     action: str | None = Query(None, max_length=64),
     status: str | None = Query(None, max_length=24),
     limit: int = Query(50, ge=1, le=100),
@@ -282,9 +285,9 @@ def read_audit(
     export = request.url.path.endswith(".csv")
     rows = list(
         db.scalars(
-            audit_query(db, workspace_id, before, after, until, actor, action, status).limit(
-                (10000 if export else limit) + 1
-            )
+            audit_query(
+                db, workspace_id, before, after, until, actor, action, status, actor_id
+            ).limit((10000 if export else limit) + 1)
         )
     )
     if export:
@@ -300,6 +303,8 @@ def read_audit(
             "target_type",
             "target_id",
             "result_status",
+            "approval_id",
+            "approval_status",
             "request_id",
             "redacted_arguments",
         ]

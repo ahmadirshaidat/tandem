@@ -1,6 +1,6 @@
 # ADR 0012: PostgreSQL agent jobs and concurrency
 
-Accepted for Slice 4. A message and its unique trigger-message agent run commit together. HTTP retry returns the existing message/run. Edits do not create a second run. Agent messages never enter mention parsing or the queue.
+Accepted for Slice 4. A message and its unique trigger-message agent run commit together. HTTP retry returns the existing message/run. Adding a mention by editing a human message schedules a run only if that message has never triggered one; later edits cannot create a second run. Agent messages never enter mention parsing or the queue.
 
 Use `agent_runs` as a durable queue, claiming with `FOR UPDATE SKIP LOCKED`. Acquire the workspace lock before a run/channel lock, matching membership changes and existing mutations. Admission counts user/workspace requests over a minute and nonblocked runs in the UTC calendar month under that lock. Default monthly limit is 1,000; pause-at-limit enforces it, while disabling pause explicitly permits overage. Blocked requests are rate-counted but do not consume monthly run usage.
 

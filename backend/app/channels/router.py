@@ -363,6 +363,7 @@ def edit_message(
     channel_id: str,
     message_id: str,
     data: MessageEdit,
+    request: Request,
     user: User = Depends(current_user),
     db: Session = Depends(get_db),
 ):
@@ -377,6 +378,9 @@ def edit_message(
     parse_mentions(db, c, m)
     out = message_out(db, m)
     record_event(db, c, "message.updated", {"message": out})
+    from app.agent.worker import enqueue
+
+    enqueue(db, c, m, request.state.request_id)
     db.commit()
     return out
 

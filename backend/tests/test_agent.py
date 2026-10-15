@@ -393,3 +393,37 @@ def test_upgrade_from_slice3_preserves_messages_and_default_private_off(client_f
     assert db.get(Message, original["id"]).actor_type == "user"
     assert configuration(db, wid).enabled is False
     assert channel_enabled(db, wid, db.get(Channel, private["id"])) is False
+
+
+def test_adding_mention_by_edit_queues_once(client_factory, db):
+    owner, wid, cid = setup_agent(client_factory)
+    original = send(owner, path(wid, cid), "No mention")
+    endpoint = path(wid, cid) + "/messages/" + original["id"]
+    assert owner.patch(endpoint, json={"body": "@Agent summarize"}).status_code == 200
+    assert owner.patch(endpoint, json={"body": "@Agent summarize again"}).status_code == 200
+    assert db.scalar(select(func.count()).select_from(AgentRun)) == 1
+    assert run_latest(db).status == "completed"
+
+
+def test_structured_protocol_validates_provider_output_and_has_no_auto_tools(monkeypatch):
+    from app.agent import llm
+
+    monkeypatch.setattr(
+        llm,
+        "structured",
+        lambda *args: Completion(
+            '{"calls":[{"name":"get_channel_context","arguments":{}}],"answer":""}', 12, 4
+        ),
+    )
+    turn, completion = llm.WorkspaceLLM().turn(
+        "groq", {"question": "Synthetic", "results": [], "tools": descriptors()}
+    )
+    assert turn.calls[0].name == "get_channel_context" and completion.input_tokens == 12
+    for body in [
+        '{"calls":[],"answer":"x","execute":"command"}',
+        '{"calls":[],"answer":' + json.dumps("x" * 4001) + "}",
+        "not JSON",
+    ]:
+        monkeypatch.setattr(llm, "structured", lambda *args, body=body: Completion(body))
+        with pytest.raises(ProviderFailure):
+            llm.WorkspaceLLM().turn("groq", {"question": "Synthetic", "results": []})
