@@ -17,7 +17,7 @@ The explicit table is in `backend/app/ai/capabilities.py`. No SDK native functio
 | Provider/model | Wire output format | Native tool capability | Observed planning-turn probe |
 |---|---|---|---|
 | Groq `openai/gpt-oss-20b` | Strict JSON schema, low reasoning | Advertised by catalog | Passed; full-flow attempts later hit denied invented IDs, premature prose and rate limits |
-| Groq `openai/gpt-oss-120b` | Strict JSON schema, low reasoning | Advertised by catalog | Passed; completed real English proposal/approval with first-read enforcement |
+| Groq `openai/gpt-oss-120b` | Strict JSON schema, low reasoning | Advertised by catalog | Passed; completed real English and Arabic proposal/approval with first-read enforcement |
 | Groq `qwen/qwen3.8-27b` | JSON object, reasoning none | Advertised by catalog | Passed; only a planning turn tested, not full approval |
 | Gemini `gemini-3.8-flash` | MIME JSON plus JSON schema | Native tools not used/assumed | Failed after three bounded attempts: 504, 504, 503 |
 | Gemini `gemini-3.5-flash` | MIME JSON plus JSON schema | Native tools not used/assumed | Passed after one 503 retry; real English and Arabic approvals completed |
@@ -51,3 +51,5 @@ Repair is deliberately limited to Markdown JSON fences and trailing commas outsi
 Mocked regressions cover strict formats, retry caps/backoff, failure classification, repair validation, duplicate/non-finite/forbidden fields, secret redaction, first-read enforcement, offered calls and completing a stored proposal without a redundant provider request. Ordinary backend tests clear real injected keys; live scripts are separate.
 
 Real planning probes, all four strict provider/language commands and the isolated structured-tool checker are recorded in `docs/SLICE4_LIVE_CHECK.md` and `docs/live-provider-results.json`. Model 3.8 failure and intermediate quota/protocol failures remain in the evidence even when later cases succeed. A small synthetic acceptance run does not establish production reliability; the product owner's manual UI acceptance remains separate.
+
+The final matrix passed both Groq 120B languages and its isolated checker. Both final Gemini 3.5 flows and its isolated checker returned HTTP 429, despite earlier English/Arabic approvals succeeding. Therefore the complete live gate remains blocked. An intermediate Gemini Arabic `invalid_response` is also retained; failed text was not saved and its exact cause is unknown. Default selection is based on observed successful compatibility, not a claim of reliable availability or a waiver of the remaining acceptance checks.
