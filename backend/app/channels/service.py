@@ -4,7 +4,7 @@ import time
 from collections import defaultdict, deque
 
 from fastapi import HTTPException
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, or_, select
 from sqlalchemy.orm import Session
 
 from app.channels.models import (
@@ -117,7 +117,7 @@ def attachment_out(item):
 
 
 def message_out(db, message):
-    user = db.get(User, message.author_id)
+    user = db.get(User, message.author_id) if message.author_id else None
     mentions = (
         list(db.scalars(select(MessageMention).where(MessageMention.message_id == message.id)))
         if not message.deleted_at
@@ -131,11 +131,20 @@ def message_out(db, message):
     replies = db.scalar(
         select(func.count()).select_from(Message).where(Message.thread_root_id == message.id)
     )
+    from app.agent.models import AgentRun
+    from app.agent.service import run_out
+
+    run = db.get(AgentRun, message.client_message_id) if message.actor_type == "agent" else None
     return {
+        "agent_run": run_out(db, run) if run else None,
         "id": message.id,
         "workspace_id": message.workspace_id,
         "channel_id": message.channel_id,
-        "author": {"id": user.id, "name": user.name},
+        "author": {
+            "id": user.id if user else message.workspace_id,
+            "name": user.name if user else "Agent",
+            "type": message.actor_type,
+        },
         "body": "" if message.deleted_at else message.body,
         "seq": message.seq,
         "client_message_id": message.client_message_id,
@@ -162,7 +171,7 @@ def channel_out(db, channel, user_id):
     unread_query = select(Message.id).where(
         Message.channel_id == channel.id,
         Message.seq > read,
-        Message.author_id != user_id,
+        or_(Message.author_id != user_id, Message.actor_type == "agent"),
         Message.deleted_at.is_(None),
     )
     unread = db.scalar(select(func.count()).select_from(unread_query.subquery()))

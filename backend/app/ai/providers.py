@@ -58,13 +58,7 @@ def complete(name: str, prompt: str) -> Completion:
         raise ProviderFailure("not_configured")
     try:
         if name == "gemini":
-            with genai.Client(
-                api_key=key,
-                http_options=types.HttpOptions(
-                    timeout=int(settings.ai_provider_timeout_seconds * 1000),
-                    retry_options=types.HttpRetryOptions(attempts=1),
-                ),
-            ) as client:
+            with gemini_client() as client:
                 response = client.models.generate_content(
                     model=provider_model(name),
                     contents=prompt,
@@ -85,12 +79,7 @@ def complete(name: str, prompt: str) -> Completion:
                     getattr(response.usage_metadata, "candidates_token_count", None),
                 )
         else:
-            with OpenAI(
-                api_key=key,
-                base_url=BASE_URLS.get(name, "https://api.openai.com/v1"),
-                timeout=settings.ai_provider_timeout_seconds,
-                max_retries=0,
-            ) as client:
+            with openai_client(name) as client:
                 if name == "openai":
                     response = client.responses.create(
                         model=provider_model(name),
@@ -126,3 +115,92 @@ def complete(name: str, prompt: str) -> Completion:
         raise
     except Exception as exception:
         raise classify_failure(exception) from None
+
+
+def openai_client(name):
+    """Shared transport configuration for trials and the workspace agent."""
+    return OpenAI(
+        api_key=provider_key(name),
+        base_url=BASE_URLS.get(name, "https://api.openai.com/v1"),
+        timeout=settings.ai_provider_timeout_seconds,
+        max_retries=0,
+    )
+
+
+def gemini_client():
+    return genai.Client(
+        api_key=provider_key("gemini"),
+        http_options=types.HttpOptions(
+            timeout=int(settings.ai_provider_timeout_seconds * 1000),
+            retry_options=types.HttpRetryOptions(attempts=1),
+        ),
+    )
+
+
+def structured(name, instructions, payload, schema):
+    """Validated JSON tool protocol; SDK automatic tool execution is never enabled."""
+    if not provider_key(name):
+        raise ProviderFailure("not_configured")
+    try:
+        if name == "gemini":
+            with gemini_client() as client:
+                r = client.models.generate_content(
+                    model=provider_model(name),
+                    contents=payload,
+                    config=types.GenerateContentConfig(
+                        system_instruction=instructions,
+                        response_mime_type="application/json",
+                        response_json_schema=schema,
+                        max_output_tokens=settings.ai_max_output_tokens,
+                        automatic_function_calling=types.AutomaticFunctionCallingConfig(
+                            disable=True
+                        ),
+                    ),
+                )
+                return Completion(
+                    r.text or "",
+                    getattr(r.usage_metadata, "prompt_token_count", 0) or 0,
+                    getattr(r.usage_metadata, "candidates_token_count", 0) or 0,
+                )
+        with openai_client(name) as client:
+            if name == "openai":
+                r = client.responses.create(
+                    model=provider_model(name),
+                    instructions=instructions,
+                    input=payload,
+                    max_output_tokens=settings.ai_max_output_tokens,
+                    store=False,
+                    text={"format": {"type": "json_object"}},
+                )
+                return Completion(r.output_text, r.usage.input_tokens, r.usage.output_tokens)
+            r = client.chat.completions.create(
+                model=provider_model(name),
+                messages=[
+                    {"role": "system", "content": instructions},
+                    {"role": "user", "content": payload},
+                ],
+                response_format={"type": "json_object"},
+                max_tokens=settings.ai_max_output_tokens,
+            )
+            return Completion(
+                r.choices[0].message.content or "", r.usage.prompt_tokens, r.usage.completion_tokens
+            )
+    except ProviderFailure:
+        raise
+    except Exception as e:
+        raise classify_failure(e) from None
+
+
+def check_model(name):
+    if not provider_key(name):
+        return "not_configured"
+    try:
+        if name == "gemini":
+            with gemini_client() as client:
+                client.models.get(model=provider_model(name))
+        else:
+            with openai_client(name) as client:
+                client.models.retrieve(provider_model(name))
+        return "available"
+    except Exception as e:
+        return classify_failure(e).category

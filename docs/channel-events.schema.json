@@ -19,6 +19,118 @@
         "title": "ActorOut",
         "type": "object"
       },
+      "AgentRunOut": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "channel_id": {
+            "title": "Channel Id",
+            "type": "string"
+          },
+          "trigger_message_id": {
+            "title": "Trigger Message Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "error_category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Category"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "latency_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latency Ms"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/$defs/AgentStepOut"
+            },
+            "title": "Steps",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "channel_id",
+          "trigger_message_id",
+          "status",
+          "error_category",
+          "provider",
+          "model",
+          "latency_ms",
+          "steps"
+        ],
+        "title": "AgentRunOut",
+        "type": "object"
+      },
+      "AgentStepOut": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "duration_ms": {
+            "title": "Duration Ms",
+            "type": "integer"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "status",
+          "duration_ms",
+          "count"
+        ],
+        "title": "AgentStepOut",
+        "type": "object"
+      },
       "AttachmentOut": {
         "properties": {
           "id": {
@@ -65,6 +177,15 @@
           },
           "name": {
             "title": "Name",
+            "type": "string"
+          },
+          "type": {
+            "default": "user",
+            "enum": [
+              "user",
+              "agent"
+            ],
+            "title": "Type",
             "type": "string"
           }
         },
@@ -152,6 +273,17 @@
       },
       "EventData": {
         "properties": {
+          "run": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/AgentRunOut"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
           "task": {
             "anyOf": [
               {
@@ -316,6 +448,17 @@
       },
       "MessageOut": {
         "properties": {
+          "agent_run": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/AgentRunOut"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
           "id": {
             "title": "Id",
             "type": "string"
@@ -711,6 +854,10 @@
     "properties": {
       "type": {
         "enum": [
+          "agent.run_started",
+          "agent.step",
+          "agent.message_created",
+          "agent.run_failed",
           "task.created",
           "task.updated",
           "task.moved",

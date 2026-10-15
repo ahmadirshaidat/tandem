@@ -1,0 +1,7 @@
+# ADR 0015: Untrusted context and bounded structured tool execution
+
+Accepted for Slice 4. AgentLLM returns a Pydantic-validated structured turn: bounded tool requests or a bounded final answer. The SDK adapters share trial transports and fixed provider endpoints. This schema-based tool protocol works across providers; it never enables SDK automatic function execution. The registry descriptors and output schema are instructions, while every tool response is separately labeled UNTRUSTED DATA. Stored messages/task text are never promoted to system instructions.
+
+Server-side authorization and registry validation remain independent of model behavior. Tools provide no commands, URL retrieval, filesystem, external integration, writes, documents, memory or RAG. Unknown/extra/oversized arguments are audited and denied with a generic error. Provider outputs are rendered through the existing safe Markdown renderer. A deterministic common change-request refusal runs before provider dispatch; phrasing outside that heuristic is still limited by an exclusively read-only tool registry and instructions to explain manual actions.
+
+Prompt injection cannot be solved by delimiters alone. Even an adversarial model cannot acquire a broader data audience or cause a tool write here. It may still produce misleading prose; no claim of semantic immunity or guaranteed factuality is made. Testing scripts unauthorized tool calls and malicious retrieved messages, checks the permission boundary, and asserts no domain mutation.

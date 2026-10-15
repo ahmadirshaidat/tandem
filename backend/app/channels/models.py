@@ -86,6 +86,10 @@ class Message(Base):
         UniqueConstraint("channel_id", "seq", name="uq_message_seq"),
         UniqueConstraint("channel_id", "author_id", "client_message_id", name="uq_message_client"),
         CheckConstraint("seq > 0 AND char_length(body) <= 4000", name="ck_message_body_seq"),
+        CheckConstraint(
+            "(actor_type = 'user' AND author_id IS NOT NULL) OR (actor_type = 'agent' AND author_id IS NULL)",
+            name="ck_message_actor",
+        ),
         Index("ix_message_history", "channel_id", "thread_root_id", "seq"),
     )
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
@@ -93,7 +97,8 @@ class Message(Base):
         ForeignKey("workspaces.id", ondelete="CASCADE"), index=True
     )
     channel_id: Mapped[str] = mapped_column(String(36), index=True)
-    author_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    author_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"), index=True)
+    actor_type: Mapped[str] = mapped_column(String(12), default="user", server_default="user")
     body: Mapped[str] = mapped_column(Text)
     seq: Mapped[int] = mapped_column(Integer)
     thread_root_id: Mapped[str | None] = mapped_column(String(36))

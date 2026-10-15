@@ -1,5 +1,6 @@
 from alembic import context
 
+from app.agent import models as agent_models  # noqa: F401
 from app.channels import models as channel_models  # noqa: F401
 from app.core import models  # noqa: F401
 from app.core.db import Base, engine

@@ -71,9 +71,12 @@ def test_defaults_roles_unread_mentions_threads_and_pagination(client_factory, d
     root = send(owner, base, "@Teammate and @Agent **hello**")
     assert root["mentions_agent"] and len(root["mentions"]) == 2
     assert db.scalar(select(func.count()).select_from(MessageMention)) == 2
-    assert owner.get(f"/api/workspaces/{wid}/channels").json()[1]["unread_count"] == 0
+    off_reply = owner.get(base + "/messages").json()["messages"][0]
+    assert off_reply["author"]["type"] == "agent"
+    assert "agent is off" in off_reply["body"]
+    assert owner.get(f"/api/workspaces/{wid}/channels").json()[1]["unread_count"] == 1
     counts = viewer.get(base).json()
-    assert counts["mention_count"] == counts["unread_count"] == 1
+    assert counts["mention_count"] == 1 and counts["unread_count"] == 2
     reply = send(viewer, base, "A question", thread_root_id=root["id"])
     assert reply["thread_root_id"] == root["id"]
     assert owner.get(base + f"/threads/{root['id']}").json()["messages"][0]["id"] == reply["id"]
@@ -82,8 +85,9 @@ def test_defaults_roles_unread_mentions_threads_and_pagination(client_factory, d
     rows = [send(viewer, base, str(n)) for n in range(3)]
     first = viewer.get(base + "/messages?limit=2").json()
     second = viewer.get(base + f"/messages?limit=2&before={first['next_cursor']}").json()
-    assert [m["id"] for m in first["messages"] + second["messages"]] == [
-        m["id"] for m in reversed([root, *rows])
+    third = viewer.get(base + f"/messages?limit=2&before={second['next_cursor']}").json()
+    assert [m["id"] for m in first["messages"] + second["messages"] + third["messages"]] == [
+        m["id"] for m in reversed([root, off_reply, *rows])
     ]
     assert viewer.post(base + "/read", json={"last_read_seq": 1000}).status_code == 200
     assert viewer.get(base).json()["unread_count"] == 0

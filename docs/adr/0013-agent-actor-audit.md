@@ -1,0 +1,9 @@
+# ADR 0013: Agent actor and immutable audit
+
+Accepted for Slice 4. Messages have an explicit user/agent actor type with a database check: human messages require a user author; agent messages have no user author. The workspace ID identifies its one shared agent. It has no membership, seat, login or elevated role. Human members retain existing permissions to remove messages; only their own human messages can be edited. Agent output is an ordinary channel/thread message and follows the existing authorized journal/catch-up protocol.
+
+Runs/tool calls contain metadata only, never prompt/context/answer text. Answers live as messages; the existing message-event journal retains message snapshots for replay. Audit events record run lifecycle, every validated or denied tool invocation, provider switches and settings changes. Free-text tool arguments are wholly redacted, including unknown names; counts/status/duration and fixed registry names are retained. Settings values are bounded non-secret configuration. Each audit event carries a request ID; approval fields are nullable reservations, not active approvals.
+
+Database triggers reject UPDATE, DELETE and TRUNCATE on audit_events, including for the application's database role. Test isolation alone disables triggers in its disposable database before resetting fixtures; application paths never do so. This prevents routine application mutation, not tampering by a database owner able to alter/drop triggers. Audit foreign keys deliberately do not cascade history deletion. Retention and controlled workspace erasure need a separate policy.
+
+General audit reads/CSV require current Owner/Admin membership and workspace scoping. Pagination uses timestamp and ID. Export uses identical filters, caps at 10,000 rows and asks for narrower filters beyond that. A member's Recent actions is a narrow projection of their own audited runs, rechecked against currently accessible channels; it grants no general audit access.

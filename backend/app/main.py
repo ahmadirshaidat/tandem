@@ -1,7 +1,9 @@
+import asyncio
 import json
 import logging
 import time
 import uuid
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
@@ -10,10 +12,14 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.agent.llm import verify_models
+from app.agent.router import router as agent_router
+from app.agent.worker import worker_loop
 from app.ai.router import router as ai_router
 from app.auth.router import router as auth_router
 from app.channels.gateway import router as socket_router
 from app.channels.router import router as channel_router
+from app.core.config import settings
 from app.core.db import engine
 from app.tasks.router import router as task_router
 from app.workspaces.router import invites
@@ -21,7 +27,27 @@ from app.workspaces.router import router as workspace_router
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger("tandem")
-app = FastAPI(title="Tandem", version="0.1.0")
+
+
+@asynccontextmanager
+async def lifespan(app):
+    if settings.agent_worker_enabled:
+        await asyncio.to_thread(verify_models)
+    workers = (
+        [asyncio.create_task(worker_loop()) for _ in range(settings.agent_worker_slots)]
+        if settings.agent_worker_enabled
+        else []
+    )
+    try:
+        yield
+    finally:
+        for worker in workers:
+            worker.cancel()
+        await asyncio.gather(*workers, return_exceptions=True)
+
+
+app = FastAPI(title="Tandem", version="0.1.0", lifespan=lifespan)
+app.include_router(agent_router)
 app.include_router(auth_router)
 app.include_router(workspace_router)
 app.include_router(invites)

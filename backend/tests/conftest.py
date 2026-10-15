@@ -10,6 +10,8 @@ from sqlalchemy.engine import make_url
 
 from app.core.config import settings
 
+settings.agent_worker_enabled = False
+
 # Every invocation gets a disposable database. Never truncate the development DB.
 original_url = make_url(settings.database_url)
 test_database = f"tandem_test_{uuid.uuid4().hex}"
@@ -42,8 +44,11 @@ def migrated_database():
 @pytest.fixture(autouse=True)
 def isolated_state(migrated_database, tmp_path):
     with engine.begin() as connection:
+        # Fixture owns only its disposable test database.
+        connection.execute(text("ALTER TABLE audit_events DISABLE TRIGGER USER"))
         tables = ", ".join(f'"{table.name}"' for table in Base.metadata.sorted_tables)
         connection.execute(text(f"TRUNCATE {tables} CASCADE"))
+        connection.execute(text("ALTER TABLE audit_events ENABLE TRIGGER USER"))
     limiter.hits.clear()
     settings.mail_outbox = tmp_path / "mail"
     settings.attachment_dir = tmp_path / "attachments"

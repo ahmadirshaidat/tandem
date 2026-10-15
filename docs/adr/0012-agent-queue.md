@@ -1,0 +1,9 @@
+# ADR 0012: PostgreSQL agent jobs and concurrency
+
+Accepted for Slice 4. A message and its unique trigger-message agent run commit together. HTTP retry returns the existing message/run. Edits do not create a second run. Agent messages never enter mention parsing or the queue.
+
+Use `agent_runs` as a durable queue, claiming with `FOR UPDATE SKIP LOCKED`. Acquire the workspace lock before a run/channel lock, matching membership changes and existing mutations. Admission counts user/workspace requests over a minute and nonblocked runs in the UTC calendar month under that lock. Default monthly limit is 1,000; pause-at-limit enforces it, while disabling pause explicitly permits overage. Blocked requests are rate-counted but do not consume monthly run usage.
+
+Four coroutine workers run in the single backend process; default workspace concurrency is one. Claims exclude workspaces at capacity. No database transaction remains open across provider IO. Each call uses a bounded SDK timeout, no implicit SDK retries; a provider may make at most four turns before fallback. Total run timeout defaults to 60 seconds. Provider calls run in threads; cancellation stops orchestration and persistence, while an in-flight SDK call may continue until its own timeout. A stale running job becomes a friendly timeout after its deadline plus a five-second recovery margin; it is never blindly reissued/rebilled on restart. Database locks/status checks prevent duplicate final messages.
+
+Queue durability does not remove the existing one-Uvicorn-worker constraint for presence/fan-out. Bound worker count and tool/result sizes; a distributed worker or fair-priority scheduler is a later scaling decision. Read failures never retry mutations because no mutation tools exist.

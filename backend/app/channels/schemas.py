@@ -5,6 +5,10 @@ from pydantic import BaseModel, Field, field_validator
 from app.tasks.schemas import ProjectOut, TaskCommentOut, TaskOut
 
 EventType = Literal[
+    "agent.run_started",
+    "agent.step",
+    "agent.message_created",
+    "agent.run_failed",
     "task.created",
     "task.updated",
     "task.moved",
@@ -79,6 +83,7 @@ class SocketCommand(BaseModel):
 class AuthorOut(BaseModel):
     id: str
     name: str
+    type: Literal["user", "agent"] = "user"
 
 
 class AttachmentOut(BaseModel):
@@ -95,7 +100,27 @@ class MentionOut(BaseModel):
     is_agent: bool
 
 
+class AgentStepOut(BaseModel):
+    name: str
+    status: str
+    duration_ms: int
+    count: int
+
+
+class AgentRunOut(BaseModel):
+    id: str
+    channel_id: str
+    trigger_message_id: str
+    status: str
+    error_category: str | None
+    provider: str | None
+    model: str | None
+    latency_ms: int | None
+    steps: list[AgentStepOut]
+
+
 class MessageOut(BaseModel):
+    agent_run: AgentRunOut | None = None
     id: str
     workspace_id: str
     channel_id: str
@@ -129,6 +154,7 @@ class ChannelOut(BaseModel):
 
 
 class EventData(BaseModel):
+    run: AgentRunOut | None = None
     task: TaskOut | None = None
     project: ProjectOut | None = None
     comment: TaskCommentOut | None = None

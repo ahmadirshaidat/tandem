@@ -280,6 +280,7 @@ def send_message(
     channel_id: str,
     data: MessageInput,
     response: Response,
+    request: Request,
     user: User = Depends(current_user),
     db: Session = Depends(get_db),
 ):
@@ -337,6 +338,9 @@ def send_message(
     if m.thread_root_id:
         payload["thread_root"] = message_out(db, root)
     record_event(db, c, "thread.reply_created" if m.thread_root_id else "message.created", payload)
+    from app.agent.worker import enqueue
+
+    enqueue(db, c, m, request.state.request_id)
     db.commit()
     return out
 
