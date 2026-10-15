@@ -42,7 +42,11 @@ def migrated_database():
 
 
 @pytest.fixture(autouse=True)
-def isolated_state(migrated_database, tmp_path):
+def isolated_state(migrated_database, tmp_path, monkeypatch):
+    # Live checks are separate scripts. Ordinary tests must never consume an
+    # injected user credential, even when the cloud has real provider bindings.
+    for key in ("groq_api_key", "gemini_api_key", "deepseek_api_key", "tandem_openai_api_key"):
+        monkeypatch.setattr(settings, key, None)
     with engine.begin() as connection:
         # Fixture owns only its disposable test database.
         connection.execute(text("ALTER TABLE audit_events DISABLE TRIGGER USER"))

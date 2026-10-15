@@ -1,0 +1,684 @@
+{
+  "checked_on": "2026-10-15",
+  "timezone": "Asia/Amman",
+  "gate": "blocked",
+  "automated_live_gate": "blocked",
+  "remaining_failures": [
+    "Final Gemini 3.5 English and Arabic strict flows returned rate_limited (HTTP 429); final isolated checker also returned 429.",
+    "Gemini 3.8 generation exhausted bounded retries: HTTP 504, 504, 503.",
+    "An earlier Gemini 3.5 Arabic attempt returned invalid_response; exact failed generation was not retained. Later Arabic approval passed, but the failure remains evidence."
+  ],
+  "product_owner_manual_acceptance": "not_verified",
+  "credentials_available": true,
+  "scope": "Real-provider compatibility only; no Slice 6 implementation.",
+  "code_revision": "de7f9e6a2bc51aac20d66dc99d99c0bd9a04d0f6",
+  "configuration": {
+    "groq_model": "openai/gpt-oss-120b",
+    "gemini_model": "gemini-3.5-flash",
+    "agent_fake_provider": false,
+    "agent_provider_timeout_seconds": 15,
+    "agent_max_output_tokens": 2048,
+    "auth_rate_limit": 10,
+    "gemini_25_live_calls": 0
+  },
+  "sources": [
+    {
+      "url": "https://github.com/groq/groq-python/blob/main/src/groq/types/chat/completion_create_params.py",
+      "sha256": "e186bd9fec40233efdd70b6c33ed9537e8017f46a397c349b5287abfeee6dc4d"
+    },
+    {
+      "url": "https://github.com/googleapis/python-genai/blob/main/README.md",
+      "sha256": "66952d47594d7a9c588782f57cb02d04fa4fd27b108112fd06b036234cdebc34"
+    }
+  ],
+  "source_access": {
+    "direct_documentation_hosts": "console.groq.com and ai.google.dev blocked by environment egress; additions saved to configuration draft, not runtime-applied.",
+    "official_documentation_used": "Groq and Google owned GitHub SDK documentation; authenticated provider model endpoints.",
+    "groq_catalog_endpoint": "https://api.groq.com/openai/v1/models",
+    "groq_catalog_model_count": 11,
+    "groq_selected_catalog_entries": [
+      {
+        "id": "qwen/qwen3.8-27b",
+        "active": true,
+        "max_completion_tokens": 16384,
+        "supported_features": [
+          "tools",
+          "json_mode",
+          "reasoning"
+        ],
+        "supported_sampling_parameters": [
+          "temperature",
+          "top_p",
+          "stop",
+          "seed",
+          "max_tokens"
+        ]
+      },
+      {
+        "id": "openai/gpt-oss-120b",
+        "active": true,
+        "max_completion_tokens": 65536,
+        "supported_features": [
+          "tools",
+          "json_mode",
+          "structured_outputs",
+          "reasoning"
+        ],
+        "supported_sampling_parameters": [
+          "temperature",
+          "top_p",
+          "stop",
+          "seed",
+          "max_tokens"
+        ]
+      },
+      {
+        "id": "openai/gpt-oss-20b",
+        "active": true,
+        "max_completion_tokens": 65536,
+        "supported_features": [
+          "tools",
+          "json_mode",
+          "structured_outputs",
+          "reasoning"
+        ],
+        "supported_sampling_parameters": [
+          "temperature",
+          "top_p",
+          "stop",
+          "seed",
+          "max_tokens"
+        ]
+      }
+    ],
+    "absent_groq_candidates_not_called": [
+      "llama-3.3-70b-versatile",
+      "qwen/qwen3-32b"
+    ]
+  },
+  "latency_scope": {
+    "planning_probe": "Wall time includes model lookup, client setup and generation/retries; no tools are executed.",
+    "isolated_checker": "Wall time for structured generation/client setup/retries; excludes preceding model lookup.",
+    "proposal_creation_ms": "End-to-end mention, model/tool turns and polling until completed proposal, including audit lookup.",
+    "agent_latency_ms": "Backend agent run duration including provider generation and tools; not just queue/transport.",
+    "human_test_owner_approval_http_ms": "Authenticated synthetic test owner approval HTTP duration; not a manual UI timing."
+  },
+  "token_usage_scope": "Provider-reported successful generations only. Failed HTTP attempts may consume unreported tokens. Null means unavailable; 0 in run audit means no successful-generation usage recorded, not zero billed tokens.",
+  "planning_turn_probes": [
+    {
+      "mode": "live",
+      "probe": "planning_turn_only",
+      "provider": "groq",
+      "model": "openai/gpt-oss-20b",
+      "format": "json_schema",
+      "model_discovery": "available",
+      "status": "passed",
+      "protocol_valid": true,
+      "tool_names": [
+        "list_projects",
+        "list_tasks"
+      ],
+      "input_tokens": 3790,
+      "output_tokens": 80,
+      "attempts": 1,
+      "repaired": false,
+      "safe_errors": [],
+      "failed_attempt_token_usage": "not_applicable",
+      "latency_ms": 1254.76
+    },
+    {
+      "mode": "live",
+      "probe": "planning_turn_only",
+      "provider": "groq",
+      "model": "openai/gpt-oss-120b",
+      "format": "json_schema",
+      "model_discovery": "available",
+      "status": "passed",
+      "protocol_valid": true,
+      "tool_names": [
+        "list_projects"
+      ],
+      "input_tokens": 3790,
+      "output_tokens": 61,
+      "attempts": 1,
+      "repaired": false,
+      "safe_errors": [],
+      "failed_attempt_token_usage": "not_applicable",
+      "latency_ms": 934.18
+    },
+    {
+      "mode": "live",
+      "probe": "planning_turn_only",
+      "provider": "groq",
+      "model": "qwen/qwen3.8-27b",
+      "format": "json_object",
+      "model_discovery": "available",
+      "status": "passed",
+      "protocol_valid": true,
+      "tool_names": [
+        "list_projects",
+        "list_tasks"
+      ],
+      "input_tokens": 3670,
+      "output_tokens": 36,
+      "attempts": 1,
+      "repaired": false,
+      "safe_errors": [],
+      "failed_attempt_token_usage": "not_applicable",
+      "latency_ms": 958.84
+    },
+    {
+      "mode": "live",
+      "probe": "planning_turn_only",
+      "provider": "gemini",
+      "model": "gemini-3.8-flash",
+      "format": "gemini_json_schema",
+      "model_discovery": "available",
+      "status": "failed",
+      "category": "upstream_5xx",
+      "http_status": 503,
+      "attempts": 3,
+      "input_tokens": null,
+      "output_tokens": null,
+      "latency_ms": 16912.18
+    },
+    {
+      "mode": "live",
+      "probe": "planning_turn_only",
+      "provider": "gemini",
+      "model": "gemini-3.5-flash",
+      "format": "gemini_json_schema",
+      "model_discovery": "available",
+      "status": "passed",
+      "protocol_valid": true,
+      "tool_names": [
+        "list_projects",
+        "list_tasks"
+      ],
+      "input_tokens": 3717,
+      "output_tokens": 45,
+      "attempts": 2,
+      "repaired": false,
+      "safe_errors": [
+        "upstream_5xx"
+      ],
+      "failed_attempt_token_usage": "not_reported",
+      "latency_ms": 6096.9
+    }
+  ],
+  "gemini_38_final_bounded_probe": {
+    "mode": "live",
+    "probe": "planning_turn_only",
+    "provider": "gemini",
+    "model": "gemini-3.8-flash",
+    "format": "gemini_json_schema",
+    "model_discovery": "available",
+    "status": "failed",
+    "category": "upstream_5xx",
+    "http_status": 503,
+    "attempts": 3,
+    "input_tokens": null,
+    "output_tokens": null,
+    "safe_errors": [
+      "upstream_timeout",
+      "upstream_timeout",
+      "upstream_5xx"
+    ],
+    "failed_attempt_token_usage": "not_reported",
+    "latency_ms": 30367.63
+  },
+  "results": [
+    {
+      "mode": "live",
+      "provider": "groq",
+      "language": "en",
+      "model": "openai/gpt-oss-120b",
+      "status": "completed",
+      "proposal_creation_ms": 2132.74,
+      "human_test_owner_approval_http_ms": 65.94,
+      "idempotent_retry": true,
+      "task_count": 2,
+      "input_tokens": 4447,
+      "output_tokens": 404,
+      "agent_latency_ms": 1938,
+      "token_usage_scope": "successful generations; failed HTTP attempt usage not reported",
+      "exit_code": 0
+    },
+    {
+      "mode": "live",
+      "provider": "groq",
+      "language": "ar",
+      "model": "openai/gpt-oss-120b",
+      "status": "completed",
+      "proposal_creation_ms": 2389.6,
+      "human_test_owner_approval_http_ms": 59.43,
+      "idempotent_retry": true,
+      "task_count": 2,
+      "input_tokens": 6803,
+      "output_tokens": 375,
+      "agent_latency_ms": 2145,
+      "token_usage_scope": "successful generations; failed HTTP attempt usage not reported",
+      "exit_code": 0
+    },
+    {
+      "mode": "live",
+      "provider": "gemini",
+      "language": "en",
+      "model": "gemini-3.5-flash",
+      "status": "failed",
+      "category": "rate_limited",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "agent_latency_ms": 226,
+      "token_usage_scope": "successful generations; failed HTTP attempt usage not reported",
+      "exit_code": 1
+    },
+    {
+      "mode": "live",
+      "provider": "gemini",
+      "language": "ar",
+      "model": "gemini-3.5-flash",
+      "status": "failed",
+      "category": "rate_limited",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "agent_latency_ms": 3045,
+      "token_usage_scope": "successful generations; failed HTTP attempt usage not reported",
+      "exit_code": 1
+    }
+  ],
+  "isolated_structured_checker_exit_code": 1,
+  "isolated_structured_checks": [
+    {
+      "provider": "groq",
+      "model": "openai/gpt-oss-120b",
+      "latency_ms": 619.41,
+      "model_discovery": "available",
+      "structured_tool_request": true,
+      "input_tokens": 1821,
+      "output_tokens": 78,
+      "attempts": 1,
+      "repaired": false,
+      "safe_errors": []
+    },
+    {
+      "provider": "gemini",
+      "model": "gemini-3.5-flash",
+      "model_discovery": "available",
+      "status": "rate_limited",
+      "http_status": 429,
+      "attempts": 1,
+      "safe_errors": [
+        "rate_limited"
+      ],
+      "latency_ms": 178.96,
+      "input_tokens": null,
+      "output_tokens": null
+    }
+  ],
+  "earlier_compatible_isolated_checks": [
+    {
+      "provider": "groq",
+      "model": "openai/gpt-oss-20b",
+      "latency_ms": 515.47,
+      "model_discovery": "available",
+      "structured_tool_request": true,
+      "input_tokens": 1762,
+      "output_tokens": 58,
+      "attempts": 1,
+      "repaired": false,
+      "safe_errors": []
+    },
+    {
+      "provider": "gemini",
+      "model": "gemini-3.5-flash",
+      "latency_ms": 4669.17,
+      "model_discovery": "available",
+      "structured_tool_request": true,
+      "input_tokens": 1628,
+      "output_tokens": 23,
+      "attempts": 2,
+      "repaired": false,
+      "safe_errors": [
+        "upstream_5xx"
+      ]
+    }
+  ],
+  "intermediate_flow_history": [
+    {
+      "phase": "Before proposal-schema staging",
+      "result": {
+        "mode": "live",
+        "provider": "groq",
+        "language": "en",
+        "model": "openai/gpt-oss-20b",
+        "status": "failed",
+        "category": "access_changed",
+        "input_tokens": 2704,
+        "output_tokens": 214,
+        "agent_latency_ms": 1002,
+        "token_usage_scope": "successful generations; failed HTTP attempt usage not reported",
+        "exit_code": 1
+      }
+    },
+    {
+      "phase": "Before proposal-schema staging",
+      "result": {
+        "mode": "live",
+        "provider": "gemini",
+        "language": "en",
+        "model": "gemini-3.5-flash",
+        "status": "failed",
+        "category": "rate_limited",
+        "input_tokens": 3719,
+        "output_tokens": 46,
+        "agent_latency_ms": 8242,
+        "token_usage_scope": "successful generations; failed HTTP attempt usage not reported",
+        "exit_code": 1
+      }
+    },
+    {
+      "phase": "Before proposal-schema staging",
+      "result": {
+        "mode": "live",
+        "provider": "groq",
+        "language": "ar",
+        "model": "openai/gpt-oss-20b",
+        "status": "failed",
+        "category": "rate_limited",
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "agent_latency_ms": 125,
+        "token_usage_scope": "successful generations; failed HTTP attempt usage not reported",
+        "exit_code": 1
+      }
+    },
+    {
+      "phase": "Before proposal-schema staging",
+      "result": {
+        "mode": "live",
+        "provider": "gemini",
+        "language": "ar",
+        "model": "gemini-3.5-flash",
+        "status": "failed",
+        "category": "rate_limited",
+        "input_tokens": 9171,
+        "output_tokens": 378,
+        "agent_latency_ms": 8779,
+        "token_usage_scope": "successful generations; failed HTTP attempt usage not reported",
+        "exit_code": 1
+      }
+    },
+    {
+      "phase": "Groq 20B before first-read enforcement",
+      "result": {
+        "mode": "live",
+        "provider": "groq",
+        "language": "en",
+        "model": "openai/gpt-oss-20b",
+        "status": "failed",
+        "category": null,
+        "input_tokens": 1165,
+        "output_tokens": 138,
+        "agent_latency_ms": 1044,
+        "token_usage_scope": "successful generations; failed HTTP attempt usage not reported"
+      }
+    },
+    {
+      "phase": "Groq 120B before first-read enforcement",
+      "result": {
+        "mode": "live",
+        "provider": "groq",
+        "language": "en",
+        "model": "openai/gpt-oss-120b",
+        "status": "failed",
+        "category": null,
+        "input_tokens": 1775,
+        "output_tokens": 253,
+        "agent_latency_ms": 1012,
+        "token_usage_scope": "successful generations; failed HTTP attempt usage not reported"
+      }
+    },
+    {
+      "phase": "After proposal-schema staging",
+      "result": {
+        "mode": "live",
+        "provider": "gemini",
+        "language": "en",
+        "model": "gemini-3.5-flash",
+        "status": "completed",
+        "proposal_creation_ms": 7785.55,
+        "human_test_owner_approval_http_ms": 100.52,
+        "idempotent_retry": true,
+        "task_count": 2,
+        "input_tokens": 5723,
+        "output_tokens": 291,
+        "agent_latency_ms": 7644,
+        "token_usage_scope": "successful generations; failed HTTP attempt usage not reported"
+      }
+    },
+    {
+      "phase": "After first-read enforcement",
+      "result": {
+        "mode": "live",
+        "provider": "groq",
+        "language": "en",
+        "model": "openai/gpt-oss-120b",
+        "status": "completed",
+        "proposal_creation_ms": 2152.55,
+        "human_test_owner_approval_http_ms": 106.46,
+        "idempotent_retry": true,
+        "task_count": 2,
+        "input_tokens": 4446,
+        "output_tokens": 389,
+        "agent_latency_ms": 1878,
+        "token_usage_scope": "successful generations; failed HTTP attempt usage not reported"
+      }
+    },
+    {
+      "phase": "Groq 20B after first-read enforcement",
+      "result": {
+        "mode": "live",
+        "provider": "groq",
+        "language": "en",
+        "model": "openai/gpt-oss-20b",
+        "status": "failed",
+        "category": "rate_limited",
+        "input_tokens": 1172,
+        "output_tokens": 103,
+        "agent_latency_ms": 2239,
+        "token_usage_scope": "successful generations; failed HTTP attempt usage not reported"
+      }
+    },
+    {
+      "phase": "Gemini Arabic invalid response; failed generation not retained",
+      "result": {
+        "mode": "live",
+        "provider": "gemini",
+        "language": "ar",
+        "model": "gemini-3.5-flash",
+        "status": "failed",
+        "category": "invalid_response",
+        "input_tokens": 7326,
+        "output_tokens": 1073,
+        "agent_latency_ms": 14076,
+        "token_usage_scope": "successful generations; failed HTTP attempt usage not reported"
+      }
+    },
+    {
+      "phase": "Gemini Arabic later completion with safe validation diagnostics",
+      "result": {
+        "mode": "live",
+        "provider": "gemini",
+        "language": "ar",
+        "model": "gemini-3.5-flash",
+        "status": "completed",
+        "proposal_creation_ms": 14698.56,
+        "human_test_owner_approval_http_ms": 82.7,
+        "idempotent_retry": true,
+        "task_count": 2,
+        "input_tokens": 7328,
+        "output_tokens": 430,
+        "agent_latency_ms": 14362,
+        "token_usage_scope": "successful generations; failed HTTP attempt usage not reported"
+      }
+    },
+    {
+      "phase": "Intermediate Groq Arabic quota failure",
+      "result": {
+        "mode": "live",
+        "provider": "groq",
+        "language": "ar",
+        "model": "openai/gpt-oss-120b",
+        "status": "failed",
+        "category": "rate_limited",
+        "input_tokens": 4297,
+        "output_tokens": 222,
+        "agent_latency_ms": 2258,
+        "token_usage_scope": "successful generations; failed HTTP attempt usage not reported"
+      }
+    },
+    {
+      "phase": "Intermediate Gemini English quota failure",
+      "result": {
+        "mode": "live",
+        "provider": "gemini",
+        "language": "en",
+        "model": "gemini-3.5-flash",
+        "status": "failed",
+        "category": "rate_limited",
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "agent_latency_ms": 2783,
+        "token_usage_scope": "successful generations; failed HTTP attempt usage not reported"
+      }
+    }
+  ],
+  "original_baseline": {
+    "results": [
+      {
+        "mode": "live",
+        "provider": "groq",
+        "language": "en",
+        "model": "openai/gpt-oss-20b",
+        "status": "failed",
+        "category": "unavailable",
+        "exit_code": 1
+      },
+      {
+        "mode": "live",
+        "provider": "gemini",
+        "language": "en",
+        "model": "gemini-3.8-flash",
+        "status": "failed",
+        "category": "unavailable",
+        "exit_code": 1
+      },
+      {
+        "mode": "live",
+        "provider": "groq",
+        "language": "ar",
+        "model": "openai/gpt-oss-20b",
+        "status": "failed",
+        "category": "unavailable",
+        "exit_code": 1
+      },
+      {
+        "mode": "live",
+        "provider": "gemini",
+        "language": "ar",
+        "model": "gemini-3.8-flash",
+        "status": "failed",
+        "category": "unavailable",
+        "exit_code": 1
+      }
+    ],
+    "isolated_structured_checks": [
+      {
+        "provider": "groq",
+        "model_discovery": "invalid_request",
+        "structured_tool_request": true,
+        "input_tokens": 3709,
+        "output_tokens": 154
+      },
+      {
+        "provider": "gemini",
+        "model_discovery": "available",
+        "status": "unavailable"
+      }
+    ],
+    "diagnostics": [
+      {
+        "provider": "groq",
+        "request": "planning_json_protocol",
+        "http_status": 400,
+        "high_output_budget_error_code": "tool_use_failed",
+        "diagnostic_max_output_tokens": 2048
+      },
+      {
+        "provider": "gemini",
+        "request": "structured_generation",
+        "http_status": 504,
+        "exception_type": "ServerError"
+      }
+    ],
+    "synthetic_workspaces_verified": 4,
+    "tasks_created": 0,
+    "agent_tool_calls_executed": 0
+  },
+  "previous_missing_key_attempts": [
+    {
+      "mode": "live",
+      "provider": "groq",
+      "language": "en",
+      "status": "live checks skipped",
+      "reason": "no_key",
+      "exit_code": 2
+    },
+    {
+      "mode": "live",
+      "provider": "groq",
+      "language": "ar",
+      "status": "live checks skipped",
+      "reason": "no_key",
+      "exit_code": 2
+    },
+    {
+      "mode": "live",
+      "provider": "gemini",
+      "language": "en",
+      "status": "live checks skipped",
+      "reason": "no_key",
+      "exit_code": 2
+    },
+    {
+      "mode": "live",
+      "provider": "gemini",
+      "language": "ar",
+      "status": "live checks skipped",
+      "reason": "no_key",
+      "exit_code": 2
+    }
+  ],
+  "non_live_validation": {
+    "mock_tests_are_live_evidence": false,
+    "backend_tests": {
+      "passed": 133,
+      "seconds": 33.24,
+      "warnings": 1,
+      "warning": "Existing Starlette/httpx deprecation"
+    },
+    "lint_format_migrations_event_contract": "passed",
+    "hosted_ci": {
+      "url": "https://github.com/ahmadirshaidat/tandem/actions/runs/38807994296",
+      "head_sha": "de7f9e6a2bc51aac20d66dc99d99c0bd9a04d0f6",
+      "conclusion": "success",
+      "checks": [
+        "Backend lint, format, tests and Alembic",
+        "Shared event contract",
+        "Frontend lint, typecheck, unit tests and production build",
+        "Playwright browser integration tests with fake provider"
+      ]
+    }
+  }
+}

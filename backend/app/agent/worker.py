@@ -21,7 +21,7 @@ from app.agent.service import (
     usage,
 )
 from app.agent.tools import descriptors, execute
-from app.ai.providers import ProviderFailure, provider_model
+from app.ai.providers import ProviderFailure, provider_model, structured_timeout_budget
 from app.channels.models import Channel, Message, MessageMention
 from app.channels.service import message_out, record_event
 from app.core.config import settings
@@ -305,7 +305,7 @@ async def orchestrate(rid, llm):
                     db.commit()
                 turn, completion = await asyncio.wait_for(
                     asyncio.to_thread(llm.turn, provider, payload),
-                    timeout=min(remaining, settings.ai_provider_timeout_seconds + 1),
+                    timeout=min(remaining, structured_timeout_budget(provider)),
                 )
                 with SessionLocal() as db:
                     run = locked_run(db, rid)
@@ -322,6 +322,7 @@ async def orchestrate(rid, llm):
                     run.input_tokens += completion.input_tokens or 0
                     run.output_tokens += completion.output_tokens or 0
                     if turn.calls:
+                        proposed = False
                         for call in turn.calls:
                             result = execute(db, run, call.name, call.arguments)
                             payload["results"].append(result)
@@ -336,6 +337,18 @@ async def orchestrate(rid, llm):
                                     "access_changed",
                                 )
                                 return
+                            proposed |= call.name.startswith("propose_")
+                        db.commit()
+                        if proposed:
+                            # Persisted, server-validated proposals already contain
+                            # the review content. A further LLM request adds no action
+                            # and could fail after successfully creating the proposal.
+                            finish(
+                                rid,
+                                "I proposed these changes for human review. Nothing has been changed; an eligible teammate must approve.",
+                                fingerprint=fingerprint,
+                            )
+                            return
                     elif turn.answer:
                         db.commit()
                         finish(rid, turn.answer, fingerprint=fingerprint)
@@ -346,6 +359,31 @@ async def orchestrate(rid, llm):
             raise ProviderFailure("step_limit")
         except (ProviderFailure, TimeoutError) as e:
             category = e.category if isinstance(e, ProviderFailure) else "timeout"
+            if isinstance(e, ProviderFailure) and (
+                e.input_tokens or e.output_tokens or e.validation_issue
+            ):
+                with SessionLocal() as db:
+                    run = locked_run(db, rid)
+                    run.input_tokens += e.input_tokens or 0
+                    run.output_tokens += e.output_tokens or 0
+                    if e.validation_issue:
+                        audit(
+                            db,
+                            run.workspace_id,
+                            "agent",
+                            run.workspace_id,
+                            "agent.protocol_validation_failed",
+                            "run",
+                            run.id,
+                            status=e.category,
+                            arguments={
+                                "provider": provider,
+                                "model": run.model,
+                                "issue": e.validation_issue,
+                            },
+                            request_id=run.request_id,
+                        )
+                    db.commit()
             if category in {"access_changed", "agent_off", "channel_not_allowed"}:
                 finish(rid, FRIENDLY[category], category)
                 return
@@ -369,8 +407,7 @@ async def orchestrate(rid, llm):
                     )
                     db.commit()
             else:
-                final = "timeout" if category == "timeout" else "unavailable"
-                finish(rid, FRIENDLY[final], final)
+                finish(rid, FRIENDLY.get(category, FRIENDLY["unavailable"]), category)
                 return
 
 

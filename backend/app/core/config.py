@@ -33,9 +33,9 @@ class Settings(BaseSettings):
     deepseek_api_key: SecretStr | None = None
     gemini_api_key: SecretStr | None = None
     tandem_openai_api_key: SecretStr | None = None
-    groq_model: str = "openai/gpt-oss-20b"
+    groq_model: str = "openai/gpt-oss-120b"
     deepseek_model: str = "deepseek-flash"
-    gemini_model: str = "gemini-3.8-flash"
+    gemini_model: str = "gemini-3.5-flash"
     openai_model: str = "gpt-5.5"
     ai_primary_provider: str = "groq"
     ai_provider_timeout_seconds: float = Field(default=10, ge=1, le=30)
@@ -43,6 +43,8 @@ class Settings(BaseSettings):
     proposal_expiry_days: int = Field(default=7, ge=1, le=30)
     proposal_pending_per_channel: int = Field(default=20, ge=1, le=100)
     agent_worker_enabled: bool = True
+    agent_provider_timeout_seconds: float = Field(default=15, ge=1, le=30)
+    agent_max_output_tokens: int = Field(default=2048, ge=256, le=4096)
     agent_fake_provider: bool = False
     agent_run_timeout_seconds: float = Field(default=60, ge=0.01, le=120)
     agent_user_runs_per_minute: int = Field(default=5, ge=1, le=1000)

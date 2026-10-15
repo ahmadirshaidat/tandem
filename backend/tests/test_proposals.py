@@ -16,6 +16,7 @@ from app.agent.llm import AgentTurn, FakeLLM, ToolRequest
 from app.agent.models import AgentRun, AuditEvent
 from app.agent.tools import PROPOSAL_TOOLS, REGISTRY, descriptors, execute
 from app.agent.worker import claim, finish, process_run
+from app.ai.providers import ProviderFailure
 from app.core.config import settings
 from app.core.security import now
 from app.proposals.models import Proposal, ProposalItem
@@ -62,6 +63,38 @@ def decision(p, **extra):
         "idempotency_key": uuid.uuid4().hex,
         **extra,
     }
+
+
+def test_valid_proposal_finishes_without_a_redundant_provider_request(client_factory, db):
+    owner, wid, cid = setup_agent(client_factory)
+    pid = project(owner, wid)["id"]
+    send(owner, path(wid, cid), "@Agent plan synthetic tasks")
+    scripted = Scripted(
+        [
+            AgentTurn(
+                calls=[
+                    ToolRequest(
+                        name="propose_create_tasks",
+                        arguments={
+                            "items": [
+                                {
+                                    "item_id": "one",
+                                    "project_id": pid,
+                                    "title": "Synthetic proposal",
+                                },
+                            ]
+                        },
+                    )
+                ]
+            ),
+            ProviderFailure("rate_limited", 429),
+        ]
+    )
+    run = run_latest(db, scripted)
+    assert run.status == "completed" and run.error_category is None
+    assert len(scripted.providers) == 1
+    assert db.scalar(select(Proposal.status)) == "proposed"
+    assert db.scalar(select(func.count()).select_from(Task)) == 0
 
 
 def endpoint(wid, p, action="approve"):
