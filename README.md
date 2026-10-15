@@ -1,6 +1,6 @@
 # Tandem
 
-An AI-native collaborative workspace for software teams. This repository implements **Slice 0 (foundation), Slice 1 (authentication and workspaces), Slice 2 (real-time channels and messaging), and Slice 3 (projects and tasks)** from [the PRD](docs/PRD.md), with [the UI specification](docs/UI_SPEC.md). Slice 2 is merged into `v1` after verified green CI. Slice 3 is on `slice-3-tasks`, branched from that verified `v1`; `main` has not been created.
+An AI-native collaborative workspace for software teams. Slices 0–3 are merged into `v1`. **Slice 4 (shared read-only agent and append-only audit)** is implemented on `slice-4-agent`; see [the validation report](docs/SLICE4_REPORT.md). Proposals, approval actions, memory/RAG and documents remain later slices.
 
 ## Requirements
 
@@ -90,7 +90,7 @@ To add a future OpenAI key yourself, set `TANDEM_OPENAI_API_KEY` securely and us
 
 Default models are `openai/gpt-oss-20b`, `gemini-3.8-flash`, `deepseek-flash`, and optional `gpt-5.5`; override their respective model variables when provider availability changes. Output is capped at 512 tokens and input at 4,000 characters, with five trials per user and per workspace per minute and four simultaneous calls per backend process. Switching workspaces does not reset the user's budget. Automatic fallbacks can incur multiple provider requests. Use synthetic test content; only the submitted question is sent externally, and prompt/answer text is not stored in the trial history.
 
-See [the AI provider report](docs/AI_PROVIDER_REPORT.md) for actual live-provider results and limitations. This is an isolated trial feature requested after Slice 1; the shared agent's channel integration, tools, memory and approvals are still future work. Mobile support is responsive web, not a native iOS/Android app. No public hosting deployment has been performed.
+See [the AI provider report](docs/AI_PROVIDER_REPORT.md) for actual live-provider results and limitations. This remains an isolated trial feature. The shared agent now has its own permission-aware channel workflow; memory and approvals remain future work. Mobile support is responsive web, not a native iOS/Android app. No public hosting deployment has been performed.
 
 ## What is implemented
 
@@ -102,6 +102,31 @@ See [the AI provider report](docs/AI_PROVIDER_REPORT.md) for actual live-provide
 - PostgreSQL migrations including pgvector, structured logs without passwords/tokens, database-aware health checks, consistent API errors, CI and real-database/browser tests.
 
 The frontend now uses the uploaded **Workspace UI UX - Web + Mobile.html** canvas for the auth, invitation, getting-started, members and general settings screens. Its colors, fonts, indigo linked-circle logo, panel layout, proposal illustration, checklist, tables and mobile sheets were compared with extracted reference screens. See [the frontend design report](docs/FRONTEND_DESIGN_REPORT.md) for screenshots and deliberate differences where the canvas shows future features.
+
+## Shared agent and audit (Slice 4)
+
+An Owner/Admin enables the workspace agent in **Settings → Agent**, then chooses its channels. Public channels are eligible by default; private channels start off. Every member, including a Viewer, can mention **@Agent** in a message or thread. Adding a mention by editing a message schedules it once; retries/edits never create duplicate runs. The agent replies as its own teal actor with expandable read steps. It has no human membership or seat.
+
+Nine bounded read tools cover messages, full-text workspace search, tasks, projects, channel context, blockers and progress aggregation. They reuse the requesting user's REST authorization services. A shared reply also respects its destination audience: another private channel is excluded even for a requester who can open it. Tool results are untrusted data. There are no mutation, network-fetch, filesystem, execution, document or memory tools. Change requests point to manual controls. Proposals/approval rules are displayed only as coming next release.
+
+Groq → Gemini is the default provider chain. Only an Owner can opt in to DeepSeek/OpenAI for workspace data; the settings screen displays a data-sharing warning. Models/keys remain backend configuration, reused from Try AI. Startup checks configured model IDs and exposes discovery failures in settings rather than guessing availability. Missing keys produce a friendly unavailable message. **Try AI** stays an isolated Admin trial with synthetic questions.
+
+Runs use a PostgreSQL queue (`FOR UPDATE SKIP LOCKED`), four worker slots and one concurrent run per workspace by default. `AGENT_RUN_TIMEOUT_SECONDS` defaults to 60; calls use the existing provider timeout with no SDK retries. User/workspace admission limits default to 5/20 per minute. Settings control the monthly run limit (default 1,000) and pause-at-limit; disabling pause allows overage. Stale jobs fail safely after restart instead of silently rebilling. Keep one Uvicorn worker as required by live presence/fan-out.
+
+Settings → **Audit log** is Owner/Admin-only, with time, actor/action/status filters, cursor pagination, redacted details and CSV export (10,000 rows maximum per export; narrow the time range beyond that). Database triggers reject audit UPDATE/DELETE/TRUNCATE. Audit/run/tool metadata contains no prompt, retrieved content or answer; normal channel messages and their existing replay journal retain the conversation. Offline disables the Agent chip and keeps unsent drafts without sending on reconnect.
+
+CI uses `AGENT_FAKE_PROVIDER=true` for deterministic tests without keys or external calls. Leave it **false** for real use; missing credentials never silently select a fake. The CI browser backend alone raises `AUTH_RATE_LIMIT` to 100 because the test users share one proxy address. Normal application default remains 10.
+
+```bash
+# Optional: synthetic real Groq/Gemini structured-call validation; skips absent keys.
+backend/.venv/bin/python infra/check_agent_providers.py
+# With an explicitly configured fake-provider backend and frontend running:
+backend/.venv/bin/python infra/measure_agent.py --origin http://localhost:3000
+# Explicitly allow synthetic real-provider timing when credentials are available:
+backend/.venv/bin/python infra/measure_agent.py --origin http://localhost:3000 --live
+```
+
+See ADRs 0012–0016 for queue, actor/audit, permission/audience, injection and provider-sharing decisions. Screenshots, measured orchestration latency, actual checks and remaining limitations are in [SLICE4_REPORT.md](docs/SLICE4_REPORT.md).
 
 ## Password-reset email
 
@@ -137,14 +162,14 @@ PLAYWRIGHT_CHROMIUM_EXECUTABLE=/usr/bin/chromium npm run test:e2e
 
 Playwright starts Next.js if needed, but expects the backend to be running. Browser tests exercise two independent user sessions, invitations, role changes, workspace switching and a 390px mobile login. Backend tests cover all workspace routes for isolation, role boundaries, concurrent invitation acceptance, invalid/expired/replayed tokens, session revocation, CSRF, password reset and rate limiting. CI runs lint, tests, production build and browser tests against PostgreSQL.
 
-See [session strategy](docs/adr/0001-authentication-and-sessions.md) and [repository layout](docs/adr/0002-repository-layout.md). Next planned slice: projects and tasks (Slice 3). Shared agent execution, RAG, collaborative documents, marketing and billing remain future work.
+See [session strategy](docs/adr/0001-authentication-and-sessions.md) and [repository layout](docs/adr/0002-repository-layout.md). Next planned slice: proposals and approvals (Slice 5). Memory/RAG, collaborative documents, marketing and billing remain future work.
 
 
 ## Slice 2: channels and messaging
 
 Open **Chat** after creating or selecting a workspace. A public `general` channel is created for new workspaces and backfilled when upgrading Slice 1. Public channels automatically include workspace members; leaving tracks participation and keeps public reading access. Editors, Admins and Owners create public channels. Viewers can post and reply. Only Admins/Owners create private channels and manage their membership, and even they must belong to a private channel to see it.
 
-Create a channel from the sidebar (mobile: Channels). Channel details supports topic/name updates, archive/unarchive, public join/leave and private membership. Messages support threads, own edits/deletion, Admin deletion, member mentions, safe bold/italic/code/links, optimistic sends and explicit Retry. @Agent only stores a mention; it never calls Try AI or a model. Board/Docs tabs are disabled with Coming soon.
+Create a channel from the sidebar (mobile: Channels). Channel details supports topic/name updates, archive/unarchive, public join/leave and private membership. Messages support threads, own edits/deletion, Admin deletion, member mentions, safe bold/italic/code/links, optimistic sends and explicit Retry. @Agent invokes the read-only shared agent when enabled in workspace/channel settings. It does not use the isolated Try AI trial endpoint. Board/Docs tabs are disabled with Coming soon.
 
 The authenticated `/api/ws` gateway uses the same origin and cookie as REST, with reconnect/catch-up including edits/deletions. Keep **one backend worker**; no Redis is required. The browser sends a ping every 15 seconds. Settings in `.env.example` are `MESSAGE_REQUESTS_PER_MINUTE` (60/user), `WS_CONNECTIONS_PER_USER` (5), `WS_CONNECTIONS_PER_IP` (30), `WS_FRAMES_PER_MINUTE` (120), `WS_IDLE_SECONDS` (60), and `ATTACHMENT_DIR` (native backend only; Compose uses its private `image_attachments` volume). Incoming frames are capped at 8 KiB, subscriptions at 50 channels/10 workspaces per connection, and typing expires after five seconds.
 

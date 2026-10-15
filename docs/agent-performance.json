@@ -1,0 +1,12 @@
+{
+  "mode": "deterministic_fake_orchestration",
+  "samples": 5,
+  "first_step_ms": {
+    "median": 241.58,
+    "p95": 309.78
+  },
+  "final_message_ms": {
+    "median": 255.33,
+    "p95": 325.93
+  }
+}
