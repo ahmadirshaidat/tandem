@@ -1,0 +1,12 @@
+{
+  "mode": "deterministic_fake_provider",
+  "samples": 5,
+  "mention_to_proposal_ms": {
+    "median": 250.17,
+    "p95": 597.38
+  },
+  "approval_to_second_user_task_event_ms": {
+    "median": 61.15,
+    "p95": 88.27
+  }
+}

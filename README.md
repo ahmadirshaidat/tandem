@@ -1,6 +1,6 @@
 # Tandem
 
-An AI-native collaborative workspace for software teams. Slices 0–3 are merged into `v1`. **Slice 4 (shared read-only agent and append-only audit)** is implemented on `slice-4-agent`; see [the validation report](docs/SLICE4_REPORT.md). Proposals, approval actions, memory/RAG and documents remain later slices.
+An AI-native collaborative workspace for software teams. Slices 0–4 are merged into `v1`. **Slice 5 (agent proposals and transactional human approval)** is implemented on `slice-5-approvals`; see [the validation report](docs/SLICE5_REPORT.md). Memory/RAG and documents remain later slices.
 
 ## Requirements
 
@@ -10,10 +10,10 @@ Python 3.12, [uv](https://docs.astral.sh/uv/), Node.js 24, Docker with Compose v
 
 ### Codex desktop / Windows
 
-This is the new **AI workspace** project at `ahmadirshaidat/tandem`, branch `slice-3-tasks`. An older local project named Tandem is a different project. Clone this repository into a **new folder** and open that folder in Codex desktop:
+This is the new **AI workspace** project at `ahmadirshaidat/tandem`, branch `slice-5-approvals`. An older local project named Tandem is a different project. Clone this repository into a **new folder** and open that folder in Codex desktop:
 
 ```powershell
-git clone --branch slice-3-tasks --single-branch https://github.com/ahmadirshaidat/tandem.git tandem-workspace-v1
+git clone --branch slice-5-approvals --single-branch https://github.com/ahmadirshaidat/tandem.git tandem-workspace-v1
 cd tandem-workspace-v1
 ```
 
@@ -21,8 +21,9 @@ If you already cloned the new project into `C:\Users\ahmad\Documents\tandem-work
 
 ```powershell
 cd "C:\Users\ahmad\Documents\tandem-workspace-v1"
-git fetch origin refs/heads/slice-3-tasks:refs/remotes/origin/slice-3-tasks
-git switch slice-3-tasks
+git fetch origin refs/heads/slice-5-approvals:refs/remotes/origin/slice-5-approvals
+git switch slice-5-approvals
+git pull --ff-only origin slice-5-approvals
 node infra/dev.mjs
 ```
 
@@ -90,7 +91,7 @@ To add a future OpenAI key yourself, set `TANDEM_OPENAI_API_KEY` securely and us
 
 Default models are `openai/gpt-oss-20b`, `gemini-3.8-flash`, `deepseek-flash`, and optional `gpt-5.5`; override their respective model variables when provider availability changes. Output is capped at 512 tokens and input at 4,000 characters, with five trials per user and per workspace per minute and four simultaneous calls per backend process. Switching workspaces does not reset the user's budget. Automatic fallbacks can incur multiple provider requests. Use synthetic test content; only the submitted question is sent externally, and prompt/answer text is not stored in the trial history.
 
-See [the AI provider report](docs/AI_PROVIDER_REPORT.md) for actual live-provider results and limitations. This remains an isolated trial feature. The shared agent now has its own permission-aware channel workflow; memory and approvals remain future work. Mobile support is responsive web, not a native iOS/Android app. No public hosting deployment has been performed.
+See [the AI provider report](docs/AI_PROVIDER_REPORT.md) for actual live-provider results and limitations. This remains an isolated trial feature. The shared agent has its own permission-aware channel and proposal workflow; memory remains future work. Mobile support is responsive web, not a native iOS/Android app. No public hosting deployment has been performed.
 
 ## What is implemented
 
@@ -107,7 +108,7 @@ The frontend now uses the uploaded **Workspace UI UX - Web + Mobile.html** canva
 
 An Owner/Admin enables the workspace agent in **Settings → Agent**, then chooses its channels. Public channels are eligible by default; private channels start off. Every member, including a Viewer, can mention **@Agent** in a message or thread. Adding a mention by editing a message schedules it once; retries/edits never create duplicate runs. The agent replies as its own teal actor with expandable read steps. It has no human membership or seat.
 
-Nine bounded read tools cover messages, full-text workspace search, tasks, projects, channel context, blockers and progress aggregation. They reuse the requesting user's REST authorization services. A shared reply also respects its destination audience: another private channel is excluded even for a requester who can open it. Tool results are untrusted data. There are no mutation, network-fetch, filesystem, execution, document or memory tools. Change requests point to manual controls. Proposals/approval rules are displayed only as coming next release.
+Nine bounded read tools cover messages, full-text workspace search, tasks, projects, channel context, blockers and progress aggregation. They reuse the requesting user's REST authorization services. A shared reply also respects its destination audience: another private channel is excluded even for a requester who can open it. Tool results are untrusted data. Slice 5 adds six proposal tools described below; domain changes require human approval. There are no direct mutation, network-fetch, filesystem, execution, document or memory tools.
 
 Groq → Gemini is the default provider chain. Only an Owner can opt in to DeepSeek/OpenAI for workspace data; the settings screen displays a data-sharing warning. Models/keys remain backend configuration, reused from Try AI. Startup checks configured model IDs and exposes discovery failures in settings rather than guessing availability. Missing keys produce a friendly unavailable message. **Try AI** stays an isolated Admin trial with synthetic questions.
 
@@ -127,6 +128,28 @@ backend/.venv/bin/python infra/measure_agent.py --origin http://localhost:3000 -
 ```
 
 See ADRs 0012–0016 for queue, actor/audit, permission/audience, injection and provider-sharing decisions. Screenshots, measured orchestration latency, actual checks and remaining limitations are in [SLICE4_REPORT.md](docs/SLICE4_REPORT.md).
+
+## Proposals and human approval (Slice 5)
+
+Mention **@Agent** with a task request or a plan such as “plan JWT authentication”. The agent can persist six kinds of proposal: create up to ten tasks with dependencies, edit title/description/status/due date, reassign, change priority, delete, or add a comment. It cannot execute any of these tools directly. The channel card renders the stored structured payload, its risk and approval role, sources, and eventual task links. Try AI remains separate.
+
+Editors and Admins/Owners can approve low-risk task creation, field edits and comments. Reassignment, priority and deletion require Admin/Owner. Viewers can request and cancel their own proposals but can never approve. In **Settings → Agent → Approval rules**, Admins/Owners can tighten task creation to Admin only; high-risk rules stay locked. **Inbox → Approvals** lists actionable proposals, and the Agent panel lists pending proposals with links back to their channel or thread. Mentions and Assigned remain disabled.
+
+Use **Edit** to review/change fields or remove items, then approve the reviewed set. The server checks the displayed version and payload hash, current access and rules, target versions, CSRF and an idempotency key. Approval applies all task/comment/dependency changes in one transaction using the human task services. Competing decisions execute at most once. Changed targets become Stale, invalid execution becomes Failed without partial changes, and proposals expire after seven days. Rejection accepts an optional reason; requester/Admin cancellation is recorded as Rejected with a distinct cancellation audit action. Every lifecycle transition and rule change is audited; task activity attributes the proposal to Agent and approval to the human.
+
+Approval controls require an online connection; offline decisions are never queued. Arabic and mixed user text use automatic direction. The mobile review sheet supports 390px screens and the existing light/dark tokens. See [screenshots](docs/screenshots/slice5/) and [ADRs 0017–0020](docs/adr/0017-proposal-state.md).
+
+`PROPOSAL_EXPIRY_DAYS` defaults to 7 and `PROPOSAL_PENDING_PER_CHANNEL` to 20. CI uses only deterministic fake calls. No real Groq/Gemini keys were available for Slice 5: **live checks skipped**. After supplying fresh keys securely and restarting with `AGENT_FAKE_PROVIDER=false`, run:
+
+```bash
+backend/.venv/bin/python infra/check_agent_providers.py
+backend/.venv/bin/python infra/check_approval_live.py --provider groq
+backend/.venv/bin/python infra/check_approval_live.py --provider gemini
+# Explicit fake-provider backend plus frontend, for synthetic two-user WS timing:
+backend/.venv/bin/python infra/measure_proposals.py --origin http://localhost:3000
+```
+
+The live approval helper creates a new synthetic workspace and acts as its human test owner to approve the returned proposal. It reports safe metadata and fails if the running backend uses fake mode. Fake-provider timing measures orchestration, storage and delivery; it is not model inference latency. [SLICE5_REPORT.md](docs/SLICE5_REPORT.md) records the actual results and limitations.
 
 ## Password-reset email
 
@@ -162,14 +185,14 @@ PLAYWRIGHT_CHROMIUM_EXECUTABLE=/usr/bin/chromium npm run test:e2e
 
 Playwright starts Next.js if needed, but expects the backend to be running. Browser tests exercise two independent user sessions, invitations, role changes, workspace switching and a 390px mobile login. Backend tests cover all workspace routes for isolation, role boundaries, concurrent invitation acceptance, invalid/expired/replayed tokens, session revocation, CSRF, password reset and rate limiting. CI runs lint, tests, production build and browser tests against PostgreSQL.
 
-See [session strategy](docs/adr/0001-authentication-and-sessions.md) and [repository layout](docs/adr/0002-repository-layout.md). Next planned slice: proposals and approvals (Slice 5). Memory/RAG, collaborative documents, marketing and billing remain future work.
+See [session strategy](docs/adr/0001-authentication-and-sessions.md) and [repository layout](docs/adr/0002-repository-layout.md). Next planned slice: memory and RAG (Slice 6), after real-provider verification and review of Slice 5. Collaborative documents, marketing and billing remain future work.
 
 
 ## Slice 2: channels and messaging
 
 Open **Chat** after creating or selecting a workspace. A public `general` channel is created for new workspaces and backfilled when upgrading Slice 1. Public channels automatically include workspace members; leaving tracks participation and keeps public reading access. Editors, Admins and Owners create public channels. Viewers can post and reply. Only Admins/Owners create private channels and manage their membership, and even they must belong to a private channel to see it.
 
-Create a channel from the sidebar (mobile: Channels). Channel details supports topic/name updates, archive/unarchive, public join/leave and private membership. Messages support threads, own edits/deletion, Admin deletion, member mentions, safe bold/italic/code/links, optimistic sends and explicit Retry. @Agent invokes the read-only shared agent when enabled in workspace/channel settings. It does not use the isolated Try AI trial endpoint. Board/Docs tabs are disabled with Coming soon.
+Create a channel from the sidebar (mobile: Channels). Channel details supports topic/name updates, archive/unarchive, public join/leave and private membership. Messages support threads, own edits/deletion, Admin deletion, member mentions, safe bold/italic/code/links, optimistic sends and explicit Retry. @Agent invokes the shared agent when enabled in workspace/channel settings; task requests produce proposals for human approval. It does not use the isolated Try AI trial endpoint. Board/Docs tabs are disabled with Coming soon.
 
 The authenticated `/api/ws` gateway uses the same origin and cookie as REST, with reconnect/catch-up including edits/deletions. Keep **one backend worker**; no Redis is required. The browser sends a ping every 15 seconds. Settings in `.env.example` are `MESSAGE_REQUESTS_PER_MINUTE` (60/user), `WS_CONNECTIONS_PER_USER` (5), `WS_CONNECTIONS_PER_IP` (30), `WS_FRAMES_PER_MINUTE` (120), `WS_IDLE_SECONDS` (60), and `ATTACHMENT_DIR` (native backend only; Compose uses its private `image_attachments` volume). Incoming frames are capped at 8 KiB, subscriptions at 50 channels/10 workspaces per connection, and typing expires after five seconds.
 

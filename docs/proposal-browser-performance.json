@@ -1,0 +1,6 @@
+{
+  "mode": "fake_provider",
+  "proposal_creation_ms": 1089,
+  "approval_to_second_session_task_event_ms": 155,
+  "approval_to_second_user_task_visible_ms": 211
+}
