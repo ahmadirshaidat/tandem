@@ -90,9 +90,22 @@ Documents, memory, embeddings and external integrations are unavailable. Keep an
 class WorkspaceLLM:
     def turn(self, provider, payload):
         schema = wire_schema()
+        reads = {r.get("tool") for r in payload.get("results", []) if r.get("status") == "ok"}
+        offered = [
+            tool
+            for tool in payload.get("tools", [])
+            if not tool["name"].startswith("propose_")
+            or tool["name"] == "propose_create_tasks"
+            and "list_projects" in reads
+            or tool["name"] != "propose_create_tasks"
+            and bool(reads & {"list_tasks", "get_task"})
+        ]
+        names = {tool["name"] for tool in offered}
+        if names:
+            schema["$defs"]["WireCall"]["properties"]["name"]["enum"] = sorted(names)
         wire_payload = {
             **payload,
-            "allowed_calls": payload.get("tools", []),
+            "allowed_calls": offered,
             "output_schema": schema,
         }
         wire_payload.pop("tools", None)
@@ -104,6 +117,8 @@ class WorkspaceLLM:
         )
         try:
             turn, repaired = decode_turn(completion.text)
+            if payload.get("tools") and any(c.name not in names for c in turn.calls):
+                raise ValueError("Call was not offered in this turn")
             completion.repaired |= repaired
             return turn, completion
         except (ValidationError, ValueError, TypeError, RecursionError):

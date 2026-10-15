@@ -242,3 +242,52 @@ def test_duplicate_keys_inside_encoded_arguments_are_rejected():
         )
     with pytest.raises(ValueError):
         parse_object("{" + "x" * 20001)
+
+
+def test_proposal_descriptions_are_deferred_until_authorized_id_reads(monkeypatch):
+    from app.agent import llm
+    from app.agent.tools import descriptors
+
+    captured = []
+
+    def response(provider, instructions, payload, schema):
+        captured.append((json.loads(payload), schema))
+        return providers.Completion(json.dumps(WIRE))
+
+    monkeypatch.setattr(llm, "structured", response)
+    for results in [
+        [],
+        [{"tool": "list_projects", "status": "ok", "data": []}],
+        [{"tool": "get_task", "status": "ok", "data": {}}],
+    ]:
+        WorkspaceLLM().turn(
+            "groq", {"question": "Synthetic", "tools": descriptors(), "results": results}
+        )
+    names = [{t["name"] for t in p["allowed_calls"]} for p, _ in captured]
+    assert all(not n.startswith("propose_") for n in names[0])
+    assert "propose_create_tasks" in names[1] and "propose_delete_task" not in names[1]
+    assert "propose_delete_task" in names[2] and "propose_create_tasks" not in names[2]
+    for (_payload, schema), offered in zip(captured, names, strict=True):
+        assert set(schema["$defs"]["WireCall"]["properties"]["name"]["enum"]) == offered
+
+
+def test_unoffered_calls_are_not_accepted_by_the_repair_path(monkeypatch):
+    from app.agent import llm
+    from app.agent.tools import descriptors
+
+    monkeypatch.setattr(
+        llm,
+        "structured",
+        lambda *args: providers.Completion(
+            json.dumps(
+                {
+                    "calls": [{"name": "propose_create_tasks", "arguments_json": "{}"}],
+                    "answer": "",
+                }
+            )
+        ),
+    )
+    with pytest.raises(providers.ProviderFailure, match="invalid_response"):
+        WorkspaceLLM().turn(
+            "groq", {"question": "Synthetic", "tools": descriptors(), "results": []}
+        )

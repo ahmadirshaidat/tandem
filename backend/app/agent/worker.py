@@ -322,6 +322,7 @@ async def orchestrate(rid, llm):
                     run.input_tokens += completion.input_tokens or 0
                     run.output_tokens += completion.output_tokens or 0
                     if turn.calls:
+                        proposed = False
                         for call in turn.calls:
                             result = execute(db, run, call.name, call.arguments)
                             payload["results"].append(result)
@@ -336,6 +337,18 @@ async def orchestrate(rid, llm):
                                     "access_changed",
                                 )
                                 return
+                            proposed |= call.name.startswith("propose_")
+                        db.commit()
+                        if proposed:
+                            # Persisted, server-validated proposals already contain
+                            # the review content. A further LLM request adds no action
+                            # and could fail after successfully creating the proposal.
+                            finish(
+                                rid,
+                                "I proposed these changes for human review. Nothing has been changed; an eligible teammate must approve.",
+                                fingerprint=fingerprint,
+                            )
+                            return
                     elif turn.answer:
                         db.commit()
                         finish(rid, turn.answer, fingerprint=fingerprint)
