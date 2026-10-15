@@ -128,7 +128,12 @@ try:
                     "language": a.language,
                     "model": run.get("model") if run else None,
                     "status": "failed",
-                    "category": run.get("error_category") if run else "timeout",
+                    "category": (
+                        run.get("error_category")
+                        or ("missing_proposal" if not proposal else "run_not_completed")
+                    )
+                    if run
+                    else "timeout",
                     **metadata,
                 }
             )

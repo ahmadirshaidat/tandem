@@ -271,6 +271,22 @@ def test_proposal_descriptions_are_deferred_until_authorized_id_reads(monkeypatc
         assert set(schema["$defs"]["WireCall"]["properties"]["name"]["enum"]) == offered
 
 
+def test_first_turn_schema_and_local_validator_require_reading_before_an_answer(monkeypatch):
+    from app.agent import llm
+    from app.agent.tools import descriptors
+
+    def prose(provider, instructions, payload, schema):
+        assert schema["properties"]["calls"]["minItems"] == 1
+        assert schema["properties"]["answer"]["enum"] == [""]
+        return providers.Completion('{"calls":[],"answer":"A plan without source IDs"}')
+
+    monkeypatch.setattr(llm, "structured", prose)
+    with pytest.raises(providers.ProviderFailure, match="invalid_response"):
+        WorkspaceLLM().turn(
+            "groq", {"question": "Synthetic plan", "tools": descriptors(), "results": []}
+        )
+
+
 def test_unoffered_calls_are_not_accepted_by_the_repair_path(monkeypatch):
     from app.agent import llm
     from app.agent.tools import descriptors
