@@ -26,9 +26,15 @@ class AgentSettings(Base):
     workspace_id: Mapped[str] = mapped_column(ForeignKey("workspaces.id"), primary_key=True)
     enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     provider_chain: Mapped[list] = mapped_column(JSON, default=lambda: ["groq", "gemini"])
+    create_tasks_approver: Mapped[str] = mapped_column(
+        String(8), default="editor", server_default="editor"
+    )
     monthly_run_limit: Mapped[int] = mapped_column(Integer, default=1000)
     pause_at_limit: Mapped[bool] = mapped_column(Boolean, default=True)
-    __table_args__ = (CheckConstraint("monthly_run_limit >= 1", name="ck_agent_limit"),)
+    __table_args__ = (
+        CheckConstraint("monthly_run_limit >= 1", name="ck_agent_limit"),
+        CheckConstraint("create_tasks_approver IN ('editor','admin')", name="ck_approval_rule"),
+    )
 
 
 class AgentChannelAccess(Base):

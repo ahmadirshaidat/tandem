@@ -151,11 +151,16 @@ class Link(Base):
             "source_id",
             "target_type",
             "target_id",
+            "relation",
             name="uq_link_edge",
         ),
         CheckConstraint(
             "source_type IN ('message','task','document') AND target_type IN ('message','task','document')",
             name="ck_link_types",
+        ),
+        CheckConstraint(
+            "relation IN ('related','depends_on') AND (relation != 'depends_on' OR (source_type = 'task' AND target_type = 'task'))",
+            name="ck_link_relation",
         ),
         CheckConstraint(
             "source_type != target_type OR source_id != target_id", name="ck_link_self"
@@ -171,6 +176,7 @@ class Link(Base):
     source_id: Mapped[str] = mapped_column(String(36))
     target_type: Mapped[str] = mapped_column(String(12))
     target_id: Mapped[str] = mapped_column(String(36))
+    relation: Mapped[str] = mapped_column(String(16), default="related", server_default="related")
     created_by: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 

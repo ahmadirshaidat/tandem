@@ -40,6 +40,8 @@ class Settings(BaseSettings):
     ai_primary_provider: str = "groq"
     ai_provider_timeout_seconds: float = Field(default=10, ge=1, le=30)
     ai_max_output_tokens: int = Field(default=512, ge=16, le=2048)
+    proposal_expiry_days: int = Field(default=7, ge=1, le=30)
+    proposal_pending_per_channel: int = Field(default=20, ge=1, le=100)
     agent_worker_enabled: bool = True
     agent_fake_provider: bool = False
     agent_run_timeout_seconds: float = Field(default=60, ge=0.01, le=120)
