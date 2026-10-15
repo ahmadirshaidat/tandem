@@ -135,16 +135,14 @@ export type ProposalOut = {
   kind: string;
   risk: string;
   status: string;
-  payload: {
-};
+  payload: Record<string, unknown>;
   payload_hash: string;
   sources: Array<ProposalSourceOut>;
   requested_by: AuthorOut;
   decided_by: AuthorOut | null;
   decided_at: string | null;
   decision_reason: string | null;
-  execution_result: {
-} | null;
+  execution_result: Record<string, unknown> | null;
   expires_at: string;
   created_at: string;
   version: number;
