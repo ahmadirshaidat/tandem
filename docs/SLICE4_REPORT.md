@@ -44,11 +44,16 @@ Audit records lifecycle, tools (including denials), provider switches and all ag
 | `AUTH_RATE_LIMIT=100 AGENT_FAKE_PROVIDER=true docker compose up -d --no-build --wait` (writable DOCKER_CONFIG) | Existing Compose startup passed with healthy services |
 | `backend/.venv/bin/python infra/check_agent_providers.py` | Groq/Gemini both **skipped_no_key**; no live result claimed |
 | `backend/.venv/bin/python infra/measure_agent.py --origin http://localhost:3000` | Five synthetic two-user fake-provider runs; results below |
+| `node infra/dev.mjs --cloud --no-open --skip-install` | Passed: backend healthy, project identity checked, login/API ready; normal dev server running with fake mode off |
 | `git diff --check` | Passed |
+| `git push -u origin slice-4-agent`; read-only `git ls-remote` | Branch pushed and remote SHA confirmed |
+| `gh run list --branch slice-4-agent …` | **Blocked**: environment proxy rejects CONNECT to api.github.com with HTTP 403; hosted CI is unverified |
 
 Initial browser attempts exposed an ambiguous summary selector and the shared-proxy signup rate budget; both were corrected in the harness/CI setup. A run launched during backend recreation encountered connection resets; a health-gated rerun passed. No assertions were disabled. Browser-only auth budget is explicit; the application default stays 10.
 
-Backend implementation commit: `5e4d701`; frontend commit: `ade999e`; final edit/protocol/filter coverage: `7edcbc7`. Final documentation/validation follows as a separate commit. The branch is not merged into v1.
+Backend implementation commit: `5e4d701`; frontend commit: `ade999e`; final edit/protocol/filter coverage: `7edcbc7`. Final documentation/validation follows as a separate commit. The branch is pushed and is not merged into v1. GitHub Actions is configured to run this branch, but its conclusion is not observable here. Internet settings currently omit api.github.com; a narrow domain addition was saved in the cloud environment draft, preserving the existing package-manager preset and setup/start instructions. Apply that network setting before retrying hosted CI verification. No new GitHub secret was requested: existing Git proxy authentication successfully pushed the branch.
+
+The final normal launcher restored fake mode **off** and the default auth budget. Provider keys remain absent, so real agent mentions correctly report unavailable until secure credentials and required provider destinations are configured. Synthetic test workspaces/accounts remain in the development database; production data was not used.
 
 ## Measured latency
 
