@@ -51,6 +51,7 @@ import { ErrorNotice, Field } from "./common";
 import { Button } from "./ui/button";
 import { ConfirmDialog } from "./ui/dialog";
 import { SafeMarkdown } from "./safe-markdown";
+import { AgentSteps, AgentPanel, AgentActivity } from "./agent";
 import { NewTaskDialog } from "./task-dialogs";
 
 function watchChannelSelection(callback: () => void) {
@@ -412,6 +413,19 @@ function useRoom(user: User, workspace: Workspace, channel: Channel) {
           });
         }
         if (data.channel_id !== channel.id) return;
+        if (data.data.run) {
+          const run = data.data.run;
+          client.setQueryData<import("@/lib/agent").AgentRun[]>(
+            ["agent-runs", workspace.id, channel.id],
+            (previous) => [
+              run,
+              ...(previous ?? []).filter((r) => r.id !== run.id),
+            ],
+          );
+          void client.invalidateQueries({
+            queryKey: ["agent-recent", workspace.id],
+          });
+        }
         if (data.seq !== null) {
           if (data.seq <= cursor.current) return;
           cursor.current = data.seq;
@@ -648,6 +662,14 @@ function ChannelRoom({
   const { base, live, setLive, online } = room;
   const [thread, setThread] = useState<string | null>(null);
   const [manage, setManage] = useState(false);
+  const [agentOpen, setAgentOpen] = useState(false);
+  useEffect(() => {
+    const open = () => setAgentOpen(true);
+    window.addEventListener("tandem-agent-open", open);
+    if (new URLSearchParams(location.search).get("agent") === "1")
+      queueMicrotask(open);
+    return () => window.removeEventListener("tandem-agent-open", open);
+  }, []);
   const [lightbox, setLightbox] = useState<Attachment | null>(null);
   const [edit, setEdit] = useState<Message | null>(null);
   const [remove, setRemove] = useState<Message | null>(null);
@@ -873,16 +895,24 @@ function ChannelRoom({
     return (
       <article
         key={message.id}
-        className={`chat-message ${grouped ? "grouped-message" : ""} ${message.pending ? "pending-message" : ""}`}
+        className={`chat-message ${grouped ? "grouped-message" : ""} ${message.pending ? "pending-message" : ""} ${message.author.type === "agent" ? "agent-message" : ""}`}
         data-message-id={message.id}
         tabIndex={-1}
       >
         {!grouped && (
           <span
-            className={`avatar avatar-color-${(message.author.id.charCodeAt(0) % 3) + 1}`}
+            className={
+              message.author.type === "agent"
+                ? "agent-avatar"
+                : `avatar avatar-color-${(message.author.id.charCodeAt(0) % 3) + 1}`
+            }
             aria-hidden="true"
           >
-            {message.author.name.slice(0, 1).toUpperCase()}
+            {message.author.type === "agent" ? (
+              <Sparkles size={17} />
+            ) : (
+              message.author.name.slice(0, 1).toUpperCase()
+            )}
           </span>
         )}
         <div className="chat-message-content">
@@ -905,10 +935,11 @@ function ChannelRoom({
           ) : (
             <>
               <SafeMarkdown body={message.body} />
+              {message.agent_run && <AgentSteps run={message.agent_run} />}
               {message.mentions_agent && (
                 <span
                   className="chip chip-agent"
-                  title="Agent not connected yet"
+                  title="Ask the read-only workspace agent"
                 >
                   <Sparkles size={12} />
                   Agent mentioned
@@ -1037,9 +1068,7 @@ function ChannelRoom({
           message={taskMessage}
           onClose={() => setTaskMessage(null)}
           onCreated={(task) => {
-            router.push(
-              `/tasks?task=${task.id}&project=${task.project_id}`,
-            );
+            router.push(`/tasks?task=${task.id}&project=${task.project_id}`);
           }}
         />
       )}
@@ -1075,6 +1104,14 @@ function ChannelRoom({
           </button>
           <button role="tab" disabled title="Coming soon">
             Docs <span>Coming soon</span>
+          </button>
+          <button
+            className="agent-panel-tab"
+            role="tab"
+            aria-selected={agentOpen}
+            onClick={() => setAgentOpen(!agentOpen)}
+          >
+            <Sparkles size={15} /> Agent
           </button>
         </div>
         <div className="connection-status" role="status">
@@ -1149,6 +1186,11 @@ function ChannelRoom({
             })
           )}
         </div>
+        <AgentActivity
+          workspace={workspace}
+          channelId={channel.id}
+          online={online}
+        />
         <div className="typing-indicator" role="status">
           {typers.length > 0 && (
             <>
@@ -1235,26 +1277,16 @@ function ChannelRoom({
         </aside>
       ) : (
         !thread && (
-          <aside className="channel-context">
-            <div className="card card-body">
-              <div className="row">
-                <span className="agent-avatar">
-                  <Sparkles size={18} />
-                </span>
-                <strong>Your AI teammate</strong>
-              </div>
-              <p>Agent not connected yet.</p>
-              <p className="text-small text-muted">
-                You can mention @Agent now. Your mention is saved for later.
-              </p>
-            </div>
-            <div className="card card-body">
-              <h2>The conversation starts here</h2>
-              <p className="text-small text-muted">
-                Share updates in a channel. Keep a focused discussion in a
-                thread.
-              </p>
-            </div>
+          <aside
+            className={`channel-context ${agentOpen ? "agent-panel-open" : ""}`}
+            aria-label="Agent panel"
+          >
+            <AgentPanel
+              workspace={workspace}
+              channelId={channel.id}
+              online={online}
+              onClose={() => setAgentOpen(false)}
+            />
           </aside>
         )
       )}
@@ -1496,11 +1528,14 @@ function Composer({
               role="option"
               aria-selected={index === mentionIndex}
               onMouseDown={(event) => event.preventDefault()}
+              disabled={name === "Agent" && offline}
               onClick={() => mention(name)}
             >
               {name === "Agent" ? <Sparkles size={15} /> : <Users size={15} />}@
               {name}
-              {name === "Agent" && <span>Not connected yet</span>}
+              {name === "Agent" && (
+                <span>{offline ? "Needs internet" : "Read only"}</span>
+              )}
             </button>
           ))}
         </div>
@@ -1590,10 +1625,26 @@ function Composer({
           </span>
         </div>
         <div className="row">
-          <span className="agent-mention-chip" title="Agent not connected yet">
+          <button
+            type="button"
+            className="agent-mention-chip"
+            disabled={offline}
+            aria-label={
+              offline ? "Agent needs an internet connection" : "Mention Agent"
+            }
+            title={
+              offline
+                ? "Agent needs an internet connection"
+                : "Read-only workspace agent"
+            }
+            onClick={() => {
+              write(draft + "@Agent ");
+              textarea.current?.focus();
+            }}
+          >
             <Sparkles size={14} />
             Agent
-          </span>
+          </button>
           <Button
             aria-label={`Send ${label}`}
             disabled={
@@ -1607,7 +1658,7 @@ function Composer({
       </div>
       <div className="composer-help text-small text-muted">
         {offline
-          ? "Draft saved on this device. Press Send when you reconnect."
+          ? "Agent needs an internet connection. Draft saved on this device. Press Send when you reconnect."
           : "Enter to send · Shift + Enter for a new line"}
       </div>
     </div>

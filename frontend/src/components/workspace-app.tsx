@@ -40,8 +40,18 @@ import {
   type Workspace,
 } from "@/lib/api";
 
+import { AgentSettingsPage, AuditLogPage } from "./agent";
+
 type Section =
-  "home" | "members" | "settings" | "new" | "ai" | "channels" | "tasks";
+  | "home"
+  | "members"
+  | "settings"
+  | "new"
+  | "ai"
+  | "channels"
+  | "tasks"
+  | "agent-settings"
+  | "audit";
 import { ProjectNavigation, TasksPage } from "@/components/tasks-page";
 
 const nav = [
@@ -56,6 +66,18 @@ const nav = [
   { href: "/members", section: "members", label: "Members", Icon: Users },
   { href: "/settings", section: "settings", label: "Settings", Icon: Settings },
   { href: "/ai", section: "ai", label: "Try AI", Icon: Sparkles },
+  {
+    href: "/settings/agent",
+    section: "agent-settings",
+    label: "Agent settings",
+    Icon: Sparkles,
+  },
+  {
+    href: "/settings/audit",
+    section: "audit",
+    label: "Audit log",
+    Icon: Settings,
+  },
 ];
 function subscribeSelection(callback: () => void) {
   window.addEventListener("tandem-workspace", callback);
@@ -323,6 +345,15 @@ export function WorkspaceApp({ section }: { section: Section }) {
             </div>
             <ErrorNotice error={logout.error} />
           </details>
+          {["settings", "agent-settings", "audit"].includes(section) && (
+            <nav className="settings-subnav" aria-label="Settings pages">
+              <Link href="/settings">General</Link>
+              <Link href="/members">Members</Link>
+              <Link href="/settings/agent">Agent</Link>
+              <Link href="/settings/audit">Audit log</Link>
+              <Link href="/ai">Try AI</Link>
+            </nav>
+          )}
           {section === "new" ? (
             <CreateWorkspace user={user} />
           ) : !workspace ? (
@@ -335,6 +366,10 @@ export function WorkspaceApp({ section }: { section: Section }) {
             />
           ) : section === "tasks" ? (
             <TasksPage key={workspace.id} workspace={workspace} user={user} />
+          ) : section === "agent-settings" ? (
+            <AgentSettingsPage key={workspace.id} workspace={workspace} />
+          ) : section === "audit" ? (
+            <AuditLogPage key={workspace.id} workspace={workspace} />
           ) : section === "members" ? (
             <Members key={workspace.id} workspace={workspace} user={user} />
           ) : section === "ai" ? (
@@ -379,15 +414,46 @@ export function WorkspaceApp({ section }: { section: Section }) {
         </aside>
       )}
       <nav className="mobile-tabs" aria-label="Main navigation">
-        {nav.map(({ href, section: key, label, Icon }) => (
+        {[
+          {
+            href: "/channels",
+            section: "channels",
+            label: "Chat",
+            Icon: MessageSquare,
+          },
+          {
+            href: "/tasks",
+            section: "tasks",
+            label: "Tasks",
+            Icon: LayoutGrid,
+          },
+          {
+            href: "/channels?agent=1",
+            section: "agent-panel",
+            label: "Agent",
+            Icon: Sparkles,
+          },
+          {
+            href: "/settings",
+            section: "settings",
+            label: "Settings",
+            Icon: Settings,
+          },
+        ].map(({ href, section: key, label, Icon }) => (
           <Link
             className="nav-item"
             key={key}
             href={href}
             aria-current={section === key ? "page" : undefined}
+            onClick={(event) => {
+              if (key === "agent-panel" && section === "channels") {
+                event.preventDefault();
+                window.dispatchEvent(new Event("tandem-agent-open"));
+              }
+            }}
           >
             <Icon size={20} />
-            {key === "home" ? "Home" : label}
+            {label}
           </Link>
         ))}
       </nav>

@@ -1,3 +1,4 @@
+import type { AgentRun } from "./agent";
 import type { Role } from "./api";
 import type { SocketEvent } from "./events.generated";
 export type Channel = {
@@ -27,7 +28,8 @@ export type Message = {
   id: string;
   workspace_id: string;
   channel_id: string;
-  author: { id: string; name: string };
+  author: { id: string; name: string; type?: "user" | "agent" };
+  agent_run?: AgentRun | null;
   body: string;
   seq: number;
   client_message_id: string;
