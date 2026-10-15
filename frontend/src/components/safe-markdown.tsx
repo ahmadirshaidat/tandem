@@ -36,7 +36,7 @@ function inline(text: string): ReactNode[] {
 export function SafeMarkdown({ body }: { body: string }) {
   const blocks = body.split(/(```[\s\S]*?```)/g);
   return (
-    <div className="message-body">
+    <div className="message-body" dir="auto">
       {blocks.map((block, index) =>
         block.startsWith("```") ? (
           <pre key={index}>

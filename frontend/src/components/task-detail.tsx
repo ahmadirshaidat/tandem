@@ -244,6 +244,7 @@ function DetailFields({
       >
         <Field
           label="Task title"
+          dir="auto"
           id="task-detail-title"
           value={draft.title}
           onChange={(e) => change("title", e.target.value)}
@@ -255,6 +256,7 @@ function DetailFields({
           <label className="field">
             Description
             <textarea
+              dir="auto"
               className="input"
               aria-label="Task description"
               value={draft.description}
@@ -657,15 +659,19 @@ function TaskHistory({
               <span className="avatar">{item.actor.name.slice(0, 1)}</span>
               <div>
                 <strong>{item.actor.name}</strong>{" "}
-                {item.kind.replaceAll("_", " ")}
+                {item.kind === "agent_approved"
+                  ? "· proposed by Agent, approved by " + item.actor.name
+                  : item.kind.replaceAll("_", " ")}
                 <div className="text-small text-muted">
-                  {item.field !== "task" && item.field !== "link" && (
-                    <>
-                      {item.field.replaceAll("_", " ")}:{" "}
-                      {display(item.old_value)} → {display(item.new_value)}{" "}
-                      ·{" "}
-                    </>
-                  )}
+                  {item.field !== "task" &&
+                    item.field !== "link" &&
+                    item.field !== "proposal" && (
+                      <>
+                        {item.field.replaceAll("_", " ")}:{" "}
+                        {display(item.old_value)} → {display(item.new_value)}{" "}
+                        ·{" "}
+                      </>
+                    )}
                   <time dateTime={item.created_at}>
                     {new Date(item.created_at).toLocaleString()}
                   </time>
@@ -760,6 +766,7 @@ function TaskHistory({
           <label className="field">
             {editing ? "Edit your comment" : "Comment"}
             <textarea
+              dir="auto"
               className="input"
               aria-label="Task comment"
               value={body}

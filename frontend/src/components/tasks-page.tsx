@@ -332,7 +332,11 @@ export function TasksPage({
             </Button>
           </div>
         </div>
-        <button className="task-card-title" onClick={() => openTask(task.id)}>
+        <button
+          className="task-card-title"
+          dir="auto"
+          onClick={() => openTask(task.id)}
+        >
           {task.title}
         </button>
         <div className="task-card-meta">
@@ -456,7 +460,7 @@ export function TasksPage({
             className="task-table-title"
             onClick={() => openTask(task.id)}
           >
-            {task.title}
+            <span dir="auto">{task.title}</span>
           </button>
           {task.created_by_agent && (
             <span className="chip chip-agent">Agent</span>
@@ -904,7 +908,7 @@ export function TasksPage({
           actions={false}
         >
           <div className="task-quick-actions">
-            <h3>{quickTask.title}</h3>
+            <h3 dir="auto">{quickTask.title}</h3>
             <p className="text-small text-muted">Move to</p>
             {statuses.map((s) => (
               <Button

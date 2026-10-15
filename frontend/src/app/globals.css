@@ -3260,3 +3260,227 @@ svg {
     display: none;
   }
 }
+
+/* Human-reviewed proposals */
+.proposal-card {
+  margin: 16px 0;
+  border: 1px solid var(--agent-border);
+  border-radius: 18px;
+  background: var(--surface);
+  color: var(--ink);
+  overflow: hidden;
+  max-width: 760px;
+  direction: ltr;
+}
+.proposal-card > header {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--agent-border);
+  background: var(--agent-tint);
+}
+.proposal-card > header strong {
+  font-size: 14px;
+}
+.proposal-chips {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+.proposal-body {
+  padding: 16px 18px;
+}
+.proposal-item {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+.proposal-item:last-of-type {
+  border-bottom: 0;
+}
+.proposal-item-heading {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+.proposal-item h3 {
+  font-size: 15px;
+  font-weight: 600;
+  flex: 1;
+}
+.proposal-item-number {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.proposal-card .message-body {
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+.proposal-properties,
+.proposal-sources {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 12px;
+}
+.proposal-properties > * {
+  padding: 4px 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+}
+.proposal-sources {
+  padding: 14px 0 0;
+  color: var(--muted);
+}
+.proposal-card > footer {
+  background: var(--surface-2);
+  border-top: 1px solid var(--line);
+  padding: 14px 18px;
+}
+.proposal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.proposal-result {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  margin: 10px 16px 0 0;
+  font-size: 13px;
+  color: var(--brand-text);
+}
+.proposal-target dl > div {
+  margin: 10px 0;
+}
+.proposal-target dt {
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: capitalize;
+}
+.proposal-target dd {
+  margin: 4px 0;
+  white-space: pre-wrap;
+}
+.proposal-review fieldset {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+.proposal-review-item {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+.proposal-review-item h3 {
+  font-size: 16px;
+}
+.proposal-edit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.proposal-review textarea {
+  min-height: 100px;
+}
+.proposal-review .field {
+  margin-bottom: 14px;
+}
+.proposal-dependencies label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: 13px;
+}
+.proposal-dependencies input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--agent);
+}
+.proposal-review-footer {
+  position: sticky;
+  bottom: -4px;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 16px;
+  margin-top: 16px;
+}
+.pending-proposal {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+.pending-proposal > span:last-child {
+  min-width: 0;
+  flex: 1;
+}
+.pending-proposal strong {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 5px;
+}
+.pending-proposal .text-small {
+  display: block;
+  font-size: 12px;
+}
+.approvals-inbox {
+  max-width: 900px;
+  margin: 0 auto;
+}
+.approvals-inbox h1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 28px;
+}
+.approvals-inbox .channel-tabs {
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+@media (max-width: 760px) {
+  .proposal-card {
+    margin: 14px -4px;
+  }
+  .proposal-body,
+  .proposal-card > header,
+  .proposal-card > footer {
+    padding: 14px 12px;
+  }
+  .proposal-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .proposal-actions > button:last-child {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+  .proposal-edit-grid {
+    grid-template-columns: 1fr;
+  }
+  .proposal-review-footer {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .proposal-review input,
+  .proposal-review textarea,
+  .proposal-review select {
+    font-size: 16px;
+  }
+}

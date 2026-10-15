@@ -40,6 +40,7 @@ import {
   type Workspace,
 } from "@/lib/api";
 
+import { ApprovalsInbox } from "./proposals";
 import { AgentSettingsPage, AuditLogPage } from "./agent";
 
 type Section =
@@ -51,7 +52,8 @@ type Section =
   | "channels"
   | "tasks"
   | "agent-settings"
-  | "audit";
+  | "audit"
+  | "inbox";
 import { ProjectNavigation, TasksPage } from "@/components/tasks-page";
 
 const nav = [
@@ -62,6 +64,7 @@ const nav = [
     Icon: MessageSquare,
   },
   { href: "/tasks", section: "tasks", label: "Tasks", Icon: LayoutGrid },
+  { href: "/inbox", section: "inbox", label: "Inbox", Icon: Check },
   { href: "/", section: "home", label: "Getting started", Icon: Home },
   { href: "/members", section: "members", label: "Members", Icon: Users },
   { href: "/settings", section: "settings", label: "Settings", Icon: Settings },
@@ -352,6 +355,7 @@ export function WorkspaceApp({ section }: { section: Section }) {
               <Link href="/settings/agent">Agent</Link>
               <Link href="/settings/audit">Audit log</Link>
               <Link href="/ai">Try AI</Link>
+              <Link href="/inbox">Inbox</Link>
             </nav>
           )}
           {section === "new" ? (
@@ -366,6 +370,8 @@ export function WorkspaceApp({ section }: { section: Section }) {
             />
           ) : section === "tasks" ? (
             <TasksPage key={workspace.id} workspace={workspace} user={user} />
+          ) : section === "inbox" ? (
+            <ApprovalsInbox key={workspace.id} workspace={workspace} />
           ) : section === "agent-settings" ? (
             <AgentSettingsPage key={workspace.id} workspace={workspace} />
           ) : section === "audit" ? (

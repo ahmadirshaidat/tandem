@@ -128,6 +128,7 @@ export function NewTaskDialog({
           }}
         >
           <Field
+            dir="auto"
             id="new-task-title"
             name="title"
             label="Title"
@@ -138,6 +139,7 @@ export function NewTaskDialog({
           <label className="field">
             Description
             <textarea
+              dir="auto"
               className="input"
               name="description"
               aria-label="Description"
@@ -332,6 +334,7 @@ export function ProjectDialog({
         <label className="field">
           Description
           <textarea
+            dir="auto"
             className="input"
             aria-label="Project description"
             name="description"

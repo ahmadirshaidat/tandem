@@ -36,6 +36,10 @@ export type AuditEvent = {
   request_id: string;
 };
 export function stepLabel(name: string, count: number) {
+  if (name.startsWith("propose_"))
+    return name === "propose_create_tasks"
+      ? `Proposed ${count} tasks`
+      : "Drafted a proposal";
   if (name === "get_channel_context" || name === "summarize_channel")
     return `Read ${count} ${count === 1 ? "message" : "messages"}`;
   if (name === "search_messages") return "Searched messages";

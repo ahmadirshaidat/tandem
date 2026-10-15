@@ -51,6 +51,12 @@ import { ErrorNotice, Field } from "./common";
 import { Button } from "./ui/button";
 import { ConfirmDialog } from "./ui/dialog";
 import { SafeMarkdown } from "./safe-markdown";
+import { ProposalCard, useChannelProposals } from "./proposals";
+import {
+  mergeProposals,
+  type ProposalPage,
+  type Proposal,
+} from "@/lib/proposals";
 import { AgentSteps, AgentPanel, AgentActivity } from "./agent";
 import { NewTaskDialog } from "./task-dialogs";
 
@@ -413,6 +419,19 @@ function useRoom(user: User, workspace: Workspace, channel: Channel) {
           });
         }
         if (data.channel_id !== channel.id) return;
+        if (data.data.proposal) {
+          const proposal = data.data.proposal as Proposal;
+          client.setQueryData<ProposalPage>(
+            ["proposals", workspace.id, channel.id],
+            (old) => ({
+              proposals: mergeProposals(old?.proposals ?? [], [proposal]),
+              next_cursor: old?.next_cursor ?? null,
+            }),
+          );
+          void client.invalidateQueries({
+            queryKey: ["pending-proposals", workspace.id],
+          });
+        }
         if (data.data.run) {
           const run = data.data.run;
           client.setQueryData<import("@/lib/agent").AgentRun[]>(
@@ -660,7 +679,30 @@ function ChannelRoom({
   const router = useRouter();
   const room = useRoom(user, workspace, channel);
   const { base, live, setLive, online } = room;
+  const proposals = useChannelProposals(workspace, user, channel.id, online);
   const [thread, setThread] = useState<string | null>(null);
+  useEffect(() => {
+    const id = new URLSearchParams(location.search).get("proposal");
+    if (!id || !live.ready || !online) return;
+    const selected = proposals.data?.proposals.find((p) => p.id === id);
+    if (selected) {
+      const element = document.querySelector(
+        `[data-proposal-id="${selected.id}"]`,
+      );
+      if (element) {
+        element.scrollIntoView({ block: "center" });
+        return;
+      }
+      void api<Message>(base + `/messages/${selected.trigger_message_id}`)
+        .then((message) => {
+          setLive((previous) => ({
+            ...previous,
+            messages: mergeMessages(previous.messages, [message]),
+          }));
+        })
+        .catch(() => undefined);
+    }
+  }, [base, live.ready, online, proposals.data, setLive]);
   const [manage, setManage] = useState(false);
   const [agentOpen, setAgentOpen] = useState(false);
   useEffect(() => {
@@ -896,6 +938,7 @@ function ChannelRoom({
       <article
         key={message.id}
         className={`chat-message ${grouped ? "grouped-message" : ""} ${message.pending ? "pending-message" : ""} ${message.author.type === "agent" ? "agent-message" : ""}`}
+        dir="auto"
         data-message-id={message.id}
         tabIndex={-1}
       >
@@ -935,11 +978,22 @@ function ChannelRoom({
           ) : (
             <>
               <SafeMarkdown body={message.body} />
+              {proposals.data?.proposals
+                .filter((p) => p.trigger_message_id === message.id)
+                .map((p) => (
+                  <ProposalCard
+                    key={p.id}
+                    proposal={p}
+                    workspace={workspace}
+                    user={user}
+                    online={online}
+                  />
+                ))}
               {message.agent_run && <AgentSteps run={message.agent_run} />}
               {message.mentions_agent && (
                 <span
                   className="chip chip-agent"
-                  title="Ask the read-only workspace agent"
+                  title="Ask the workspace agent to read or propose a change"
                 >
                   <Sparkles size={12} />
                   Agent mentioned
@@ -1534,7 +1588,7 @@ function Composer({
               {name === "Agent" ? <Sparkles size={15} /> : <Users size={15} />}@
               {name}
               {name === "Agent" && (
-                <span>{offline ? "Needs internet" : "Read only"}</span>
+                <span>{offline ? "Needs internet" : "Read or propose"}</span>
               )}
             </button>
           ))}
@@ -1635,7 +1689,7 @@ function Composer({
             title={
               offline
                 ? "Agent needs an internet connection"
-                : "Read-only workspace agent"
+                : "Reads and proposes; changes need approval"
             }
             onClick={() => {
               write(draft + "@Agent ");

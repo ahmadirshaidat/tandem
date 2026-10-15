@@ -19,6 +19,7 @@ import {
 } from "@/lib/agent";
 import { ErrorNotice, Field } from "./common";
 import { Button } from "./ui/button";
+import { ApprovalRules, PendingProposals } from "./proposals";
 import { ConfirmDialog } from "./ui/dialog";
 
 export function AgentSteps({ run }: { run: AgentRun }) {
@@ -28,7 +29,10 @@ export function AgentSteps({ run }: { run: AgentRun }) {
       <summary>
         <ShieldCheck size={14} />
         {run.steps.map((s) => stepLabel(s.name, s.count)).join(" · ")}
-        {run.status === "completed" && " · Drafted an answer"}
+        {run.status === "completed" &&
+          (run.steps.some((s) => s.name.startsWith("propose_"))
+            ? " · Waiting for review"
+            : " · Drafted an answer")}
         <ChevronDown size={14} />
       </summary>
       <ol>
@@ -115,7 +119,7 @@ export function AgentPanel({
             <Sparkles size={18} />
           </span>
           <strong>Agent</strong>
-          <span className="chip chip-agent">Read only</span>
+          <span className="chip chip-agent">Reads & proposals</span>
         </div>
         {onClose && (
           <Button
@@ -171,10 +175,10 @@ export function AgentPanel({
       </section>
       <section>
         <h2>Waiting for approval</h2>
-        <p className="text-small text-muted">
-          Proposals arrive in the next release. The agent cannot change your
-          workspace yet.
-        </p>
+        <PendingProposals workspace={workspace} online={online} />
+        <Link href="/inbox" className="button button-ghost">
+          Open approvals inbox
+        </Link>
       </section>
       <Link href="/settings/agent" className="button button-secondary">
         Agent settings
@@ -270,7 +274,7 @@ function AgentSettingsForm({
             <div>
               <h2>Shared agent</h2>
               <p className="text-small text-muted">
-                Every member can ask. All tools are read-only.
+                Every member can ask. Task changes require human approval.
               </p>
             </div>
             <label className="agent-toggle">
@@ -433,35 +437,7 @@ function AgentSettingsForm({
           </label>
         ))}
       </section>
-      <section className="card card-body agent-settings-card">
-        <h2>Approval rules</h2>
-        <p className="text-small text-muted">
-          Proposals are coming in the next release. These rules cannot be
-          changed yet.
-        </p>
-        <table className="agent-rules">
-          <thead>
-            <tr>
-              <th>Action</th>
-              <th>Availability</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Read permitted context</td>
-              <td>Automatic</td>
-            </tr>
-            <tr>
-              <td>Create or change tasks</td>
-              <td>Coming next release</td>
-            </tr>
-            <tr>
-              <td>Delete or reassign</td>
-              <td>Coming next release</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
+      <ApprovalRules workspace={workspace} />
     </>
   );
 }

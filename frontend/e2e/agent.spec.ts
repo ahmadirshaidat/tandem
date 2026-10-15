@@ -79,7 +79,7 @@ test("shared agent two-session answer, live steps, settings, audit, offline draf
   await expect(page.locator(".agent-message")).toContainText(
     "read the accessible channel context",
   );
-  await expect(other.locator(".agent-message")).toContainText("read-only");
+  await expect(other.locator(".agent-message")).toContainText("human approval");
   await expect.poll(() => events).toContain("agent.step");
   await expect.poll(() => events).toContain("agent.message_created");
   await page.locator(".agent-message .agent-steps summary").click();
