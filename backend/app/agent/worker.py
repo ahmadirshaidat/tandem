@@ -21,7 +21,7 @@ from app.agent.service import (
     usage,
 )
 from app.agent.tools import descriptors, execute
-from app.ai.providers import ProviderFailure, provider_model
+from app.ai.providers import ProviderFailure, provider_model, structured_timeout_budget
 from app.channels.models import Channel, Message, MessageMention
 from app.channels.service import message_out, record_event
 from app.core.config import settings
@@ -305,7 +305,7 @@ async def orchestrate(rid, llm):
                     db.commit()
                 turn, completion = await asyncio.wait_for(
                     asyncio.to_thread(llm.turn, provider, payload),
-                    timeout=min(remaining, settings.ai_provider_timeout_seconds + 1),
+                    timeout=min(remaining, structured_timeout_budget(provider)),
                 )
                 with SessionLocal() as db:
                     run = locked_run(db, rid)
@@ -346,6 +346,12 @@ async def orchestrate(rid, llm):
             raise ProviderFailure("step_limit")
         except (ProviderFailure, TimeoutError) as e:
             category = e.category if isinstance(e, ProviderFailure) else "timeout"
+            if isinstance(e, ProviderFailure) and (e.input_tokens or e.output_tokens):
+                with SessionLocal() as db:
+                    run = locked_run(db, rid)
+                    run.input_tokens += e.input_tokens or 0
+                    run.output_tokens += e.output_tokens or 0
+                    db.commit()
             if category in {"access_changed", "agent_off", "channel_not_allowed"}:
                 finish(rid, FRIENDLY[category], category)
                 return
@@ -369,8 +375,7 @@ async def orchestrate(rid, llm):
                     )
                     db.commit()
             else:
-                final = "timeout" if category == "timeout" else "unavailable"
-                finish(rid, FRIENDLY[final], final)
+                finish(rid, FRIENDLY.get(category, FRIENDLY["unavailable"]), category)
                 return
 
 

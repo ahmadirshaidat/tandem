@@ -105,6 +105,20 @@ try:
         if run and run["status"] in {"completed", "failed", "blocked"}:
             break
         time.sleep(0.3)
+    usage = {}
+    if run and run.get("id"):
+        # Existing admin audit metadata has usage; no new app API/event fields.
+        audit = c.get(
+            f"/api/workspaces/{wid}/audit", params={"action": "agent.run_" + run["status"]}
+        ).json()
+        event = next((e for e in audit.get("events", []) if e["target_id"] == run["id"]), None)
+        usage = event["redacted_arguments"] if event else {}
+    metadata = {
+        "input_tokens": usage.get("input_tokens"),
+        "output_tokens": usage.get("output_tokens"),
+        "agent_latency_ms": run.get("latency_ms") if run else None,
+        "token_usage_scope": "successful generations; failed HTTP attempt usage not reported",
+    }
     if not proposal or not run or run["status"] != "completed":
         print(
             json.dumps(
@@ -115,6 +129,7 @@ try:
                     "model": run.get("model") if run else None,
                     "status": "failed",
                     "category": run.get("error_category") if run else "timeout",
+                    **metadata,
                 }
             )
         )
@@ -181,6 +196,7 @@ try:
                 "human_test_owner_approval_http_ms": approval_ms,
                 "idempotent_retry": True,
                 "task_count": len((result.get("execution_result") or {}).get("task_ids", [])),
+                **metadata,
             }
         )
     )
