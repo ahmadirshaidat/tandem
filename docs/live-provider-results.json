@@ -2,8 +2,79 @@
   "checked_on": "2026-10-15",
   "timezone": "Asia/Amman",
   "gate": "blocked",
+  "credentials_available": true,
   "product_owner_manual_acceptance": "not_verified",
   "results": [
+    {
+      "mode": "live",
+      "provider": "groq",
+      "language": "en",
+      "model": "openai/gpt-oss-20b",
+      "status": "failed",
+      "category": "unavailable",
+      "exit_code": 1
+    },
+    {
+      "mode": "live",
+      "provider": "gemini",
+      "language": "en",
+      "model": "gemini-3.8-flash",
+      "status": "failed",
+      "category": "unavailable",
+      "exit_code": 1
+    },
+    {
+      "mode": "live",
+      "provider": "groq",
+      "language": "ar",
+      "model": "openai/gpt-oss-20b",
+      "status": "failed",
+      "category": "unavailable",
+      "exit_code": 1
+    },
+    {
+      "mode": "live",
+      "provider": "gemini",
+      "language": "ar",
+      "model": "gemini-3.8-flash",
+      "status": "failed",
+      "category": "unavailable",
+      "exit_code": 1
+    }
+  ],
+  "isolated_structured_checks": [
+    {
+      "provider": "groq",
+      "model_discovery": "invalid_request",
+      "structured_tool_request": true,
+      "input_tokens": 3709,
+      "output_tokens": 154
+    },
+    {
+      "provider": "gemini",
+      "model_discovery": "available",
+      "status": "unavailable"
+    }
+  ],
+  "diagnostics": [
+    {
+      "provider": "groq",
+      "request": "planning_json_protocol",
+      "http_status": 400,
+      "high_output_budget_error_code": "tool_use_failed",
+      "diagnostic_max_output_tokens": 2048
+    },
+    {
+      "provider": "gemini",
+      "request": "structured_generation",
+      "http_status": 504,
+      "exception_type": "ServerError"
+    }
+  ],
+  "synthetic_workspaces_verified": 4,
+  "tasks_created": 0,
+  "agent_tool_calls_executed": 0,
+  "previous_missing_key_attempts": [
     {
       "mode": "live",
       "provider": "groq",
