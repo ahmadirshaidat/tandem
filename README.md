@@ -151,6 +151,8 @@ backend/.venv/bin/python infra/measure_proposals.py --origin http://localhost:30
 
 The live approval helper creates a new synthetic workspace and acts as its human test owner to approve the returned proposal. It reports safe metadata and fails if the running backend uses fake mode. Fake-provider timing measures orchestration, storage and delivery; it is not model inference latency. [SLICE5_REPORT.md](docs/SLICE5_REPORT.md) records the actual results and limitations.
 
+Before Slice 6, follow [the live acceptance checklist](docs/SLICE4_LIVE_CHECK.md). Run the helper separately for `--provider groq` and `--provider gemini`, each with `--language en` and `--language ar`, and add `--require-live`: missing keys then exit **2**, so a skipped run cannot satisfy the gate. The helper waits for the agent run to finish, checks Arabic titles/descriptions when requested, verifies stored payload/created task fields and a duplicate approval retry. The product owner's manual UI acceptance remains a separate checklist item. Harness tests use mocked HTTP and do not count as real-provider evidence.
+
 ## Password-reset email
 
 Development sends real reset messages to a private local outbox rather than an external mail server. In a native backend, files are under `.local/mail/`; inside Compose, they are in the `mail_outbox` volume at `/app/.local/mail`. Inspect a message privately to use its single-use reset link. Do not commit messages or paste tokens into logs.

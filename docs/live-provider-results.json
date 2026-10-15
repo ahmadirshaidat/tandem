@@ -1,0 +1,40 @@
+{
+  "checked_on": "2026-10-15",
+  "timezone": "Asia/Amman",
+  "gate": "blocked",
+  "product_owner_manual_acceptance": "not_verified",
+  "results": [
+    {
+      "mode": "live",
+      "provider": "groq",
+      "language": "en",
+      "status": "live checks skipped",
+      "reason": "no_key",
+      "exit_code": 2
+    },
+    {
+      "mode": "live",
+      "provider": "groq",
+      "language": "ar",
+      "status": "live checks skipped",
+      "reason": "no_key",
+      "exit_code": 2
+    },
+    {
+      "mode": "live",
+      "provider": "gemini",
+      "language": "en",
+      "status": "live checks skipped",
+      "reason": "no_key",
+      "exit_code": 2
+    },
+    {
+      "mode": "live",
+      "provider": "gemini",
+      "language": "ar",
+      "status": "live checks skipped",
+      "reason": "no_key",
+      "exit_code": 2
+    }
+  ]
+}
