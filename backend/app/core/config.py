@@ -33,9 +33,9 @@ class Settings(BaseSettings):
     deepseek_api_key: SecretStr | None = None
     gemini_api_key: SecretStr | None = None
     tandem_openai_api_key: SecretStr | None = None
-    groq_model: str = "openai/gpt-oss-20b"
+    groq_model: str = "openai/gpt-oss-120b"
     deepseek_model: str = "deepseek-flash"
-    gemini_model: str = "gemini-3.8-flash"
+    gemini_model: str = "gemini-3.5-flash"
     openai_model: str = "gpt-5.5"
     ai_primary_provider: str = "groq"
     ai_provider_timeout_seconds: float = Field(default=10, ge=1, le=30)

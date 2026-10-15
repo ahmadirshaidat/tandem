@@ -359,11 +359,30 @@ async def orchestrate(rid, llm):
             raise ProviderFailure("step_limit")
         except (ProviderFailure, TimeoutError) as e:
             category = e.category if isinstance(e, ProviderFailure) else "timeout"
-            if isinstance(e, ProviderFailure) and (e.input_tokens or e.output_tokens):
+            if isinstance(e, ProviderFailure) and (
+                e.input_tokens or e.output_tokens or e.validation_issue
+            ):
                 with SessionLocal() as db:
                     run = locked_run(db, rid)
                     run.input_tokens += e.input_tokens or 0
                     run.output_tokens += e.output_tokens or 0
+                    if e.validation_issue:
+                        audit(
+                            db,
+                            run.workspace_id,
+                            "agent",
+                            run.workspace_id,
+                            "agent.protocol_validation_failed",
+                            "run",
+                            run.id,
+                            status=e.category,
+                            arguments={
+                                "provider": provider,
+                                "model": run.model,
+                                "issue": e.validation_issue,
+                            },
+                            request_id=run.request_id,
+                        )
                     db.commit()
             if category in {"access_changed", "agent_off", "channel_not_allowed"}:
                 finish(rid, FRIENDLY[category], category)

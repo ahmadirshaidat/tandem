@@ -128,13 +128,19 @@ class WorkspaceLLM:
                 raise ValueError("Call was not offered in this turn")
             completion.repaired |= repaired
             return turn, completion
-        except (ValidationError, ValueError, TypeError, RecursionError):
+        except (ValidationError, ValueError, TypeError, RecursionError) as error:
+            issue = "schema" if isinstance(error, ValidationError) else "json_syntax"
+            if type(error) is ValueError and str(error) == "Call was not offered in this turn":
+                issue = "unoffered_call"
+            elif type(error) is ValueError and str(error) == "Read context before answering":
+                issue = "read_required"
             raise ProviderFailure(
                 "invalid_response",
                 attempts=completion.attempts,
                 safe_errors=[*completion.safe_errors, "invalid_response"],
                 input_tokens=completion.input_tokens,
                 output_tokens=completion.output_tokens,
+                validation_issue=issue,
             ) from None
 
 

@@ -36,12 +36,14 @@ class ProviderFailure(Exception):
         safe_errors=None,
         input_tokens=None,
         output_tokens=None,
+        validation_issue=None,
     ):
         self.category = category
         self.status = status
         self.attempts = attempts
         self.safe_errors = safe_errors or []
         self.input_tokens, self.output_tokens = input_tokens, output_tokens
+        self.validation_issue = validation_issue
         super().__init__(category)
 
 

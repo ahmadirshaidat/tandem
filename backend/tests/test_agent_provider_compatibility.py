@@ -123,6 +123,7 @@ def test_final_failed_generation_is_ephemeral_and_still_requires_pydantic(
         with pytest.raises(providers.ProviderFailure) as error:
             WorkspaceLLM().turn("groq", {"question": "Synthetic", "results": []})
         assert error.value.category == "invalid_response" and PRIVATE not in str(error.value)
+        assert error.value.validation_issue == "schema"
     assert len(requests) == 2
     assert PRIVATE not in json.dumps(requests) and PRIVATE not in caplog.text
 

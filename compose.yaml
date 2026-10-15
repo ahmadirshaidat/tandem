@@ -41,9 +41,9 @@ services:
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       TANDEM_OPENAI_API_KEY: ${TANDEM_OPENAI_API_KEY:-}
-      GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-20b}
+      GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-120b}
       DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-flash}
-      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.8-flash}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.5-flash}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5.5}
       AUTH_RATE_LIMIT: ${AUTH_RATE_LIMIT:-10}
       PROPOSAL_EXPIRY_DAYS: ${PROPOSAL_EXPIRY_DAYS:-7}
