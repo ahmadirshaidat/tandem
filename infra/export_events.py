@@ -27,7 +27,11 @@ def ts_type(schema):
     if kind == "object":
         if not schema.get("properties"):
             additional = schema.get("additionalProperties")
-            return "Record<string, " + (ts_type(additional) if isinstance(additional, dict) else "unknown") + ">"
+            return (
+                "Record<string, "
+                + (ts_type(additional) if isinstance(additional, dict) else "unknown")
+                + ">"
+            )
         required = schema.get("required", [])
         return (
             "{\n"

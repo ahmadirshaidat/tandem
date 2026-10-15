@@ -681,28 +681,52 @@ function ChannelRoom({
   const { base, live, setLive, online } = room;
   const proposals = useChannelProposals(workspace, user, channel.id, online);
   const [thread, setThread] = useState<string | null>(null);
+  const proposalFocus = useRef("");
+  const proposalLoading = useRef("");
   useEffect(() => {
     const id = new URLSearchParams(location.search).get("proposal");
-    if (!id || !live.ready || !online) return;
+    if (!id || proposalFocus.current === id || !live.ready || !online) return;
     const selected = proposals.data?.proposals.find((p) => p.id === id);
-    if (selected) {
-      const element = document.querySelector(
-        `[data-proposal-id="${selected.id}"]`,
-      );
-      if (element) {
-        element.scrollIntoView({ block: "center" });
-        return;
-      }
+    if (!selected) return;
+    const element = document.querySelector(
+      `[data-proposal-id="${selected.id}"]`,
+    );
+    if (element) {
+      element.scrollIntoView({ block: "center" });
+      proposalFocus.current = id;
+      return;
+    }
+    const message = live.messages.find(
+      (m) => m.id === selected.trigger_message_id,
+    );
+    if (message && message.thread_root_id !== thread) {
+      queueMicrotask(() => setThread(message.thread_root_id));
+      return;
+    }
+    if (!message && proposalLoading.current !== id) {
+      proposalLoading.current = id;
       void api<Message>(base + `/messages/${selected.trigger_message_id}`)
-        .then((message) => {
+        .then((incoming) => {
           setLive((previous) => ({
             ...previous,
-            messages: mergeMessages(previous.messages, [message]),
+            messages: mergeMessages(previous.messages, [incoming]),
           }));
+          if (incoming.thread_root_id) setThread(incoming.thread_root_id);
         })
-        .catch(() => undefined);
+        .catch(() => undefined)
+        .finally(() => {
+          proposalLoading.current = "";
+        });
     }
-  }, [base, live.ready, online, proposals.data, setLive]);
+  }, [
+    base,
+    live.ready,
+    live.messages,
+    online,
+    proposals.data,
+    setLive,
+    thread,
+  ]);
   const [manage, setManage] = useState(false);
   const [agentOpen, setAgentOpen] = useState(false);
   useEffect(() => {

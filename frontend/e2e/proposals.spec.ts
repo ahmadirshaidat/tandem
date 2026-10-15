@@ -76,7 +76,7 @@ test("two-session proposals, review, risk rules, replay, offline and Arabic mobi
   );
   const admin = await owner.newPage(),
     requester = await editor.newPage(),
-    board = await owner.newPage();
+    board = await editor.newPage();
   const events: {
     type: string;
     at: number;
@@ -105,10 +105,15 @@ test("two-session proposals, review, risk rules, replay, offline and Arabic mobi
   await expect(card.locator(".proposal-item")).toHaveCount(3);
   await expect(card.getByText("Low risk", { exact: true })).toBeVisible();
   await expect(board.locator(".task-card")).toHaveCount(0);
+  await admin.setViewportSize({ width: 1440, height: 1500 });
+  await admin.locator(".message-list").evaluate((el) => {
+    el.scrollTop = 0;
+  });
   await admin.screenshot({
     path: testInfo.outputPath("proposal-multi.png"),
     fullPage: true,
   });
+  await admin.setViewportSize({ width: 1440, height: 1000 });
   // Inbox reflects real actionable data, and the channel's card remains the decision source.
   const inbox = await owner.newPage();
   await inbox.goto("/inbox");
@@ -171,6 +176,7 @@ test("two-session proposals, review, risk rules, replay, offline and Arabic mobi
   await expect(
     board.getByText("Proposed task for review", { exact: true }),
   ).toBeVisible();
+  const taskVisibleMs = Date.now() - approvalStart;
   await expect
     .poll(() =>
       events.some(
@@ -297,11 +303,48 @@ test("two-session proposals, review, risk rules, replay, offline and Arabic mobi
       .first()
       .getByText("Completed", { exact: true }),
   ).toBeVisible();
+  // Inbox deep links must open thread proposals, including triggers outside the main timeline.
+  const channels = await owner.request.get(`/api/workspaces/${wid}/channels`);
+  const cid = (await channels.json())[0].id;
+  const root = await write(
+    editor,
+    `/workspaces/${wid}/channels/${cid}/messages`,
+    { body: "Thread planning", client_message_id: crypto.randomUUID() },
+  );
+  const reply = await write(
+    editor,
+    `/workspaces/${wid}/channels/${cid}/messages`,
+    {
+      body: "@Agent خطط للمصادقة داخل الرد",
+      client_message_id: crypto.randomUUID(),
+      thread_root_id: root.id,
+    },
+  );
+  let threadProposalId = "";
+  await expect
+    .poll(async () => {
+      const result = await owner.request.get(
+        `/api/workspaces/${wid}/proposals?channel_id=${cid}`,
+      );
+      const p = (await result.json()).proposals.find(
+        (p: { trigger_message_id: string }) =>
+          p.trigger_message_id === reply.id,
+      );
+      threadProposalId = p?.id ?? "";
+      return !!p;
+    })
+    .toBeTruthy();
+  await admin.setViewportSize({ width: 1440, height: 1000 });
+  await admin.goto(`/channels?channel=${cid}&proposal=${threadProposalId}`);
+  await expect(
+    admin.locator(`.thread-panel [data-proposal-id="${threadProposalId}"]`),
+  ).toBeVisible();
   await testInfo.attach("fake-proposal-performance", {
     body: JSON.stringify({
       mode: "fake_provider",
       proposal_creation_ms: creationMs,
       approval_to_second_session_task_event_ms: approvalMs,
+      approval_to_second_user_task_visible_ms: taskVisibleMs,
     }),
     contentType: "application/json",
   });
@@ -310,6 +353,7 @@ test("two-session proposals, review, risk rules, replay, offline and Arabic mobi
       mode: "fake_provider",
       proposal_creation_ms: creationMs,
       approval_to_second_session_task_event_ms: approvalMs,
+      approval_to_second_user_task_visible_ms: taskVisibleMs,
     }),
   );
   await owner.close();

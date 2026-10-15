@@ -437,3 +437,89 @@ def test_proposal_live_replay_and_scripted_malicious_calls(client_factory, db):
         subscribe(ws, wid, cid, before)
         assert until(ws, "proposal.created")["data"]["proposal"]["id"] == p["id"]
         assert until(ws, "proposal.executed")["data"]["proposal"]["id"] == p["id"]
+
+
+def test_csrf_stored_payload_tamper_and_uneditable_risk(client_factory, db):
+    from fastapi.testclient import TestClient
+
+    from app.main import app
+
+    owner, wid, cid = setup_agent(client_factory)
+    p = proposed(owner, wid, cid, db)
+    with TestClient(app) as raw:
+        raw.cookies.update(owner.cookies)
+        assert raw.post(endpoint(wid, p), json=decision(p)).status_code == 403
+    assert (
+        owner.put(
+            f"/api/workspaces/{wid}/agent/approval-rules",
+            json={"create_tasks_approver": "editor", "high_risk_approver": "viewer"},
+        ).status_code
+        == 422
+    )
+    row = db.get(Proposal, p["id"])
+    payload = copy.deepcopy(row.payload)
+    payload["items"][0]["title"] = "Tampered after display"
+    row.payload = payload
+    db.commit()
+    assert owner.post(endpoint(wid, p), json=decision(p)).status_code == 409
+    assert db.scalar(select(func.count()).select_from(Task)) == 0
+
+
+def test_due_date_edits_and_requester_cancel(client_factory, db):
+    owner, wid, cid = setup_agent(client_factory)
+    viewer, _ = add_member(owner, client_factory, wid, "viewer@example.com", "viewer")
+    original = task(owner, wid, project(owner, wid)["id"])
+    p = proposed(
+        owner,
+        wid,
+        cid,
+        db,
+        "update_task",
+        {"task_id": original["id"], "version": 1, "changes": {"due_date": "2027-01-01"}},
+        author=viewer,
+    )
+    assert owner.post(endpoint(wid, p), json=decision(p)).json()["status"] == "completed"
+    db.expire_all()
+    assert str(db.get(Task, original["id"]).due_date) == "2027-01-01"
+    q = proposed(
+        owner, wid, cid, db, "delete_task", {"task_id": original["id"], "version": 2}, author=viewer
+    )
+    assert viewer.post(endpoint(wid, q, "cancel"), json=decision(q)).json()["status"] == "rejected"
+    assert db.get(Task, original["id"]).deleted_at is None
+
+
+def test_sources_and_target_cannot_be_redirected_by_edit(client_factory, db):
+    owner, wid, cid = setup_agent(client_factory)
+    private = channel(owner, wid, private=True)
+    secret = send(owner, path(wid, private["id"]), "Hidden source")
+    a = task(owner, wid, project(owner, wid)["id"], title="First task")
+    b = task(owner, wid, a["project_id"], title="Different task")
+    p = proposed(
+        owner,
+        wid,
+        cid,
+        db,
+        "update_task",
+        {"task_id": a["id"], "version": 1, "changes": {"title": "Reviewed"}},
+    )
+    result = execute(
+        db,
+        db.get(AgentRun, p["run_id"]),
+        "propose_update_task",
+        {
+            "task_id": a["id"],
+            "version": 1,
+            "changes": {"title": "Malicious source"},
+            "sources": [{"type": "message", "id": secret["id"]}],
+        },
+    )
+    assert result["status"] == "denied"
+    db.commit()
+    response = owner.post(
+        endpoint(wid, p, "edit-approve"),
+        json=decision(
+            p, payload={"task_id": b["id"], "version": 1, "changes": {"title": "Redirected"}}
+        ),
+    )
+    assert response.status_code == 422
+    assert db.get(Task, b["id"]).title == "Different task"

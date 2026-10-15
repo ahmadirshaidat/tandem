@@ -56,6 +56,18 @@ export function useChannelProposals(
         const data = await api<ProposalPage>(
           `/workspaces/${workspace.id}/proposals?channel_id=${channelId}&limit=100`,
         );
+        const selectedId = new URLSearchParams(location.search).get("proposal");
+        if (selectedId && !data.proposals.some((p) => p.id === selectedId)) {
+          try {
+            const selected = await api<Proposal>(
+              `/workspaces/${workspace.id}/proposals/${encodeURIComponent(selectedId)}`,
+            );
+            if (selected.channel_id === channelId)
+              data.proposals = mergeProposals(data.proposals, [selected]);
+          } catch {
+            /* A missing or inaccessible deep link exposes no data. */
+          }
+        }
         saveCache(key, data);
         return data;
       } catch (error) {
@@ -351,7 +363,8 @@ export function ProposalCard({
               </Button>
             </div>
           )}
-          {p.requested_by.id === user.id && workspace.role !== "viewer" && (
+          {(p.requested_by.id === user.id ||
+            ["admin", "owner"].includes(workspace.role)) && (
             <Button
               variant="ghost"
               disabled={!online || busy}
