@@ -103,9 +103,9 @@
     "retrieval_mode": "degraded_full_text"
   },
   "last_verified_hosted_ci": {
-    "sha": "8e817ff6537b02b4e932c53c2b60a4753e817cb6",
+    "sha": "3040be2e83521cae56626be80ae20cea9f776810",
     "status": "success",
-    "url": "https://github.com/ahmadirshaidat/tandem/actions/runs/38977113759"
+    "url": "https://github.com/ahmadirshaidat/tandem/actions/runs/38978180817"
   },
   "blockers": [
     "Enforced network policy excludes model-download hosts; saved environment draft requires application",
@@ -118,7 +118,8 @@
     "External design canvas unavailable; UI_SPEC and existing components used",
     "No fresh Gemini acceptance in Slice 6",
     "No AWS deployment",
-    "Draft PR; no merge into v1"
+    "Draft PR; no merge into v1",
+    "One browser CI run failed between passing runs; diagnostic reporter added, root cause unverified"
   ],
   "screenshots": [
     "docs/screenshots/slice6/agent-memory-sources.png",
@@ -127,5 +128,18 @@
     "docs/screenshots/slice6/search-english.png",
     "docs/screenshots/slice6/search-mobile-arabic.png"
   ],
-  "security": "No keys, prompts, answers, provider bodies or failed-generation text in evidence"
+  "security": "No keys, prompts, answers, provider bodies or failed-generation text in evidence",
+  "ci_investigation": {
+    "failed_run": "https://github.com/ahmadirshaidat/tandem/actions/runs/38977784061",
+    "failed_sha": "ac0923be53057981d97e6779133c0b516f1f1384",
+    "step": "Browser integration tests",
+    "preceding_run": "https://github.com/ahmadirshaidat/tandem/actions/runs/38977467766",
+    "preceding_conclusion": "success",
+    "detail_status": "Log-download host blocked by network policy; original check annotation only reports exit 1",
+    "diagnostic_action": "Enable Playwright built-in GitHub reporter to publish assertion failures as check annotations",
+    "diagnostic_run": "https://github.com/ahmadirshaidat/tandem/actions/runs/38978180817",
+    "diagnostic_status": "success",
+    "root_cause": "unknown; failure did not recur in diagnostic run",
+    "risk": "Intermittent browser failure remains unresolved; passing rerun is not a claimed fix"
+  }
 }
