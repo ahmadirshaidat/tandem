@@ -1,0 +1,129 @@
+{
+  "validation_date_utc": "2026-10-16",
+  "validation_date_asia_amman": "2026-10-17",
+  "branch": "slice-6-memory",
+  "base_v1": "8d1b3ce4c83146f7a15c50bd0a38b61b6349a3af",
+  "pr": "https://github.com/ahmadirshaidat/tandem/pull/3",
+  "overall_acceptance": "blocked",
+  "implementation": "delivered_for_review",
+  "automated": {
+    "backend_lint": {
+      "status": "passed"
+    },
+    "backend_format": {
+      "status": "passed",
+      "files": 81
+    },
+    "backend_tests": {
+      "status": "passed",
+      "passed": 152,
+      "seconds": 58.22
+    },
+    "final_memory_tests": {
+      "status": "passed",
+      "passed": 19,
+      "seconds": 10.61
+    },
+    "migration_drift": {
+      "status": "passed",
+      "new_operations": 0
+    },
+    "migrations": {
+      "status": "passed",
+      "scenarios": [
+        "empty",
+        "slice3_upgrade",
+        "slice5_existing_data_upgrade"
+      ]
+    },
+    "event_contract": {
+      "status": "passed"
+    },
+    "frontend_lint": {
+      "status": "passed"
+    },
+    "frontend_typecheck": {
+      "status": "passed"
+    },
+    "frontend_tests": {
+      "status": "passed",
+      "files": 8,
+      "passed": 35,
+      "seconds": 11.67
+    },
+    "frontend_build": {
+      "status": "passed"
+    },
+    "browser_tests": {
+      "status": "passed",
+      "passed": 8,
+      "duration_reported": "1.2m",
+      "provider": "fake",
+      "chromium": "/usr/bin/chromium",
+      "mobile_width_px": 390
+    },
+    "worker_visibility": {
+      "mode": "full_text",
+      "milliseconds": 996,
+      "new_task_visible_via": "HTTP search",
+      "embedding_inference_included": false
+    },
+    "docker_build_and_start": {
+      "status": "passed"
+    },
+    "http_health": {
+      "backend": 200,
+      "frontend_login": 200,
+      "frontend_api_csrf": 200
+    },
+    "final_runtime": {
+      "fake_provider": false,
+      "auth_rate_limit": 10,
+      "index_interval_seconds": 1.0
+    }
+  },
+  "evaluation": {
+    "file": "eval/similar_bugs/results.json",
+    "status": "full_text_measured_semantic_not_run",
+    "queries": 45,
+    "documents": 75,
+    "seed": 20261017,
+    "hybrid_target_status": "unverified"
+  },
+  "live": {
+    "file": "docs/slice6-live-results.json",
+    "passed": 2,
+    "failed": 2,
+    "failure_category": "rate_limited",
+    "provider": "groq",
+    "model": "openai/gpt-oss-120b",
+    "retrieval_mode": "degraded_full_text"
+  },
+  "last_verified_hosted_ci": {
+    "sha": "8e817ff6537b02b4e932c53c2b60a4753e817cb6",
+    "status": "success",
+    "url": "https://github.com/ahmadirshaidat/tandem/actions/runs/38977113759"
+  },
+  "blockers": [
+    "Enforced network policy excludes model-download hosts; saved environment draft requires application",
+    "No downloaded local models: availability/license/size/speed and vector/hybrid quality unverified",
+    "Required hybrid recall@5 >= 70% not verified",
+    "Both strict Arabic live checks failed with rate_limited",
+    "Product-owner manual real-provider Slice 5 approval UI test unverified"
+  ],
+  "limits": [
+    "No physical-device check",
+    "External design canvas unavailable; UI_SPEC and existing components used",
+    "No fresh Gemini acceptance in Slice 6",
+    "No AWS deployment",
+    "Draft PR; no merge into v1"
+  ],
+  "screenshots": [
+    "docs/screenshots/slice6/agent-memory-sources.png",
+    "docs/screenshots/slice6/memory-settings.png",
+    "docs/screenshots/slice6/search-arabic.png",
+    "docs/screenshots/slice6/search-english.png",
+    "docs/screenshots/slice6/search-mobile-arabic.png"
+  ],
+  "security": "No keys, prompts, answers, provider bodies or failed-generation text in evidence"
+}

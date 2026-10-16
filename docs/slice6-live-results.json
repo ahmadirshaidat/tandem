@@ -1,0 +1,97 @@
+{
+  "validation_date_utc": "2026-10-16",
+  "validation_date_asia_amman": "2026-10-17",
+  "scope": "Slice 6 real Groq generation with full-text degraded memory retrieval; no semantic embedding acceptance",
+  "checks": [
+    {
+      "mode": "live",
+      "provider": "groq",
+      "language": "en",
+      "requested_tool": "analyze_bug",
+      "status": "passed",
+      "category": null,
+      "model": "openai/gpt-oss-120b",
+      "agent_latency_ms": 2744,
+      "wall_ms": 11236.4,
+      "successful_tools": [
+        "analyze_bug"
+      ],
+      "authorized_source_chips": 2,
+      "task_count_unchanged": true,
+      "proposals_created": 0,
+      "embedding_degraded": true,
+      "input_tokens": 5113,
+      "output_tokens": 599,
+      "token_usage_scope": "successful generations; failed HTTP attempt usage not reported"
+    },
+    {
+      "mode": "live",
+      "provider": "groq",
+      "language": "ar",
+      "requested_tool": "analyze_bug",
+      "status": "failed",
+      "category": "rate_limited",
+      "model": "openai/gpt-oss-120b",
+      "agent_latency_ms": 229,
+      "wall_ms": 501.97,
+      "successful_tools": [],
+      "authorized_source_chips": 0,
+      "task_count_unchanged": true,
+      "proposals_created": 0,
+      "embedding_degraded": true,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "token_usage_scope": "successful generations; failed HTTP attempt usage not reported"
+    },
+    {
+      "mode": "live",
+      "provider": "groq",
+      "language": "en",
+      "requested_tool": "find_similar_bugs",
+      "status": "passed",
+      "category": null,
+      "model": "openai/gpt-oss-120b",
+      "agent_latency_ms": 2188,
+      "wall_ms": 2561.81,
+      "successful_tools": [
+        "find_similar_bugs"
+      ],
+      "authorized_source_chips": 2,
+      "task_count_unchanged": true,
+      "proposals_created": 0,
+      "embedding_degraded": true,
+      "input_tokens": 5214,
+      "output_tokens": 550,
+      "token_usage_scope": "successful generations; failed HTTP attempt usage not reported"
+    },
+    {
+      "mode": "live",
+      "provider": "groq",
+      "language": "ar",
+      "requested_tool": "find_similar_bugs",
+      "status": "failed",
+      "category": "rate_limited",
+      "model": "openai/gpt-oss-120b",
+      "agent_latency_ms": 2705,
+      "wall_ms": 2988.58,
+      "successful_tools": [
+        "find_similar_bugs",
+        "analyze_bug"
+      ],
+      "authorized_source_chips": 2,
+      "task_count_unchanged": true,
+      "proposals_created": 0,
+      "embedding_degraded": true,
+      "input_tokens": 6388,
+      "output_tokens": 241,
+      "token_usage_scope": "successful generations; failed HTTP attempt usage not reported"
+    }
+  ],
+  "gemini": {
+    "status": "not_run_in_slice6",
+    "risk": "Previously documented fallback failures/rate limits remain open; no new pass claimed"
+  },
+  "acceptance_status": "blocked",
+  "failed_http_usage": "Unknown; token counts cover successful generations only",
+  "data_policy": "Synthetic workspaces; output metadata only; no keys, prompts, answers or provider bodies"
+}

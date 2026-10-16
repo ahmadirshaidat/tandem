@@ -1,0 +1,13 @@
+# ADR 0022: Local multilingual embedding candidates — acceptance pending
+
+**Status: proposed; real candidate comparison is blocked, not accepted as a validated model choice.**
+
+Use CPU ONNX Runtime with a local tokenizer, masked mean pooling and cosine-normalized 384-dimensional vectors. Workspace text is never sent to an embedding endpoint. A separate public-weight downloader pins the upstream revision, verifies an MIT/Apache-2.0 model-card license and artifact hashes, and checks mixed English/Arabic inference. Queries/indexing load only verified local files. Missing or failing inference produces visible full-text degradation, never a fabricated semantic vector.
+
+Planned candidates are the quantized ONNX conversions at `Xenova/multilingual-e5-small` and `Xenova/paraphrase-multilingual-MiniLM-L12-v2`. E5 uses documented query/passage prefixes; MiniLM does not. The initial local path is named e5-small provisionally. Model ID/version/dimension are stored on every embedding and queries select only the active revision. CPU threads are bounded at two; batches at 16 and input at 256 tokens. Overlapping character chunks bound normal indexing inputs. A future dimension change requires a schema/index migration.
+
+Neither candidate was downloaded in this environment: Hugging Face access is denied by current egress. Required host additions are saved in the environment draft (`huggingface.co`, `*.huggingface.co`, `*.hf.co`) but are not runtime-applied. Therefore model-card license, actual artifact size, availability, local inference speed and vector/hybrid quality are **unverified** here. The downloader enforces these checks when access is supplied; this ADR does not substitute assumed metadata for observed evidence.
+
+The committed evaluation has 30 English and 15 Arabic/mixed synthetic pairs plus distractors, with stable IDs and fixed ranking parameters. Real SQL full-text measurements are recorded. Vector-only/hybrid are explicitly not run, and the hybrid recall@5 target of at least 70% remains unverified. Unit-test stubs validate authorization/lifecycle only and never enter the evaluation harness.
+
+After applying model-download access, install both candidates, run `infra/run_eval.py --model-path ... --model-path ...`, compare per-language recall/MRR, latency, memory/artifact sizes and throughput, then rewrite this ADR around the observed selection. Do not declare Slice 6 semantic retrieval accepted before that evidence exists. A small multilingual model is preferred for a single-server demo if its measured quality meets the target; no larger-model or speed assertion is made without a run.
