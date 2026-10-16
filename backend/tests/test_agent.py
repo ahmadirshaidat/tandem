@@ -79,6 +79,9 @@ def test_registry_read_only_mutation_refusal_viewer_and_loop(client_factory, db)
         "identify_blockers",
         "generate_progress_report",
         "get_channel_context",
+        "search_memory",
+        "find_similar_bugs",
+        "analyze_bug",
     }
     assert all(d["mode"] in {"read", "proposal"} for d in descriptors())
     for schema in REGISTRY.values():

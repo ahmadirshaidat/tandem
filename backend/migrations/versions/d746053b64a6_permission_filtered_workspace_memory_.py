@@ -54,7 +54,7 @@ def upgrade():
         sa.Column("lag_ms", sa.Float(), nullable=True),
         sa.Column("attempts", sa.Integer(), server_default="0", nullable=False),
         sa.CheckConstraint(
-            "(kind = 'channel' AND channel_id = source_id AND project_id IS NULL) OR (kind = 'project' AND project_id = source_id AND channel_id IS NULL)",
+            "(kind = 'channel' AND channel_id IS NOT NULL AND channel_id = source_id AND project_id IS NULL) OR (kind = 'project' AND project_id IS NOT NULL AND project_id = source_id AND channel_id IS NULL)",
             name="ck_memory_source_kind",
         ),
         sa.CheckConstraint(
@@ -131,7 +131,7 @@ def upgrade():
             nullable=False,
         ),
         sa.CheckConstraint(
-            "(source_type = 'message' AND message_id = source_id AND channel_id IS NOT NULL AND task_id IS NULL) OR (source_type = 'task' AND task_id = source_id AND project_id IS NOT NULL AND message_id IS NULL)",
+            "(source_type = 'message' AND message_id IS NOT NULL AND message_id = source_id AND channel_id IS NOT NULL AND task_id IS NULL) OR (source_type = 'task' AND task_id IS NOT NULL AND task_id = source_id AND project_id IS NOT NULL AND message_id IS NULL)",
             name="ck_memory_record_source",
         ),
         sa.CheckConstraint(
@@ -220,25 +220,35 @@ def upgrade():
           revision=memory_sources.revision+1,status='queued',queued_at=clock_timestamp(),attempts=0;
     END $$""")
     op.execute("""CREATE FUNCTION memory_changed() RETURNS trigger LANGUAGE plpgsql AS $$
-    DECLARE wid varchar; sid varchar; typ varchar;
+    DECLARE wid varchar; sid varchar; typ varchar; rowdata record;
     BEGIN
-      wid := NEW.workspace_id;
+      IF TG_OP='DELETE' THEN rowdata:=OLD; ELSE rowdata:=NEW; END IF;
+      wid := rowdata.workspace_id;
       IF TG_TABLE_NAME IN ('messages','channels') THEN
         typ := 'channel';
-        IF TG_TABLE_NAME='channels' THEN sid:=NEW.id; ELSE sid:=NEW.channel_id; END IF;
+        IF TG_TABLE_NAME='channels' THEN sid:=rowdata.id; ELSE sid:=rowdata.channel_id; END IF;
       ELSE
         typ := 'project';
-        IF TG_TABLE_NAME='projects' THEN sid:=NEW.id;
-        ELSIF TG_TABLE_NAME='tasks' THEN sid:=NEW.project_id;
-        ELSE SELECT project_id INTO sid FROM tasks WHERE workspace_id=wid AND id=NEW.task_id;
+        IF TG_TABLE_NAME='projects' THEN sid:=rowdata.id;
+        ELSIF TG_TABLE_NAME='tasks' THEN sid:=rowdata.project_id;
+        ELSE SELECT project_id INTO sid FROM tasks WHERE workspace_id=wid AND id=rowdata.task_id;
+        END IF;
+      END IF;
+      IF typ='channel' AND NOT EXISTS(SELECT 1 FROM channels WHERE workspace_id=wid AND id=sid) THEN RETURN rowdata; END IF;
+      IF typ='project' AND NOT EXISTS(SELECT 1 FROM projects WHERE workspace_id=wid AND id=sid) THEN RETURN rowdata; END IF;
+      IF TG_TABLE_NAME='tasks' THEN
+        IF TG_OP='UPDATE' THEN
+          IF OLD.project_id IS DISTINCT FROM NEW.project_id THEN
+            PERFORM memory_touch(wid,'project',OLD.project_id);
+          END IF;
         END IF;
       END IF;
       PERFORM memory_touch(wid,typ,sid);
-      RETURN NEW;
+      RETURN rowdata;
     END $$""")
     for table in ["channels", "messages", "projects", "tasks", "task_comments"]:
         op.execute(
-            f"CREATE TRIGGER memory_{table}_changed AFTER INSERT OR UPDATE ON {table} FOR EACH ROW EXECUTE FUNCTION memory_changed()"
+            f"CREATE TRIGGER memory_{table}_changed AFTER INSERT OR UPDATE OR DELETE ON {table} FOR EACH ROW EXECUTE FUNCTION memory_changed()"
         )
     op.execute(
         "INSERT INTO memory_sources(workspace_id,kind,source_id,channel_id) SELECT workspace_id,'channel',id,id FROM channels ON CONFLICT DO NOTHING"

@@ -73,7 +73,7 @@ class MemorySource(Base):
             ondelete="CASCADE",
         ),
         CheckConstraint(
-            "(kind = 'channel' AND channel_id = source_id AND project_id IS NULL) OR (kind = 'project' AND project_id = source_id AND channel_id IS NULL)",
+            "(kind = 'channel' AND channel_id IS NOT NULL AND channel_id = source_id AND project_id IS NULL) OR (kind = 'project' AND project_id IS NOT NULL AND project_id = source_id AND channel_id IS NULL)",
             name="ck_memory_source_kind",
         ),
         CheckConstraint(
@@ -140,7 +140,7 @@ class MemoryRecord(Base):
             ondelete="CASCADE",
         ),
         CheckConstraint(
-            "(source_type = 'message' AND message_id = source_id AND channel_id IS NOT NULL AND task_id IS NULL) OR (source_type = 'task' AND task_id = source_id AND project_id IS NOT NULL AND message_id IS NULL)",
+            "(source_type = 'message' AND message_id IS NOT NULL AND message_id = source_id AND channel_id IS NOT NULL AND task_id IS NULL) OR (source_type = 'task' AND task_id IS NOT NULL AND task_id = source_id AND project_id IS NOT NULL AND message_id IS NULL)",
             name="ck_memory_record_source",
         ),
         CheckConstraint(

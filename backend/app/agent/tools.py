@@ -68,6 +68,11 @@ PROPOSAL_TOOLS = {
     for kind, schema in PAYLOADS.items()
 }
 REGISTRY.update(PROPOSAL_TOOLS)
+from app.memory.tools import AnalyzeBugArgs, MemorySearchArgs, SimilarBugArgs, retrieve_tool  # noqa: E402
+
+REGISTRY.update(
+    search_memory=MemorySearchArgs, find_similar_bugs=SimilarBugArgs, analyze_bug=AnalyzeBugArgs
+)
 
 
 def descriptors():
@@ -91,6 +96,8 @@ def read_tool(db, run, name, args):
         if args.channel_id not in ids:
             raise HTTPException(404, "Context unavailable")
         ids = [args.channel_id]
+    if name in {"search_memory", "find_similar_bugs", "analyze_bug"}:
+        return retrieve_tool(db, run, name, args, ids)
     if name == "list_projects":
         return [
             project_out(p)
@@ -207,6 +214,27 @@ def execute(db, run, name, arguments):
         if isinstance(result, dict)
         else 0
     )
+    refs = []
+    if status == "ok" and name in {"search_memory", "find_similar_bugs", "analyze_bug"}:
+        count = len(result.get("items", result.get("similar_bugs", [])))
+
+        def collect(value):
+            if isinstance(value, dict):
+                raw = value.get("source")
+                if isinstance(raw, dict) and len(refs) < 10:
+                    try:
+                        ref = Source.model_validate(raw).model_dump()
+                        if ref not in refs:
+                            refs.append(ref)
+                    except ValidationError:
+                        pass
+                for child in value.values():
+                    collect(child)
+            elif isinstance(value, list):
+                for child in value:
+                    collect(child)
+
+        collect(result)
     duration = round((time.monotonic() - tick) * 1000)
     db.add(
         AgentToolCall(
@@ -214,7 +242,7 @@ def execute(db, run, name, arguments):
             run_id=run.id,
             tool_name=safe_name,
             redacted_arguments=redacted,
-            result_summary={"count": count},
+            result_summary={"count": count, "sources": refs},
             duration_ms=duration,
             status=status,
         )
