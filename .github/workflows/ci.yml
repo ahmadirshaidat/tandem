@@ -84,7 +84,8 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Browser integration tests
         working-directory: frontend
-        run: npm run test:e2e
+        # Put assertion failures in check annotations as well as downloadable logs.
+        run: npm run test:e2e -- --reporter=dot,github
       - name: Stop backend
         if: always()
         run: |
