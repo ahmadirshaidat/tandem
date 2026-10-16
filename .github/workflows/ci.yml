@@ -45,8 +45,8 @@ jobs:
         run: |
           uv run --frozen ruff check app migrations tests
           uv run --frozen ruff format --check app migrations tests
-          uv run --frozen ruff check --config pyproject.toml ../infra/check_approval_live.py ../infra/check_agent_models.py ../infra/check_agent_providers.py
-          uv run --frozen ruff format --check --config pyproject.toml ../infra/check_approval_live.py ../infra/check_agent_models.py ../infra/check_agent_providers.py
+          uv run --frozen ruff check --config pyproject.toml ../infra/check_approval_live.py ../infra/check_agent_models.py ../infra/check_agent_providers.py ../infra/run_eval.py ../infra/memory_backfill.py ../infra/check_memory_live.py
+          uv run --frozen ruff format --check --config pyproject.toml ../infra/check_approval_live.py ../infra/check_agent_models.py ../infra/check_agent_providers.py ../infra/run_eval.py ../infra/memory_backfill.py ../infra/check_memory_live.py
           uv run --frozen pytest -q
           uv run --frozen alembic upgrade head
           uv run --frozen alembic check
