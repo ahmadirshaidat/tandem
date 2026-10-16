@@ -7,6 +7,7 @@ from test_channels import channel, path, send
 from test_workspaces import workspace
 
 from app.core.config import settings
+from app.core.security import now
 from app.memory.embeddings import ModelUnavailable, model
 from app.memory.models import MemorySource
 
@@ -368,7 +369,6 @@ def test_retention_and_model_version_reindex(client_factory, db, monkeypatch):
     from datetime import timedelta
 
     from app.channels.models import Message
-    from app.core.security import now
     from app.memory import indexing
     from app.memory.models import MemoryEmbedding, MemoryRecord
 
@@ -418,3 +418,234 @@ def test_agent_memory_tools_do_not_cross_audiences_or_workspaces(client_factory,
     assert run.status == "completed"
     assert scripted.payloads[-1]["results"][0]["data"]["items"] == []
     assert "Very private" not in str(scripted.payloads)
+
+
+def test_comment_edits_hard_delete_and_project_move_propagate(client_factory, db):
+    from test_tasks import project, task, task_path
+
+    from app.memory.retrieval import SearchInput, search
+    from app.tasks.models import Task, TaskComment
+
+    owner, user = client_factory("lifecycle-memory@example.com")
+    wid = workspace(owner)["id"]
+    first = project(owner, wid)["id"]
+    second = project(owner, wid, name="Other project", key="OTHER")["id"]
+    original = task(owner, wid, first, title="Connection lifecycle", type="bug")
+    comment = owner.post(
+        task_path(wid, original["id"]) + "/comments", json={"body": "distinctivewatermelon"}
+    ).json()
+    drain()
+    args = SearchInput(query="distinctivewatermelon", mode="full_text")
+    assert search(db, wid, user["id"], args, embedder=MockEmbedding())["items"]
+    assert (
+        owner.patch(
+            task_path(wid, original["id"]) + f"/comments/{comment['id']}",
+            json={"body": "newkiwiresolution", "version": 1},
+        ).status_code
+        == 200
+    )
+    assert not search(db, wid, user["id"], args, embedder=MockEmbedding())["items"]
+    drain()
+    assert search(
+        db,
+        wid,
+        user["id"],
+        SearchInput(query="newkiwiresolution", mode="full_text"),
+        embedder=MockEmbedding(),
+    )["items"]
+    db.expire_all()
+    db.get(Task, original["id"]).project_id = second
+    db.commit()
+    assert not search(
+        db,
+        wid,
+        user["id"],
+        SearchInput(query="newkiwiresolution", mode="full_text"),
+        embedder=MockEmbedding(),
+    )["items"]
+    drain()
+    result = search(
+        db,
+        wid,
+        user["id"],
+        SearchInput(query="newkiwiresolution", mode="full_text", project_id=second),
+        embedder=MockEmbedding(),
+    )
+    assert result["items"] and all(i["project_id"] == second for i in result["items"])
+    db.delete(db.get(TaskComment, comment["id"]))
+    db.commit()
+    drain()
+    assert not search(
+        db,
+        wid,
+        user["id"],
+        SearchInput(query="newkiwiresolution", mode="full_text"),
+        embedder=MockEmbedding(),
+    )["items"]
+
+
+def test_archives_deletes_and_workspace_revocation_hide_all_retrieval_modes(client_factory, db):
+    from fastapi import HTTPException
+    from test_tasks import project, task
+    from test_workspaces import add_member
+
+    from app.core.models import Membership
+    from app.memory.retrieval import SearchInput, search
+    from app.tasks.models import Project, Task
+
+    owner, _ = client_factory("archive-memory@example.com")
+    wid = workspace(owner)["id"]
+    viewer, member = add_member(owner, client_factory, wid, "archive-viewer@example.com", "viewer")
+    pid = project(owner, wid)["id"]
+    original = task(owner, wid, pid, title="Archived timeout history", type="bug")
+    drain()
+    for mode in ["full_text", "vector", "hybrid"]:
+        assert search(
+            db,
+            wid,
+            member["user_id"],
+            SearchInput(query="timeout", mode=mode),
+            embedder=MockEmbedding(),
+        )["items"]
+    db.get(Project, pid).archived = True
+    db.commit()
+    for mode in ["full_text", "vector", "hybrid"]:
+        assert not search(
+            db,
+            wid,
+            member["user_id"],
+            SearchInput(query="timeout", mode=mode),
+            embedder=MockEmbedding(),
+        )["items"]
+    db.get(Project, pid).archived = False
+    db.commit()
+    drain()
+    db.get(Task, original["id"]).deleted_at = __import__(
+        "app.core.security", fromlist=["now"]
+    ).now()
+    db.commit()
+    assert not search(
+        db, wid, member["user_id"], SearchInput(query="timeout"), embedder=MockEmbedding()
+    )["items"]
+    db.delete(db.get(Membership, member["id"]))
+    db.commit()
+    with pytest.raises(HTTPException) as error:
+        search(db, wid, member["user_id"], SearchInput(query="timeout"), embedder=MockEmbedding())
+    assert error.value.status_code == 404
+
+
+def test_forget_preview_rejects_changed_content_and_actor(client_factory, db):
+    owner, _ = client_factory("stale-forget@example.com")
+    wid = workspace(owner)["id"]
+    cid = owner.get(f"/api/workspaces/{wid}/channels").json()[0]["id"]
+    message = send(owner, path(wid, cid), "First memory value")
+    drain()
+    from app.memory.models import MemoryRecord
+
+    rid = db.scalar(select(MemoryRecord.id))
+    base = f"/api/workspaces/{wid}/memory"
+    selection = {"record_ids": [rid]}
+    preview = owner.post(base + "/forget-preview", json=selection).json()
+    assert (
+        owner.patch(
+            path(wid, cid) + f"/messages/{message['id']}", json={"body": "Changed memory value"}
+        ).status_code
+        == 200
+    )
+    drain()
+    assert (
+        owner.post(
+            base + "/forget", json={**selection, "preview_token": preview["preview_token"]}
+        ).status_code
+        == 409
+    )
+
+
+def test_source_chip_endpoint_rechecks_private_scope_after_channel_change(client_factory, db):
+    from test_agent import Scripted, run_latest, setup_agent
+    from test_workspaces import add_member
+
+    from app.agent.llm import AgentTurn, ToolRequest
+    from app.channels.models import Channel
+
+    owner, wid, cid = setup_agent(client_factory)
+    viewer, _ = add_member(owner, client_factory, wid, "chip-viewer@example.com", "viewer")
+    other = channel(owner, wid, name="public-evidence")
+    send(owner, path(wid, other["id"]), "Visible pineapple evidence")
+    drain()
+    send(owner, path(wid, cid), "@Agent search memory pineapple")
+    # Only the embedding is mocked; SQL/audience filtering and HTTP are real.
+    from unittest.mock import patch
+
+    from app.memory import retrieval
+
+    with patch.object(retrieval, "model", return_value=MockEmbedding()):
+        run = run_latest(
+            db,
+            Scripted(
+                [
+                    AgentTurn(
+                        calls=[ToolRequest(name="search_memory", arguments={"query": "pineapple"})]
+                    ),
+                    AgentTurn(answer="Authorized evidence found"),
+                ]
+            ),
+        )
+    endpoint = f"/api/workspaces/{wid}/agent/runs/{run.id}/memory-sources"
+    assert viewer.get(endpoint).json()["sources"]
+    db.get(Channel, other["id"]).is_private = True
+    db.commit()
+    assert viewer.get(endpoint).json()["sources"] == []
+    assert owner.get(endpoint).json()["sources"] == []
+
+
+def test_failed_local_inference_still_indexes_and_retrieves_full_text(client_factory, db):
+    from app.memory.indexing import process_one
+    from app.memory.models import MemoryRecord
+    from app.memory.retrieval import SearchInput, search
+
+    owner, user = client_factory("broken-encoder@example.com")
+    wid = workspace(owner)["id"]
+    cid = owner.get(f"/api/workspaces/{wid}/channels").json()[0]["id"]
+    send(owner, path(wid, cid), "Inference failure still supports lexical evidence")
+
+    class Broken(MockEmbedding):
+        def encode(self, texts, *, query=False):
+            raise ModelUnavailable("Local inference unavailable")
+
+    while process_one(embedder=Broken(), raise_errors=True):
+        pass
+    assert db.scalar(select(MemoryRecord.id))
+    result = search(
+        db, wid, user["id"], SearchInput(query="lexical", mode="vector"), embedder=Broken()
+    )
+    assert result["degraded"] and result["retrieval_mode"] == "full_text" and result["items"]
+
+
+def test_upgrade_from_slice5_backfills_existing_sources_without_domain_loss(client_factory, db):
+    from alembic import command
+    from alembic.config import Config
+
+    from app.channels.models import Message
+    from app.memory.retrieval import SearchInput, search
+
+    owner, user = client_factory("slice5-upgrade-memory@example.com")
+    wid = workspace(owner)["id"]
+    cid = owner.get(f"/api/workspaces/{wid}/channels").json()[0]["id"]
+    original = send(owner, path(wid, cid), "Historical avocado resolution")
+    db.close()
+    config = Config("alembic.ini")
+    command.downgrade(config, "3073fbdfd371")
+    later = send(owner, path(wid, cid), "Existing mango decision before indexing")
+    command.upgrade(config, "head")
+    drain()
+    assert db.get(Message, original["id"]).body == "Historical avocado resolution"
+    assert db.get(Message, later["id"]).deleted_at is None
+    result = search(
+        db,
+        wid,
+        user["id"],
+        SearchInput(query="avocado mango", mode="full_text"),
+        embedder=MockEmbedding(),
+    )
+    assert result["items"] and "avocado" in str(result["items"])

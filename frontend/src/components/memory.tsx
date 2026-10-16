@@ -169,6 +169,7 @@ export function SearchPage({
     queryFn: () =>
       api<SearchResult>(`/workspaces/${workspace.id}/search?${params}`),
     enabled: online && !!submitted,
+    refetchInterval: online && !!submitted ? 5000 : false,
     staleTime: 0,
   });
   const preview = useMutation({
@@ -244,7 +245,7 @@ export function SearchPage({
             onChange={(e) => setText(e.target.value)}
             placeholder="How did we fix connection timeouts?"
           />
-          <Button disabled={!text.trim()}>
+          <Button type="submit" disabled={!text.trim()}>
             <Search size={16} />
             Search
           </Button>

@@ -3702,3 +3702,42 @@ svg {
     padding: 10px 16px;
   }
 }
+.memory-switch input[role="switch"],
+.memory-source-row input[role="switch"] {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  flex-shrink: 0;
+  width: 48px;
+  height: 28px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--chip);
+  cursor: pointer;
+}
+.memory-switch input[role="switch"]::before,
+.memory-source-row input[role="switch"]::before {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  left: 4px;
+  top: 4px;
+  border-radius: 50%;
+  background: var(--surface);
+  transition: transform 160ms;
+}
+.memory-switch input[role="switch"]:checked,
+.memory-source-row input[role="switch"]:checked {
+  background: var(--agent);
+}
+.memory-switch input[role="switch"]:checked::before,
+.memory-source-row input[role="switch"]:checked::before {
+  transform: translateX(20px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .memory-switch input[role="switch"]::before,
+  .memory-source-row input[role="switch"]::before {
+    transition: none;
+  }
+}

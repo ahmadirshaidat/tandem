@@ -208,7 +208,12 @@ def search(db, wid, uid, inputs, *, channel_ids=None, bugs_only=False, embedder=
         fts = list(
             db.scalars(
                 q.where(MemoryRecord.search_vector.op("@@")(tsq))
-                .order_by(rank.desc(), MemoryRecord.id)
+                .order_by(
+                    rank.desc(),
+                    MemoryRecord.source_type,
+                    MemoryRecord.source_id,
+                    MemoryRecord.chunk_number,
+                )
                 .limit(200)
             )
         )
@@ -230,14 +235,28 @@ def search(db, wid, uid, inputs, *, channel_ids=None, bugs_only=False, embedder=
                     MemoryEmbedding.model_version == selected.identity[1],
                 ),
             )
-            vector = list(db.scalars(vq.order_by(distance, MemoryRecord.id).limit(200)))
+            vector = list(
+                db.scalars(
+                    vq.order_by(
+                        distance,
+                        MemoryRecord.source_type,
+                        MemoryRecord.source_id,
+                        MemoryRecord.chunk_number,
+                    ).limit(200)
+                )
+            )
     except (ModelUnavailable, ValueError, RuntimeError):
         degraded = True
         if inputs.mode == "vector":
             fts = list(
                 db.scalars(
                     q.where(MemoryRecord.search_vector.op("@@")(tsq))
-                    .order_by(rank.desc(), MemoryRecord.id)
+                    .order_by(
+                        rank.desc(),
+                        MemoryRecord.source_type,
+                        MemoryRecord.source_id,
+                        MemoryRecord.chunk_number,
+                    )
                     .limit(200)
                 )
             )
@@ -248,7 +267,10 @@ def search(db, wid, uid, inputs, *, channel_ids=None, bugs_only=False, embedder=
         for index, record in enumerate(candidates):
             scores[record.id] = scores.get(record.id, 0) + 1 / (60 + index + 1)
             records[record.id] = record
-    ordered = sorted(records.values(), key=lambda r: (-scores[r.id], r.id))
+    ordered = sorted(
+        records.values(),
+        key=lambda r: (-scores[r.id], r.source_type, r.source_id, r.chunk_number, r.id),
+    )
     fingerprint = hashlib.sha256(
         json.dumps(
             {

@@ -235,11 +235,15 @@ def process_one(*, embedder=None, raise_errors=False):
                     or existing[d["record_key"]].id not in ready
                 )
             ]
-        vectors = (
-            selected.encode([d["title"] + "\n" + d["chunk_text"] for d in needed])
-            if selected
-            else []
-        )
+        try:
+            vectors = (
+                selected.encode([d["title"] + "\n" + d["chunk_text"] for d in needed])
+                if selected
+                else []
+            )
+        except ModelUnavailable:
+            selected, identity, needed, vectors = None, None, [], []
+            error = "embedding_unavailable"
         with SessionLocal() as db:
             # Match domain/settings lock order: workspace, then source.
             db.scalar(select(Workspace).where(Workspace.id == key[0]).with_for_update())

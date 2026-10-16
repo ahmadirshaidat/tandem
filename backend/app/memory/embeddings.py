@@ -15,6 +15,7 @@ CANDIDATES = {
     "minilm": "Xenova/paraphrase-multilingual-MiniLM-L12-v2",
 }
 _lock = threading.Lock()
+_load_lock = threading.Lock()
 _models = {}
 
 
@@ -63,6 +64,12 @@ class LocalEmbedding:
         return self.manifest["model"], self.manifest["version"]
 
     def encode(self, texts, *, query=False):
+        try:
+            return self._encode(texts, query=query)
+        except Exception:
+            raise ModelUnavailable("Local embedding inference unavailable") from None
+
+    def _encode(self, texts, *, query=False):
         import numpy as np
 
         if not texts:
@@ -99,13 +106,12 @@ def model():
     stamp = settings.memory_model_path / "manifest.json"
     try:
         version = stamp.stat().st_mtime_ns
-        with _lock:
+        # A cold start must not allocate one full model per concurrent worker.
+        with _load_lock:
             cached = _models.get(key)
-        if not cached or cached[0] != version:
-            loaded = LocalEmbedding()
-            with _lock:
-                _models[key] = (version, loaded)
-        return _models[key][1]
+            if not cached or cached[0] != version:
+                _models[key] = (version, LocalEmbedding())
+            return _models[key][1]
     except (OSError, ValueError, KeyError):
         raise ModelUnavailable("Local embedding model unavailable") from None
 
