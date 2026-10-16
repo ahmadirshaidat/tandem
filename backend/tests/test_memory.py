@@ -1,13 +1,14 @@
 """Memory boundary and lifecycle regressions; model stubs are never live evaluation."""
 
 import pytest
-from app.core.config import settings
-from app.memory.embeddings import ModelUnavailable, model
-from app.memory.models import MemorySource
 from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
 from test_channels import channel, path, send
 from test_workspaces import workspace
+
+from app.core.config import settings
+from app.memory.embeddings import ModelUnavailable, model
+from app.memory.models import MemorySource
 
 
 def test_memory_source_queue_is_transactional_and_edits_invalidate_revision(client_factory, db):
@@ -77,10 +78,11 @@ def drain():
 
 
 def test_hybrid_filters_private_sources_inside_sql_and_revocation_is_immediate(client_factory, db):
+    from test_workspaces import add_member
+
     from app.channels.models import ChannelMember
     from app.memory.indexing import configuration
     from app.memory.retrieval import SearchInput, search
-    from test_workspaces import add_member
 
     owner, uid = client_factory("retrieval-owner@example.com")
     uid = uid["id"]
@@ -187,10 +189,11 @@ def test_private_default_and_degraded_search_with_arabic_normalization(
 
 
 def test_admin_settings_and_forget_preserve_domain_data_and_audit(client_factory, db):
+    from test_workspaces import add_member
+
     from app.agent.models import AuditEvent
     from app.channels.models import Message
     from app.memory.models import MemoryRecord
-    from test_workspaces import add_member
 
     owner, who = client_factory("forget-owner@example.com")
     wid = workspace(owner)["id"]
@@ -222,8 +225,9 @@ def test_admin_settings_and_forget_preserve_domain_data_and_audit(client_factory
 def test_search_pagination_source_fetch_and_cross_workspace_are_authorized(
     client_factory, db, monkeypatch
 ):
-    from app.memory import retrieval
     from test_tasks import project, task
+
+    from app.memory import retrieval
 
     monkeypatch.setattr(retrieval, "model", lambda: MockEmbedding())
     owner, who = client_factory("paging-owner@example.com")
@@ -260,10 +264,11 @@ def test_search_pagination_source_fetch_and_cross_workspace_are_authorized(
 def test_private_setting_off_removes_vectors_and_source_forget_never_deletes_tasks(
     client_factory, db
 ):
+    from test_tasks import project, task
+
     from app.memory.indexing import configuration
     from app.memory.models import MemoryRecord
     from app.tasks.models import Task
-    from test_tasks import project, task
 
     owner, _ = client_factory("toggle-owner@example.com")
     wid = workspace(owner)["id"]
@@ -297,11 +302,12 @@ def test_private_setting_off_removes_vectors_and_source_forget_never_deletes_tas
 
 
 def test_resolution_summary_is_disabled_then_only_proposes_once_per_completion(client_factory, db):
+    from test_agent import setup_agent
+    from test_tasks import project, task, task_path
+
     from app.channels.models import Channel
     from app.proposals.models import Proposal
     from app.tasks.models import TaskComment
-    from test_agent import setup_agent
-    from test_tasks import project, task, task_path
 
     owner, wid, cid = setup_agent(client_factory)
     pid = project(owner, wid)["id"]
@@ -389,8 +395,9 @@ def test_retention_and_model_version_reindex(client_factory, db, monkeypatch):
 
 
 def test_agent_memory_tools_do_not_cross_audiences_or_workspaces(client_factory, db):
-    from app.agent.llm import AgentTurn, ToolRequest
     from test_agent import Scripted, run_latest, setup_agent
+
+    from app.agent.llm import AgentTurn, ToolRequest
 
     owner, wid, cid = setup_agent(client_factory)
     private = channel(owner, wid, private=True)
