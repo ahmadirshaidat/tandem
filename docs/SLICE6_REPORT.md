@@ -2,7 +2,7 @@
 
 Validation: 16 October 2026 UTC / 17 October 2026 Asia/Amman. Branch: `slice-6-memory`, based on merged `v1` commit `8d1b3ce`. Draft review: [PR #3](https://github.com/ahmadirshaidat/tandem/pull/3).
 
-**Implementation is delivered for review; acceptance is BLOCKED.** Full-text indexing/search, permission boundaries, APIs, tools and UI passed the automated checks below. Real local embedding weights could not be downloaded under this environment's enforced network policy. Vector/hybrid evaluation and the required ≥70% hybrid recall@5 are unverified. Two English real Groq checks passed; both Arabic checks failed with rate limits. The product owner's manual Slice 5 approval test remains unverified. No AWS deployment or Slice 7 work was performed.
+**Implementation is delivered for review; acceptance is BLOCKED.** Full-text indexing/search, permission boundaries, APIs, tools and UI passed the automated checks below. Real local embedding weights could not be downloaded under this environment's enforced network policy. Vector/hybrid evaluation and the required ≥70% hybrid recall@5 are unverified. All four latest real Groq checks passed; both Arabic cases required one later bounded retry after initial rate limits. Earlier failures remain recorded. The product owner's manual Slice 5 approval test remains unverified. No AWS deployment or Slice 7 work was performed.
 
 ## Delivered behavior and files
 
@@ -72,7 +72,7 @@ Use the two-directory comparison command in [the evaluation README](../eval/simi
 
 ## Live agent checks
 
-All four strict checks used synthetic workspaces, real **Groq `openai/gpt-oss-120b`**, the normal agent/provider path, and visibly degraded full-text retrieval. [Raw safe metadata](slice6-live-results.json) contains no credentials, questions, answers or provider bodies.
+The four strict scenarios used synthetic workspaces, real **Groq `openai/gpt-oss-120b`**, the normal agent/provider path, and visibly degraded full-text retrieval. Both English cases passed initially; both Arabic cases passed on one later bounded retry after rate limits. All six attempts are retained in the metadata. [Raw safe metadata](slice6-live-results.json) contains no credentials, questions, answers or provider bodies.
 
 ```bash
 backend/.venv/bin/python infra/check_memory_live.py --language en --tool analyze_bug --require-live
@@ -84,11 +84,11 @@ backend/.venv/bin/python infra/check_memory_live.py --language ar --tool find_si
 | Requested tool / language | Result | Agent latency / HTTP wall | Successful-generation input / output tokens | Source chips |
 | --- | --- | --- | --- | --- |
 | `analyze_bug` / English | **Passed** | 2744 / 11236.40 ms | 5113 / 599 | 2 |
-| `analyze_bug` / Arabic | **Failed: rate_limited** | 229 / 501.97 ms | 0 / 0 recorded | 0 |
+| `analyze_bug` / Arabic | **Passed on bounded retry** | 2412 / 2835.39 ms | 6097 / 510 | 2 |
 | `find_similar_bugs` / English | **Passed** | 2188 / 2561.81 ms | 5214 / 550 | 2 |
-| `find_similar_bugs` / Arabic | **Failed: rate_limited** after successful tool steps | 2705 / 2988.58 ms | 6388 / 241 | 2 |
+| `find_similar_bugs` / Arabic | **Passed on bounded retry** | 2413 / 2641.35 ms | 6390 / 605 | 2 |
 
-All four preserved the two original tasks and created zero proposals. The last Arabic run successfully called both similar-bug and analysis tools but did not finish its answer; it is a failure. Usage covers successful generations only; failed HTTP attempt usage is unknown. The first wall measurement includes frontend route compilation/transport/polling and is not model generation time. No Gemini live run was added in Slice 6; its previously documented fallback availability/rate-limit risk remains open. Real answer generation with lexical retrieval does not validate local embeddings.
+The table shows the latest result for each scenario. All six attempts preserved the two original tasks and created zero proposals. Initially, Arabic analysis failed with `rate_limited` at 229 ms (0/0 successful-generation tokens); Arabic similar-bug failed at 2705 ms after successful tool steps (6388/241 tokens), without finishing its answer. Those initial attempts remain failures, even though later fresh strict runs completed. No provider body was printed or recorded. Usage covers successful generations only; failed HTTP attempt usage is unknown. The first wall measurement includes frontend route compilation/transport/polling and is not model generation time. No Gemini live run was added in Slice 6; its previously documented fallback availability/rate-limit risk remains open. Real answer generation with lexical retrieval does not validate local embeddings.
 
 ## Screenshots and visual limits
 
@@ -105,10 +105,10 @@ The external design canvas could not be inspected under the environment's access
 ## Remaining gates and practical limits
 
 1. Apply saved model-download host additions; download/verify both real candidates, run local comparison and record size/speed/resource use. Semantic search and the hybrid quality target are still unaccepted.
-2. Restore sufficient Groq quota, then rerun both strict Arabic checks. Do not count partial tool execution as a completed live answer. Gemini remains an explicitly unverified fallback for this slice.
-3. Product owner must perform and record the outstanding real-provider Slice 5 UI approval test. Automated approval tests do not replace that manual acceptance.
-4. Keep PR #3 draft until these acceptance gates are resolved; no merge into `v1` or AWS deployment is claimed here.
+2. Product owner must perform and record the outstanding real-provider Slice 5 UI approval test. Automated approval tests do not replace that manual acceptance.
+3. Groq rate limits remain an operational risk: the initial Arabic attempts failed, while later bounded retries passed. Gemini remains an explicitly unverified fallback for this slice.
+4. Keep PR #3 draft until the embedding/quality and manual acceptance gates are resolved; no merge into `v1` or AWS deployment is claimed here.
 
 Whole-source rebuilds favor deletion correctness for small workspaces and temporarily hide that source after edits; very large channels/projects need incremental-window throughput measurements. Retrieval caps each candidate stream at 200, so broad searches may omit low-ranked sources. Cursor pages recompute ranking and can move as content changes. Vector dimensions are fixed at 384; dimension changes require a migration. Stable record-key forgetting suppresses selected chunks through reindexing, not every semantic paraphrase or independent copy elsewhere. Task retention is based on creation time. Resolution offers require an eligible public project channel and recorded facts may be incomplete until a human reviews them.
 
-The proposed next product step is **Slice 7: collaborative documents**, after Slice 6's model/quality/live/manual gates pass and the owner accepts this review. No Slice 7 implementation is included.
+The proposed next product step is **Slice 7: collaborative documents**, after Slice 6's model/quality/manual gates pass and the owner accepts this review. No Slice 7 implementation is included.

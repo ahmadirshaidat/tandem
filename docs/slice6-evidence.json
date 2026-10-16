@@ -92,9 +92,12 @@
   },
   "live": {
     "file": "docs/slice6-live-results.json",
-    "passed": 2,
-    "failed": 2,
-    "failure_category": "rate_limited",
+    "latest_passed": 4,
+    "latest_failed": 0,
+    "initial_passed": 2,
+    "initial_failed": 2,
+    "initial_failure_category": "rate_limited",
+    "bounded_retries_passed": 2,
     "provider": "groq",
     "model": "openai/gpt-oss-120b",
     "retrieval_mode": "degraded_full_text"
@@ -108,7 +111,6 @@
     "Enforced network policy excludes model-download hosts; saved environment draft requires application",
     "No downloaded local models: availability/license/size/speed and vector/hybrid quality unverified",
     "Required hybrid recall@5 >= 70% not verified",
-    "Both strict Arabic live checks failed with rate_limited",
     "Product-owner manual real-provider Slice 5 approval UI test unverified"
   ],
   "limits": [

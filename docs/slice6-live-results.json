@@ -93,5 +93,60 @@
   },
   "acceptance_status": "blocked",
   "failed_http_usage": "Unknown; token counts cover successful generations only",
-  "data_policy": "Synthetic workspaces; output metadata only; no keys, prompts, answers or provider bodies"
+  "data_policy": "Synthetic workspaces; output metadata only; no keys, prompts, answers or provider bodies",
+  "bounded_retries": [
+    {
+      "mode": "live",
+      "provider": "groq",
+      "language": "ar",
+      "requested_tool": "analyze_bug",
+      "status": "passed",
+      "category": null,
+      "model": "openai/gpt-oss-120b",
+      "agent_latency_ms": 2412,
+      "wall_ms": 2835.39,
+      "successful_tools": [
+        "analyze_bug"
+      ],
+      "authorized_source_chips": 2,
+      "task_count_unchanged": true,
+      "proposals_created": 0,
+      "embedding_degraded": true,
+      "input_tokens": 6097,
+      "output_tokens": 510,
+      "token_usage_scope": "successful generations; failed HTTP attempt usage not reported"
+    },
+    {
+      "mode": "live",
+      "provider": "groq",
+      "language": "ar",
+      "requested_tool": "find_similar_bugs",
+      "status": "passed",
+      "category": null,
+      "model": "openai/gpt-oss-120b",
+      "agent_latency_ms": 2413,
+      "wall_ms": 2641.35,
+      "successful_tools": [
+        "find_similar_bugs"
+      ],
+      "authorized_source_chips": 2,
+      "task_count_unchanged": true,
+      "proposals_created": 0,
+      "embedding_degraded": true,
+      "input_tokens": 6390,
+      "output_tokens": 605,
+      "token_usage_scope": "successful generations; failed HTTP attempt usage not reported"
+    }
+  ],
+  "retry_reason": "One bounded retry per failed Arabic case after a provider rate-limit window; first-attempt failures preserved",
+  "latest_outcomes": {
+    "passed": 4,
+    "failed": 0,
+    "status": "all_four_passed_with_degraded_full_text_retrieval"
+  },
+  "initial_attempts": {
+    "passed": 2,
+    "failed": 2,
+    "failure_category": "rate_limited"
+  }
 }
