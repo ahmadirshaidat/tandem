@@ -35,8 +35,16 @@ def test_document_roles_private_scope_versions_and_markdown(client_factory, db):
     assert outsider.get(f"/api/workspaces/{other_workspace}/documents/{did}").status_code == 404
     from app.core.models import Membership
 
+    auditor, auditor_user = client_factory("private-doc-auditor@example.com")
+    db.add(Membership(workspace_id=wid, user_id=auditor_user["id"], role="admin"))
     db.add(Membership(workspace_id=wid, user_id=other["id"], role="viewer"))
     db.commit()
+    assert all(
+        e["target_id"] != did for e in auditor.get(f"/api/workspaces/{wid}/audit").json()["events"]
+    )
+    assert any(
+        e["target_id"] == did for e in owner.get(f"/api/workspaces/{wid}/audit").json()["events"]
+    )
     root = f"/api/workspaces/{wid}/documents"
     assert outsider.get(root).json() == {"documents": []}
     for path in ["", "/state", "/versions", "/backlinks", "/suggestions", "/export"]:
