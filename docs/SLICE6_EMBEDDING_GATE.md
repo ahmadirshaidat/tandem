@@ -49,6 +49,16 @@ A subsequent hosted [run 38999835232](https://github.com/ahmadirshaidat/tandem/a
 
 A deterministic backend regression reproduced a fixture race: changing retention queues source rebuilding and immediately hides stale records. An agent asked during that interval receives no task and therefore stores no citation; completing indexing later does not invent sources for that old answer. Waiting until the task is searchable before a new agent run produces the citation. The regression passed (**1 test, 2.19 s**, real SQL/services with mocked embeddings). The browser fixture now waits for that exact task to return from full-text search after saving retention, before asking the agent. The source-chip assertion and its five-second timeout are unchanged; no fixed sleep or automatic retry hides a failure. Post-fix browser results are tracked below/through PR checks. The original run's trace remains unread, so an identical original cause is not established.
 
+After the fixture correction, three more separate full suites passed:
+
+| Post-fix run | Result | Command wall time |
+| --- | --- | --- |
+| 1 | 8 passed; 0 skipped; 0 unexpected | 92.36 s |
+| 2 | 8 passed; 0 skipped; 0 unexpected | 89.79 s |
+| 3 | 8 passed; 0 skipped; 0 unexpected | 81.58 s |
+
+That is **24/24 post-fix local executions**, in addition to the 24 pre-fix executions above. The focused backend command `.venv/bin/pytest -q tests/test_memory.py tests/test_memory_live_checker.py` passed **21 tests in 12.26 s**. Hosted [run 39000223061](https://github.com/ahmadirshaidat/tandem/actions/runs/39000223061) passed on fixture-fix commit `1205e7f`, including the full browser suite. These results validate the readiness synchronization and regression coverage; they do not substitute for inspecting the original trace or for real embedding evaluation. No application source, retrieval normalization/chunks/weights, or held-out data changed.
+
 The original failed [run 38977784061](https://github.com/ahmadirshaidat/tandem/actions/runs/38977784061) has a `browser-test-results` artifact (ID 12079502710, 5,393,849 bytes). Downloading it was denied at `productionresultssa15.blob.core.windows.net`; its trace contents could not be inspected. Its original check annotation only reports exit 1. The prior intermittent failure remains an open risk.
 
 CI now generates the Playwright HTML report alongside GitHub failure annotations and retains failure traces, screenshots and the HTML report for seven days in `browser-test-results-RUN_ATTEMPT`. [Run 38999002230](https://github.com/ahmadirshaidat/tandem/actions/runs/38999002230) passed on `58f1847` with this configuration. The later failed run 38999835232 successfully uploaded `browser-test-results-1` (ID 12088587668, 9,673,759 bytes), exercising the failure upload action with both configured report/results paths. Artifact contents remain uninspected under the network policy. Existing backend checks, frontend lint and typecheck also passed. Final commit checks are available on PR #3.

@@ -103,9 +103,9 @@
     "retrieval_mode": "degraded_full_text"
   },
   "last_verified_hosted_ci": {
-    "sha": "3040be2e83521cae56626be80ae20cea9f776810",
+    "sha": "1205e7fa16e743f5a14a58c4210d559c16abb988",
     "status": "success",
-    "url": "https://github.com/ahmadirshaidat/tandem/actions/runs/38978180817"
+    "url": "https://github.com/ahmadirshaidat/tandem/actions/runs/39000223061"
   },
   "blockers": [
     "Enforced network policy excludes model-download hosts; saved environment draft requires application",
@@ -140,15 +140,18 @@
     "diagnostic_run": "https://github.com/ahmadirshaidat/tandem/actions/runs/38978180817",
     "diagnostic_status": "success",
     "root_cause": "unknown; failure did not recur in diagnostic run",
-    "risk": "Intermittent browser failure remains unresolved; passing rerun is not a claimed fix"
+    "risk": "Intermittent browser failure remains unresolved; passing rerun is not a claimed fix",
+    "followup": "See docs/slice6-embedding-gate.json: later annotations exposed missing task citations; controlled retention-reindex fixture race reproduced, readiness synchronization added and post-fix CI plus 24 local executions passed. Original trace remains unread."
   },
   "embedding_gate_followup": {
     "date_utc": "2026-10-17",
     "file": "docs/slice6-embedding-gate.json",
     "report": "docs/SLICE6_EMBEDDING_GATE.md",
     "status": "blocked_network_not_applied",
-    "browser_test_executions_passed": 24,
+    "browser_test_executions_passed": 48,
     "real_embedding_models_verified": 0,
-    "real_semantic_live_checks_passed": 0
+    "real_semantic_live_checks_passed": 0,
+    "post_fix_browser_test_executions_passed": 24,
+    "known_fixture_reindex_race_addressed": true
   }
 }

@@ -1,6 +1,6 @@
 # Slice 6: workspace memory and RAG
 
-Latest follow-up: [17 October embedding gate and browser investigation](SLICE6_EMBEDDING_GATE.md). Three additional browser suites passed (24 executions); fresh full-text quality is unchanged. Model downloads and semantic acceptance remain blocked by unapplied network settings.
+Latest follow-up: [17 October embedding gate and browser investigation](SLICE6_EMBEDDING_GATE.md). A retention-reindex race in browser test setup was reproduced and addressed by waiting for fixture readiness. Three suites passed before and three after the correction (48 local executions total); post-fix CI passed. Fresh full-text quality is unchanged. Model downloads and semantic acceptance remain blocked by unapplied network settings.
 
 Validation: 16 October 2026 UTC / 17 October 2026 Asia/Amman. Branch: `slice-6-memory`, based on merged `v1` commit `8d1b3ce`. Draft review: [PR #3](https://github.com/ahmadirshaidat/tandem/pull/3).
 
