@@ -141,5 +141,14 @@
     "diagnostic_status": "success",
     "root_cause": "unknown; failure did not recur in diagnostic run",
     "risk": "Intermittent browser failure remains unresolved; passing rerun is not a claimed fix"
+  },
+  "embedding_gate_followup": {
+    "date_utc": "2026-10-17",
+    "file": "docs/slice6-embedding-gate.json",
+    "report": "docs/SLICE6_EMBEDDING_GATE.md",
+    "status": "blocked_network_not_applied",
+    "browser_test_executions_passed": 24,
+    "real_embedding_models_verified": 0,
+    "real_semantic_live_checks_passed": 0
   }
 }

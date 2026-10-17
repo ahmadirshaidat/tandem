@@ -2,6 +2,8 @@
 
 **Status: proposed; real candidate comparison is blocked, not accepted as a validated model choice.**
 
+Rechecked 17 October 2026: both candidate model API probes still fail with `URLError`, and the enforced runtime allowlist still excludes the saved model hosts. [Follow-up evidence](../SLICE6_EMBEDDING_GATE.md) records the unchanged held-out control and the remaining missing license/size/hash/speed/RAM/cold-start measurements. No model is selected and this ADR remains proposed.
+
 Use CPU ONNX Runtime with a local tokenizer, masked mean pooling and cosine-normalized 384-dimensional vectors. Workspace text is never sent to an embedding endpoint. A separate public-weight downloader pins the upstream revision, verifies an MIT/Apache-2.0 model-card license and artifact hashes, and checks mixed English/Arabic inference. Queries/indexing load only verified local files. Missing or failing inference produces visible full-text degradation, never a fabricated semantic vector.
 
 Planned candidates are the quantized ONNX conversions at `Xenova/multilingual-e5-small` and `Xenova/paraphrase-multilingual-MiniLM-L12-v2`. E5 uses documented query/passage prefixes; MiniLM does not. The initial local path is named e5-small provisionally. Model ID/version/dimension are stored on every embedding and queries select only the active revision. CPU threads are bounded at two; batches at 16 and input at 256 tokens. Overlapping character chunks bound normal indexing inputs. A future dimension change requires a schema/index migration.

@@ -276,3 +276,7 @@ backend/.venv/bin/python infra/check_memory_live.py --language ar --tool find_si
 ```
 
 Append `--origin http://localhost:3001` for the desktop launcher. Missing credentials exit 2 in strict mode; failed checks exit 1. Live generation success with degraded retrieval is not a vector/hybrid quality pass. No AWS deployment is performed by Slice 6.
+
+For semantic acceptance, also pass `--require-embeddings --embedding-model MODEL_ID`, where `MODEL_ID` is the exact local model selected by the real comparison. The checker rejects missing embeddings or a different model before requesting paid generation. The ordinary `--require-live` commands above still permit visibly degraded full-text retrieval and cannot close the embedding gate.
+
+CI retains failed-test traces, screenshots and the Playwright HTML report in `browser-test-results-RUN_ATTEMPT` for seven days. Download the artifact from the failed Actions run and open its HTML report or trace locally. A passing rerun does not establish the cause of an earlier failure.
