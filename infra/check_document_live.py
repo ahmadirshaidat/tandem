@@ -92,9 +92,7 @@ with httpx.Client(base_url=a.origin, timeout=80, headers={"Origin": a.origin}) a
         trigger = write(path + "/ask", {"channel_id": cid, "question": question})
         run = None
         for _ in range(160):
-            runs = c.get(
-                "/api" + base + "/agent/runs", params={"channel_id": cid}
-            ).json()
+            runs = c.get("/api" + base + "/agent/runs", params={"channel_id": cid}).json()
             run = next(
                 (r for r in runs if r["trigger_message_id"] == trigger["message_id"]),
                 None,
@@ -112,11 +110,7 @@ with httpx.Client(base_url=a.origin, timeout=80, headers={"Origin": a.origin}) a
             raise ValueError((run or {}).get("error_category") or "run_not_completed")
         proposals = c.get("/api" + path + "/suggestions").json()["suggestions"]
         proposal = next(
-            (
-                p
-                for p in proposals
-                if p["kind"] == "suggest_edit" and p["status"] == "proposed"
-            ),
+            (p for p in proposals if p["kind"] == "suggest_edit" and p["status"] == "proposed"),
             None,
         )
         unchanged = c.get("/api" + path).json()["text"] == before
@@ -143,8 +137,7 @@ with httpx.Client(base_url=a.origin, timeout=80, headers={"Origin": a.origin}) a
             and c.get("/api" + path).json()["text"] == after
             and repeat["id"] == approved["id"]
             and any(
-                v["proposal_id"] == proposal["id"]
-                and v["actor_type"] == "agent_approved"
+                v["proposal_id"] == proposal["id"] and v["actor_type"] == "agent_approved"
                 for v in versions
             )
         )
@@ -152,9 +145,7 @@ with httpx.Client(base_url=a.origin, timeout=80, headers={"Origin": a.origin}) a
             status="passed" if good else "failed",
             proposal_status=approved["status"],
             double_accept_applied_once=True,
-            agent_approved_version=any(
-                v["proposal_id"] == proposal["id"] for v in versions
-            ),
+            agent_approved_version=any(v["proposal_id"] == proposal["id"] for v in versions),
         )
         if good:
             code = 0
