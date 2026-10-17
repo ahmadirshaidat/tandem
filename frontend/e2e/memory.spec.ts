@@ -218,6 +218,24 @@ test("memory settings, bilingual search, private isolation, sources, forgetting 
   await expect(
     page.getByText("Memory settings saved.", { exact: true }),
   ).toBeVisible();
+  // Retention saves enqueue reindexing and immediately hide stale records.
+  // Wait for the fixture to be searchable before asking the agent to cite it.
+  await expect
+    .poll(
+      async () => {
+        const response = await owner.request.get(
+          `/api/workspaces/${wid}/search?query=refresh%20token&mode=full_text`,
+        );
+        return (
+          response.ok() &&
+          (await response.json()).items.some(
+            (item: { source_id: string }) => item.source_id === bug.id,
+          )
+        );
+      },
+      { timeout: 40000, intervals: [100, 250, 500] },
+    )
+    .toBeTruthy();
   const denied = await viewer.newPage();
   await denied.goto("/settings/memory");
   await expect(

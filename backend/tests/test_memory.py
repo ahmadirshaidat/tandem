@@ -649,3 +649,60 @@ def test_upgrade_from_slice5_backfills_existing_sources_without_domain_loss(clie
         embedder=MockEmbedding(),
     )
     assert result["items"] and "avocado" in str(result["items"])
+
+
+def test_retention_reindex_must_finish_before_agent_can_cite_task(client_factory, db):
+    from unittest.mock import patch
+
+    from test_agent import Scripted, run_latest, setup_agent
+    from test_tasks import project, task
+
+    from app.agent.llm import AgentTurn, ToolRequest
+    from app.memory import retrieval
+
+    owner, wid, cid = setup_agent(client_factory)
+    pid = project(owner, wid)["id"]
+    bug = task(owner, wid, pid, title="Refresh token retry loop", type="bug")
+    drain()
+    search_url = f"/api/workspaces/{wid}/search?query=refresh%20token&mode=full_text"
+    assert any(item["source_id"] == bug["id"] for item in owner.get(search_url).json()["items"])
+    assert (
+        owner.put(
+            f"/api/workspaces/{wid}/memory/settings",
+            json={
+                "retention_days": 90,
+                "include_private": False,
+                "offer_resolution_summaries": False,
+            },
+        ).status_code
+        == 200
+    )
+    # A successful settings save queues rebuilding; it does not mean indexed.
+    assert owner.get(search_url).json()["items"] == []
+
+    def answer():
+        send(owner, path(wid, cid), "@Agent search memory refresh token")
+        with patch.object(retrieval, "model", return_value=MockEmbedding()):
+            run = run_latest(
+                db,
+                Scripted(
+                    [
+                        AgentTurn(
+                            calls=[
+                                ToolRequest(
+                                    name="search_memory", arguments={"query": "refresh token"}
+                                )
+                            ]
+                        ),
+                        AgentTurn(answer="I searched permitted memory"),
+                    ]
+                ),
+            )
+        return f"/api/workspaces/{wid}/agent/runs/{run.id}/memory-sources"
+
+    before_index = answer()
+    assert owner.get(before_index).json()["sources"] == []
+    drain()
+    assert owner.get(before_index).json()["sources"] == []
+    assert any(item["source_id"] == bug["id"] for item in owner.get(search_url).json()["items"])
+    assert owner.get(answer()).json()["sources"]

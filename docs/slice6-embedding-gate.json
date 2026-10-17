@@ -131,13 +131,21 @@
     "html_report": "enabled",
     "retention_days": 7,
     "artifact_name": "browser-test-results-RUN_ATTEMPT",
-    "new_failure_upload_observed": false,
+    "new_failure_upload_observed": true,
     "original_artifact": {
       "run": 38977784061,
       "id": 12079502710,
       "name": "browser-test-results",
       "size_in_bytes": 5393849,
       "download_status": "blocked at productionresultssa15.blob.core.windows.net"
+    },
+    "followup_artifact": {
+      "run": 38999835232,
+      "id": 12088587668,
+      "name": "browser-test-results-1",
+      "size_in_bytes": 9673759,
+      "upload_step": "success",
+      "contents_inspected": false
     }
   },
   "ci_latest_verified": {
@@ -225,5 +233,22 @@
     "backend_health_http": 200,
     "frontend_login_http": 200,
     "proxied_csrf_http": 200
+  },
+  "browser_followup": {
+    "run": "https://github.com/ahmadirshaidat/tandem/actions/runs/38999835232",
+    "passed": 7,
+    "failed": 1,
+    "assertion": "Expected task source chip missing after agent reply",
+    "test": "frontend/e2e/memory.spec.ts:237",
+    "reproduced_fixture_race": "Retention save invalidates indexed sources; an agent run before reindex completion gets no task citations",
+    "deterministic_backend_regression": {
+      "passed": 1,
+      "seconds": 2.19,
+      "embeddings": "mocked; not model acceptance"
+    },
+    "fix": "Wait for the exact task to become searchable after saving retention before asking agent",
+    "source_chip_assertion_unchanged": true,
+    "original_failure_same_cause": "unconfirmed_without_original_trace",
+    "post_fix_browser_validation": "pending"
   }
 }
