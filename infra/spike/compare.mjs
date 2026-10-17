@@ -33,9 +33,17 @@ for (const [name, cmd, args, port] of [
     for (const c of [a, b])
       Y.applyUpdate(c[1], Buffer.from(c[2].state, "base64"));
     const exchange = (ws, msg) =>
-      new Promise((r) => {
-        ws.once("message", (m) => r(JSON.parse(m)));
-        ws.send(JSON.stringify(msg));
+      new Promise((resolve) => {
+        const id = crypto.randomUUID();
+        const listener = (raw) => {
+          const value = JSON.parse(raw);
+          if (value.id === id) {
+            ws.off("message", listener);
+            resolve(value);
+          }
+        };
+        ws.on("message", listener);
+        ws.send(JSON.stringify({ ...msg, id }));
       });
     const times = [];
     for (let i = 0; i < 100; i++) {

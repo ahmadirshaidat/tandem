@@ -99,8 +99,10 @@ class WorkspaceLLM:
             if not tool["name"].startswith("propose_")
             or tool["name"] == "propose_create_tasks"
             and "list_projects" in reads
-            or tool["name"] != "propose_create_tasks"
-            and bool(reads & {"list_tasks", "get_task", "get_document"})
+            or tool["name"] == "propose_suggest_edit"
+            and "get_document" in reads
+            or tool["name"] not in {"propose_create_tasks", "propose_suggest_edit"}
+            and bool(reads & {"list_tasks", "get_task"})
         ]
         names = {tool["name"] for tool in offered}
         if names:

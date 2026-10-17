@@ -10,16 +10,18 @@ wss.on("connection", (ws) => {
   );
   ws.on("message", (raw) => {
     const m = JSON.parse(raw);
-    if (m.role !== "editor") return ws.send(JSON.stringify({ denied: true }));
+    if (m.role !== "editor")
+      return ws.send(JSON.stringify({ denied: true, id: m.id }));
     try {
       Y.applyUpdate(doc, Buffer.from(m.update, "base64"));
     } catch {
-      return ws.send(JSON.stringify({ invalid: true }));
+      return ws.send(JSON.stringify({ invalid: true, id: m.id }));
     }
     for (const peer of wss.clients)
       peer.send(
         JSON.stringify({
           state: Buffer.from(Y.encodeStateAsUpdate(doc)).toString("base64"),
+          id: m.id,
         }),
       );
   });
