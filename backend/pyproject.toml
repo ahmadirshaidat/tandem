@@ -19,6 +19,7 @@ dependencies = [
   "onnxruntime>=1.22,<2",
   "tokenizers>=0.21,<1",
   "numpy>=2,<3",
+  "pycrdt>=0.12,<1",
 ]
 [dependency-groups]
 dev = ["pytest>=8.3,<10", "httpx>=0.28,<1", "ruff>=0.11,<1"]

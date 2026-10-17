@@ -1,0 +1,1 @@
+{"name":"tandem-document-sync","private":true,"type":"module","scripts":{"start":"node server.mjs"},"dependencies":{"yjs":"^13.6.27","ws":"^8.18.3"}}

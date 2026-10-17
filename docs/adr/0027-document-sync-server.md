@@ -1,0 +1,11 @@
+# ADR 0027: Yjs transport service with Python authorization
+
+Choose a small Node/Yjs service for transport, awareness and stateless CRDT transformations. Python remains the sole session/role/membership authority and the only PostgreSQL writer. A measured FastAPI/pycrdt alternative remains in `infra/spike/`; reproduce with `node infra/spike/compare.mjs`.
+
+See `docs/slice7-server-spike.json` for 100 two-client samples per server, process RSS, synthetic Viewer rejection and malformed-frame rejection. The spike excludes database persistence and uses a synthetic guard, so it is not the production sync SLA. Both engines converge for concurrent same-word insertion. Python has lower RSS in this run; both have sub-500-ms local transport p95.
+
+The installed pycrdt 0.14.9 binding has no public `XmlText.sticky_index` or integrated XML-text relative-position creation method (inspected locally); Yjs directly creates and resolves relative positions within Tiptap XML text. Node avoids a hand-written Yjs binary decoder for Suggestions. This is an API/integration trade-off, not a claim that Python CRDT synchronization is incorrect. The extra service is an operational cost: one additional image/process, an internal authenticated transformation endpoint, and a backend authorization/persistence round trip per update. Actual production-path latency is measured separately.
+
+Each connection and each update uses existing authenticated Python services. A 500-ms access recheck closes changed role/membership/session sockets; each recipient is reauthorized before fanout. Awareness is ephemeral and authorized. Python locks workspace then document and validates/bounds CRDT state before committing. Node has no direct database access and never logs document text or provider bodies. Service transforms require a server-only secret derived from the private JWT secret, or an explicit `DOCUMENT_SYNC_SECRET`; it is never exposed to clients. Deploy on one backend/sync instance for this slice.
+
+Manual Slice 5/6 owner acceptance was not recorded; the user explicitly instructed proceeding on 17 October. This is not recorded as a manual pass. Slice 6 PR #3 was merged with green CI at `99f0b9f` before this branch.
