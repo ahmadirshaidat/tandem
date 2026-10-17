@@ -21,6 +21,12 @@ parser.add_argument("--language", choices=["en", "ar"], required=True)
 parser.add_argument("--tool", choices=["analyze_bug", "find_similar_bugs"], required=True)
 parser.add_argument("--origin", default="http://localhost:3000")
 parser.add_argument("--require-live", action="store_true")
+parser.add_argument(
+    "--require-embeddings",
+    action="store_true",
+    help="Reject degraded retrieval before any paid generation",
+)
+parser.add_argument("--embedding-model", help="Require this exact local embedding model ID")
 args = parser.parse_args()
 metadata = {
     "mode": "live",
@@ -54,6 +60,18 @@ try:
     )
     client.headers["X-CSRF-Token"] = client.cookies.get("tandem_csrf", "")
     wid = write("/workspaces", {"name": "Synthetic live memory check"})["id"]
+    embedding = client.get(f"/api/workspaces/{wid}/memory/settings")
+    embedding.raise_for_status()
+    embedding = embedding.json()
+    metadata.update(
+        embedding_model=embedding.get("model"),
+        embedding_version=embedding.get("version"),
+        embeddings_required=bool(args.require_embeddings or args.embedding_model),
+    )
+    if metadata["embeddings_required"] and embedding["degraded"]:
+        raise ValueError("embedding_unavailable")
+    if args.embedding_model and embedding.get("model") != args.embedding_model:
+        raise ValueError("embedding_model_mismatch")
     project = write(f"/workspaces/{wid}/projects", {"name": "Synthetic retrieval", "key": "LIVE"})
     title = (
         "فشل تجديد JWT بعد إلغاء الجلسة"
@@ -100,6 +118,8 @@ try:
         if time.monotonic() > await_index:
             raise ValueError("index_timeout")
         time.sleep(0.5)
+    if metadata["embeddings_required"] and result["degraded"]:
+        raise ValueError("embedding_unavailable")
     config = client.get(f"/api/workspaces/{wid}/agent/settings").json()
     if config["providers"]["groq"]["status"] == "fake_test_mode":
         raise ValueError("fake_mode_rejected")
@@ -217,7 +237,14 @@ except httpx.HTTPStatusError as error:
 except Exception as error:
     category = (
         str(error)
-        if isinstance(error, ValueError) and str(error) in {"index_timeout", "fake_mode_rejected"}
+        if isinstance(error, ValueError)
+        and str(error)
+        in {
+            "index_timeout",
+            "fake_mode_rejected",
+            "embedding_unavailable",
+            "embedding_model_mismatch",
+        }
         else "check_failed"
     )
     print(json.dumps({**metadata, "status": "failed", "category": category}))

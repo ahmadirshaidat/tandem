@@ -84,8 +84,10 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Browser integration tests
         working-directory: frontend
+        env:
+          PLAYWRIGHT_HTML_OPEN: never
         # Put assertion failures in check annotations as well as downloadable logs.
-        run: npm run test:e2e -- --reporter=dot,github
+        run: npm run test:e2e -- --reporter=dot,github,html
       - name: Stop backend
         if: always()
         run: |
@@ -98,5 +100,8 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2, Node.js 24
         if: failure()
         with:
-          name: browser-test-results
-          path: frontend/test-results/
+          name: browser-test-results-${{ github.run_attempt }}
+          retention-days: 7
+          path: |
+            frontend/test-results/
+            frontend/playwright-report/
