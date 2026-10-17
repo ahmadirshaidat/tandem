@@ -62,7 +62,7 @@ This is one local run, not a capacity/SLA claim. It includes concurrent indexing
 | Frontend lint / typecheck | Passed locally |
 | Frontend unit tests | **35 passed across 8 files** |
 | Production frontend build | Passed; `/documents` included |
-| Complete browser suite with real E5 and fake generation | **10 passed, 1.6 min**, one worker, retries disabled |
+| Final complete browser suite with real E5 and fake generation | **11 passed, 1.8 min**, one worker, retries disabled; previous complete run: 10 passed, 1.6 min |
 | Focused document cold-offline-reload / Viewer / session checks | **2 passed, 25.0 s** |
 | Document checks against the final Compose backend + sync containers | **3 passed, 25.8 s**; includes expired access-cookie renewal and subsequent persisted editing |
 | Cloud Docker build and Compose startup | Backend and document-sync images built; PostgreSQL/backend/sync all healthy after the non-root file-ownership fix |
