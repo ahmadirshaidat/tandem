@@ -163,9 +163,9 @@ test("memory settings, bilingual search, private isolation, sources, forgetting 
     .getByRole("textbox", { name: "Search query", exact: true })
     .fill("refresh token");
   await page.getByRole("button", { name: "Search", exact: true }).click();
-  await expect(page.locator(".memory-result")).toContainText(
+  await expect(page.locator(".memory-result")).toContainText([
     "Refresh token retry loop",
-  );
+  ]);
   await page.screenshot({
     path: testInfo.outputPath("search-english.png"),
     fullPage: true,
@@ -174,9 +174,9 @@ test("memory settings, bilingual search, private isolation, sources, forgetting 
     .getByRole("textbox", { name: "Search query", exact: true })
     .fill("رمز الدخول");
   await page.getByRole("button", { name: "Search", exact: true }).click();
-  await expect(page.locator(".memory-result")).toContainText(
+  await expect(page.locator(".memory-result")).toContainText([
     "إصلاح رمز الدخول",
-  );
+  ]);
   await expect(page.locator(".memory-snippet").first()).toHaveAttribute(
     "dir",
     "auto",
