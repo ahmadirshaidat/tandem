@@ -11,3 +11,14 @@ Both candidates were downloaded and checked against upstream SHA256 values. Conv
 Workspace text never leaves the server for embedding inference. Store public weights in ignored persistent caches, outside Git and Docker build context. Missing/failed inference visibly degrades to full-text. Store model ID/version/dimension with each vector and query only the active revision. Maintenance requeues eligible missing-version embeddings. A dimension change requires an explicit schema/index migration.
 
 All four strict English/Arabic live cases verified the E5 vector index without degradation; Groq generation failed with rate limits, so full live semantic acceptance is still open. Earlier network-blocked evidence is retained as history in the embedding gate report.
+
+## Original model license verification
+
+Reverified 17 October 2026 against the original model card at pinned revision `614241f622f53c4eeff9890bdc4f31cfecc418b3`:
+
+- [Original E5-small model card](https://huggingface.co/intfloat/multilingual-e5-small/blob/614241f622f53c4eeff9890bdc4f31cfecc418b3/README.md)
+- [Raw pinned card](https://huggingface.co/intfloat/multilingual-e5-small/raw/614241f622f53c4eeff9890bdc4f31cfecc418b3/README.md)
+- Observed YAML metadata: `license: mit`.
+- [Selected ONNX conversion card](https://huggingface.co/Xenova/multilingual-e5-small/blob/761b726dd34fb83930e26aab4e9ac3899aa1fa78/README.md) explicitly identifies `base_model: intfloat/multilingual-e5-small`; it does not declare a separate license field.
+
+The verified original-model license is MIT. This records the actual model-card declaration and conversion provenance; it does not invent a license declaration in the conversion repository. [Verification metadata](../slice6-license-verification.json) includes the original card's content hash. The installed manifest records the same original source revision.
