@@ -1,4 +1,5 @@
 import base64
+
 from fastapi import FastAPI, WebSocket
 from pycrdt import Doc, Text
 

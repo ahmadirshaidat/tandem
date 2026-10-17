@@ -43,6 +43,7 @@ jobs:
       - name: Start document transformation service
         run: |
           npm ci --prefix sync
+          node --test sync/crdt.test.mjs
           node sync/server.mjs > "$RUNNER_TEMP/tandem-document-sync.log" 2>&1 &
           printf '%s\n' "$!" > "$RUNNER_TEMP/tandem-document-sync.pid"
           node -e "const t=setInterval(()=>fetch('http://127.0.0.1:8002/health').then(r=>{if(r.ok){clearInterval(t);process.exit(0)}}).catch(()=>{}),200);setTimeout(()=>process.exit(1),15000)"

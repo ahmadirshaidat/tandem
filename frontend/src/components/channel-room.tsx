@@ -1,4 +1,5 @@
 "use client";
+import { ConversationDocumentButton } from "./documents";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -1087,6 +1088,12 @@ function ChannelRoom({
                         >
                           Create task from message
                         </Button>
+                      )}
+                      {workspace.role !== "viewer" && (
+                        <ConversationDocumentButton
+                          workspaceId={workspace.id}
+                          messageId={message.id}
+                        />
                       )}
                       {message.author.id === user.id && (
                         <Button

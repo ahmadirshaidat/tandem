@@ -5,6 +5,10 @@ const config: NextConfig = {
   async rewrites() {
     return [
       {
+        source: "/api/document-sync/:path*",
+        destination: `${process.env.DOCUMENT_SYNC_URL ?? "http://127.0.0.1:8002"}/api/document-sync/:path*`,
+      },
+      {
         source: "/api/:path*",
         destination: `${process.env.BACKEND_URL ?? "http://127.0.0.1:8000"}/api/:path*`,
       },

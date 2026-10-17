@@ -7,7 +7,7 @@ self.addEventListener("fetch", event => {
   const request = event.request, url = new URL(request.url);
   if (request.method !== "GET" || url.origin !== self.location.origin) return;
   if (url.pathname.startsWith("/api/")) return;
-  const shell = request.mode === "navigate" && ["/channels", "/tasks"].includes(url.pathname);
+  const shell = request.mode === "navigate" && ["/channels", "/tasks", "/documents"].includes(url.pathname);
   const immutable = url.pathname.startsWith("/_next/static/");
   if (!shell && !immutable) return;
   event.respondWith((async () => {

@@ -13,6 +13,7 @@ from app.agent.audit import audit
 from app.channels.models import ChannelMember
 from app.channels.service import channel_access
 from app.core.config import settings
+from app.core.models import User
 from app.core.security import now
 from app.documents.models import Document, DocumentMember, DocumentUpdate, DocumentVersion
 from app.tasks.models import Link, Project
@@ -282,4 +283,5 @@ def state_out(db, d, uid):
         "can_edit": editable,
         "permission_stamp": stamp,
         "user_id": uid,
+        "user_name": db.get(User, uid).name,
     }

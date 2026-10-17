@@ -5,7 +5,7 @@ import pytest
 from fastapi import HTTPException
 from sqlalchemy import select
 
-from app.agent.tools import REGISTRY
+from app.agent.tools import REGISTRY, execute
 from app.documents import service as svc
 from app.documents.models import Document, DocumentVersion
 from app.memory.indexing import process_one
@@ -31,6 +31,8 @@ def setup_document(client_factory, private=False):
 def test_document_roles_private_scope_versions_and_markdown(client_factory, db):
     owner, user, wid, did = setup_document(client_factory, True)
     outsider, other = client_factory("other-doc@example.com")
+    other_workspace = outsider.post("/api/workspaces", json={"name": "Other scope"}).json()["id"]
+    assert outsider.get(f"/api/workspaces/{other_workspace}/documents/{did}").status_code == 404
     from app.core.models import Membership
 
     db.add(Membership(workspace_id=wid, user_id=other["id"], role="viewer"))
@@ -45,6 +47,10 @@ def test_document_roles_private_scope_versions_and_markdown(client_factory, db):
     v = owner.post(root + "/" + did + "/versions", json={"name": "Reviewed draft"}).json()
     original = db.get(Document, did).state
     changed = svc.transform(original, action="anchor", expected_text="Describe the problem.")
+    from datetime import timedelta
+
+    db.get(Document, did).snapshot_at = svc.now() - timedelta(minutes=3)
+    db.commit()
     replacement = svc.transform(
         original,
         action="apply",
@@ -89,6 +95,10 @@ def test_document_suggestion_approval_integrity_staleness_and_registry(client_fa
 
     configuration(db, wid).enabled = True
     db.flush()
+    assert execute(db, run, "get_document", {"document_id": did})["status"] == "ok"
+    configuration(db, wid).enabled = False
+    assert execute(db, run, "get_document", {"document_id": did})["status"] == "denied"
+    configuration(db, wid).enabled = True
     assert not (
         {"edit_document", "write_document", "apply_document_update", "restore_document"}
         & set(REGISTRY)

@@ -100,7 +100,14 @@ class DocumentUpdate(Base):
 
 class DocumentVersion(Base):
     __tablename__ = "document_versions"
-    __table_args__ = (scoped(),)
+    __table_args__ = (
+        scoped(),
+        ForeignKeyConstraint(
+            ["workspace_id", "proposal_id"],
+            ["proposals.workspace_id", "proposals.id"],
+            name="fk_document_version_proposal_scope",
+        ),
+    )
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
     workspace_id: Mapped[str] = mapped_column(
         ForeignKey("workspaces.id", ondelete="CASCADE"), index=True
@@ -112,7 +119,7 @@ class DocumentVersion(Base):
     name: Mapped[str | None] = mapped_column(String(120))
     created_by: Mapped[str] = mapped_column(ForeignKey("users.id"))
     actor_type: Mapped[str] = mapped_column(String(24), default="user")
-    proposal_id: Mapped[str | None] = mapped_column(ForeignKey("proposals.id"))
+    proposal_id: Mapped[str | None] = mapped_column(String(36))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 

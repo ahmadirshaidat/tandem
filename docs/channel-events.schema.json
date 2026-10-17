@@ -1174,5 +1174,86 @@
     ],
     "title": "SocketCommand",
     "type": "object"
+  },
+  "document_event": {
+    "properties": {
+      "type": {
+        "enum": [
+          "state",
+          "ack",
+          "rejected",
+          "awareness"
+        ],
+        "title": "Type",
+        "type": "string"
+      },
+      "state": {
+        "anyOf": [
+          {
+            "maxLength": 1400000,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "State"
+      },
+      "revision": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Revision"
+      },
+      "can_edit": {
+        "anyOf": [
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Can Edit"
+      },
+      "update_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Update Id"
+      },
+      "data": {
+        "anyOf": [
+          {
+            "maxLength": 12000,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Data"
+      }
+    },
+    "required": [
+      "type"
+    ],
+    "title": "DocumentSyncEvent",
+    "type": "object"
   }
 }

@@ -47,6 +47,8 @@ import { AgentSettingsPage, AuditLogPage } from "./agent";
 
 import { SearchPage, MemorySettingsPage } from "./memory";
 
+import { DocumentsPage } from "./documents";
+
 type Section =
   | "home"
   | "members"
@@ -59,10 +61,17 @@ type Section =
   | "audit"
   | "inbox"
   | "search"
-  | "memory";
+  | "memory"
+  | "documents";
 import { ProjectNavigation, TasksPage } from "@/components/tasks-page";
 
 const nav = [
+  {
+    href: "/documents",
+    section: "documents",
+    label: "Documents",
+    Icon: Database,
+  },
   { href: "/search", section: "search", label: "Search", Icon: Search },
   {
     href: "/settings/memory",
@@ -389,6 +398,12 @@ export function WorkspaceApp({ section }: { section: Section }) {
             <ApprovalsInbox key={workspace.id} workspace={workspace} />
           ) : section === "agent-settings" ? (
             <AgentSettingsPage key={workspace.id} workspace={workspace} />
+          ) : section === "documents" ? (
+            <DocumentsPage
+              key={workspace.id}
+              workspace={workspace}
+              user={user}
+            />
           ) : section === "search" ? (
             <SearchPage key={workspace.id} workspace={workspace} />
           ) : section === "memory" ? (

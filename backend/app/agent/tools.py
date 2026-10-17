@@ -12,7 +12,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.agent.audit import audit
 from app.agent.models import AgentToolCall
-from app.agent.service import allowed_channels, run_access
+from app.agent.service import allowed_channels, channel_enabled, configuration, run_access
 from app.channels.models import Message
 from app.channels.service import channel_access
 from app.core.security import now
@@ -93,10 +93,14 @@ def descriptors():
 
 
 def read_tool(db, run, name, args):
-    if name in {"get_document", "retrieve_documents"}:
-        return document_read(db, run, name, args)
     access(db, run.workspace_id, run.requester_id)
-    run_access(db, run)
+    channel = run_access(db, run)
+    if name in {"get_document", "retrieve_documents"}:
+        if not configuration(db, run.workspace_id).enabled or not channel_enabled(
+            db, run.workspace_id, channel
+        ):
+            raise HTTPException(404, "Context unavailable")
+        return document_read(db, run, name, args)
     channels = allowed_channels(db, run.workspace_id, run.requester_id, run.channel_id)
     ids = [c.id for c in channels]
     if getattr(args, "channel_id", None):
