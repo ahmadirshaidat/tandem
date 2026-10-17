@@ -1,0 +1,306 @@
+{
+  "spacing": "121 seconds after preceding check finished",
+  "max_attempts_per_case": 2,
+  "attempts": [
+    {
+      "attempt": 1,
+      "started_utc": "2026-10-17T19:35:39Z",
+      "finished_utc": "2026-10-17T19:35:45Z",
+      "exit_code": 0,
+      "check": {
+        "mode": "live",
+        "provider": "groq",
+        "language": "en",
+        "requested_tool": "analyze_bug",
+        "embedding_model": "Xenova/multilingual-e5-small",
+        "embedding_version": "761b726dd34fb83930e26aab4e9ac3899aa1fa78-q8",
+        "embeddings_required": true,
+        "vector_index_verified": true,
+        "status": "passed",
+        "category": null,
+        "model": "openai/gpt-oss-120b",
+        "agent_latency_ms": 2496,
+        "wall_ms": 3017.89,
+        "successful_tools": [
+          "analyze_bug"
+        ],
+        "authorized_source_chips": 2,
+        "task_count_unchanged": true,
+        "proposals_created": 0,
+        "embedding_degraded": false,
+        "input_tokens": 5112,
+        "output_tokens": 582,
+        "token_usage_scope": "successful generations; failed HTTP attempt usage not reported"
+      },
+      "provider_telemetry": [
+        {
+          "time_utc": "2026-10-17T19:35:42Z",
+          "kind": "provider_http",
+          "turn": 1,
+          "status": 200,
+          "headers": {
+            "x-ratelimit-limit-requests": "1000",
+            "x-ratelimit-limit-tokens": "8000",
+            "x-ratelimit-remaining-requests": "999",
+            "x-ratelimit-remaining-tokens": "5499"
+          }
+        },
+        {
+          "time_utc": "2026-10-17T19:35:42Z",
+          "kind": "agent_turn",
+          "turn": 1,
+          "status": "completed",
+          "input_tokens": 2277,
+          "output_tokens": 87,
+          "provider_attempts": 1
+        },
+        {
+          "time_utc": "2026-10-17T19:35:44Z",
+          "kind": "provider_http",
+          "turn": 2,
+          "status": 200,
+          "headers": {
+            "x-ratelimit-limit-requests": "1000",
+            "x-ratelimit-limit-tokens": "8000",
+            "x-ratelimit-remaining-requests": "998",
+            "x-ratelimit-remaining-tokens": "2664"
+          }
+        },
+        {
+          "time_utc": "2026-10-17T19:35:44Z",
+          "kind": "agent_turn",
+          "turn": 2,
+          "status": "completed",
+          "input_tokens": 2835,
+          "output_tokens": 495,
+          "provider_attempts": 1
+        }
+      ]
+    },
+    {
+      "attempt": 1,
+      "started_utc": "2026-10-17T19:37:46Z",
+      "finished_utc": "2026-10-17T19:37:51Z",
+      "exit_code": 0,
+      "check": {
+        "mode": "live",
+        "provider": "groq",
+        "language": "ar",
+        "requested_tool": "analyze_bug",
+        "embedding_model": "Xenova/multilingual-e5-small",
+        "embedding_version": "761b726dd34fb83930e26aab4e9ac3899aa1fa78-q8",
+        "embeddings_required": true,
+        "vector_index_verified": true,
+        "status": "passed",
+        "category": null,
+        "model": "openai/gpt-oss-120b",
+        "agent_latency_ms": 2288,
+        "wall_ms": 2502.45,
+        "successful_tools": [
+          "analyze_bug"
+        ],
+        "authorized_source_chips": 2,
+        "task_count_unchanged": true,
+        "proposals_created": 0,
+        "embedding_degraded": false,
+        "input_tokens": 6140,
+        "output_tokens": 379,
+        "token_usage_scope": "successful generations; failed HTTP attempt usage not reported"
+      },
+      "provider_telemetry": [
+        {
+          "time_utc": "2026-10-17T19:37:49Z",
+          "kind": "provider_http",
+          "turn": 1,
+          "status": 200,
+          "headers": {
+            "x-ratelimit-limit-requests": "1000",
+            "x-ratelimit-limit-tokens": "8000",
+            "x-ratelimit-remaining-requests": "998",
+            "x-ratelimit-remaining-tokens": "5335"
+          }
+        },
+        {
+          "time_utc": "2026-10-17T19:37:49Z",
+          "kind": "agent_turn",
+          "turn": 1,
+          "status": "completed",
+          "input_tokens": 2578,
+          "output_tokens": 92,
+          "provider_attempts": 1
+        },
+        {
+          "time_utc": "2026-10-17T19:37:50Z",
+          "kind": "provider_http",
+          "turn": 2,
+          "status": 200,
+          "headers": {
+            "x-ratelimit-limit-requests": "1000",
+            "x-ratelimit-limit-tokens": "8000",
+            "x-ratelimit-remaining-requests": "997",
+            "x-ratelimit-remaining-tokens": "1542"
+          }
+        },
+        {
+          "time_utc": "2026-10-17T19:37:50Z",
+          "kind": "agent_turn",
+          "turn": 2,
+          "status": "completed",
+          "input_tokens": 3562,
+          "output_tokens": 287,
+          "provider_attempts": 1
+        }
+      ]
+    },
+    {
+      "attempt": 1,
+      "started_utc": "2026-10-17T19:39:52Z",
+      "finished_utc": "2026-10-17T19:39:57Z",
+      "exit_code": 0,
+      "check": {
+        "mode": "live",
+        "provider": "groq",
+        "language": "en",
+        "requested_tool": "find_similar_bugs",
+        "embedding_model": "Xenova/multilingual-e5-small",
+        "embedding_version": "761b726dd34fb83930e26aab4e9ac3899aa1fa78-q8",
+        "embeddings_required": true,
+        "vector_index_verified": true,
+        "status": "passed",
+        "category": null,
+        "model": "openai/gpt-oss-120b",
+        "agent_latency_ms": 3125,
+        "wall_ms": 3322.28,
+        "successful_tools": [
+          "find_similar_bugs"
+        ],
+        "authorized_source_chips": 2,
+        "task_count_unchanged": true,
+        "proposals_created": 0,
+        "embedding_degraded": false,
+        "input_tokens": 5218,
+        "output_tokens": 882,
+        "token_usage_scope": "successful generations; failed HTTP attempt usage not reported"
+      },
+      "provider_telemetry": [
+        {
+          "time_utc": "2026-10-17T19:39:54Z",
+          "kind": "provider_http",
+          "turn": 1,
+          "status": 200,
+          "headers": {
+            "x-ratelimit-limit-requests": "1000",
+            "x-ratelimit-limit-tokens": "8000",
+            "x-ratelimit-remaining-requests": "997",
+            "x-ratelimit-remaining-tokens": "5453"
+          }
+        },
+        {
+          "time_utc": "2026-10-17T19:39:54Z",
+          "kind": "agent_turn",
+          "turn": 1,
+          "status": "completed",
+          "input_tokens": 2260,
+          "output_tokens": 83,
+          "provider_attempts": 1
+        },
+        {
+          "time_utc": "2026-10-17T19:39:56Z",
+          "kind": "provider_http",
+          "turn": 2,
+          "status": 200,
+          "headers": {
+            "x-ratelimit-limit-requests": "1000",
+            "x-ratelimit-limit-tokens": "8000",
+            "x-ratelimit-remaining-requests": "996",
+            "x-ratelimit-remaining-tokens": "3022"
+          }
+        },
+        {
+          "time_utc": "2026-10-17T19:39:56Z",
+          "kind": "agent_turn",
+          "turn": 2,
+          "status": "completed",
+          "input_tokens": 2958,
+          "output_tokens": 799,
+          "provider_attempts": 1
+        }
+      ]
+    },
+    {
+      "attempt": 1,
+      "started_utc": "2026-10-17T19:41:58Z",
+      "finished_utc": "2026-10-17T19:42:04Z",
+      "exit_code": 0,
+      "check": {
+        "mode": "live",
+        "provider": "groq",
+        "language": "ar",
+        "requested_tool": "find_similar_bugs",
+        "embedding_model": "Xenova/multilingual-e5-small",
+        "embedding_version": "761b726dd34fb83930e26aab4e9ac3899aa1fa78-q8",
+        "embeddings_required": true,
+        "vector_index_verified": true,
+        "status": "passed",
+        "category": null,
+        "model": "openai/gpt-oss-120b",
+        "agent_latency_ms": 2861,
+        "wall_ms": 3000.93,
+        "successful_tools": [
+          "find_similar_bugs"
+        ],
+        "authorized_source_chips": 2,
+        "task_count_unchanged": true,
+        "proposals_created": 0,
+        "embedding_degraded": false,
+        "input_tokens": 6399,
+        "output_tokens": 710,
+        "token_usage_scope": "successful generations; failed HTTP attempt usage not reported"
+      },
+      "provider_telemetry": [
+        {
+          "time_utc": "2026-10-17T19:42:01Z",
+          "kind": "provider_http",
+          "turn": 1,
+          "status": 200,
+          "headers": {
+            "x-ratelimit-limit-requests": "1000",
+            "x-ratelimit-limit-tokens": "8000",
+            "x-ratelimit-remaining-requests": "996",
+            "x-ratelimit-remaining-tokens": "4545"
+          }
+        },
+        {
+          "time_utc": "2026-10-17T19:42:01Z",
+          "kind": "agent_turn",
+          "turn": 1,
+          "status": "completed",
+          "input_tokens": 2656,
+          "output_tokens": 109,
+          "provider_attempts": 1
+        },
+        {
+          "time_utc": "2026-10-17T19:42:03Z",
+          "kind": "provider_http",
+          "turn": 2,
+          "status": 200,
+          "headers": {
+            "x-ratelimit-limit-requests": "1000",
+            "x-ratelimit-limit-tokens": "8000",
+            "x-ratelimit-remaining-requests": "995",
+            "x-ratelimit-remaining-tokens": "1516"
+          }
+        },
+        {
+          "time_utc": "2026-10-17T19:42:03Z",
+          "kind": "agent_turn",
+          "turn": 2,
+          "status": "completed",
+          "input_tokens": 3743,
+          "output_tokens": 601,
+          "provider_attempts": 1
+        }
+      ]
+    }
+  ]
+}

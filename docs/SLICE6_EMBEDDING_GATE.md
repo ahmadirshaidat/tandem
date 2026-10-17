@@ -1,5 +1,7 @@
 # Slice 6 embedding gate follow-up — 17 October 2026
 
+**Historical evidence:** current status and latest acceptance results are consolidated in [SLICE6_REPORT.md](SLICE6_REPORT.md). Statements below about blocked downloads or live rate limits describe those earlier attempts.
+
 **Historical record: superseded for model download/quality by [the real embedding report](SLICE6_REAL_EMBEDDINGS.md). E5 now passes the quality target; strict live answer generation remains rate-limited.**
 
 **At the time of this earlier investigation, gate remained BLOCKED. No model has been selected and ADR 0022 is not accepted.** Both candidate model API requests returned `URLError`. Current runtime observations report an enforced policy excluding the requested hosts. The hosts exist in the saved environment draft, but that draft has not been applied to this running environment. This follow-up adds validation and failure evidence only; no application features or retrieval tuning were added.

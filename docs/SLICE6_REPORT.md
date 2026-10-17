@@ -1,120 +1,149 @@
-# Slice 6: workspace memory and RAG
+# Slice 6: workspace memory and RAG — current acceptance report
 
-Latest embedding evidence: [real local comparison](SLICE6_REAL_EMBEDDINGS.md). E5-small is installed and passes the hybrid quality gate at 84.44%; strict live answer generation remains blocked by Groq rate limits. Earlier blocked evidence below is historical.
+Updated 17 October 2026 (Asia/Amman). Branch `slice-6-memory`; [draft PR #3](https://github.com/ahmadirshaidat/tandem/pull/3). No new product features were added during acceptance housekeeping.
 
-Previous follow-up: [17 October embedding gate and browser investigation](SLICE6_EMBEDDING_GATE.md). A retention-reindex race in browser test setup was reproduced and addressed by waiting for fixture readiness. Three suites passed before and three after the correction (48 local executions total); post-fix CI passed. Fresh full-text quality is unchanged. Model downloads and semantic acceptance remain blocked by unapplied network settings.
+## Current decision
 
-Validation: 16 October 2026 UTC / 17 October 2026 Asia/Amman. Branch: `slice-6-memory`, based on merged `v1` commit `8d1b3ce`. Draft review: [PR #3](https://github.com/ahmadirshaidat/tandem/pull/3).
+Local E5 embeddings and the synthetic retrieval quality gate are verified. **Full Slice 6 acceptance remains open pending the product owner's manual Slice 5 real-provider UI approval test.** Strict live rerun results and current CI are recorded below; no automated test substitutes for that manual acceptance. Do not merge or begin Slice 7 on the strength of the embedding benchmark alone.
 
-**Implementation is delivered for review; acceptance is BLOCKED.** Full-text indexing/search, permission boundaries, APIs, tools and UI passed the automated checks below. Real local embedding weights are now installed and the ≥70% hybrid recall@5 target passes; see the latest report above. Strict real-provider semantic answer checks still fail with rate limits. All four latest real Groq checks passed; both Arabic cases required one later bounded retry after initial rate limits. Earlier failures remain recorded. The product owner's manual Slice 5 approval test remains unverified. No AWS deployment or Slice 7 work was performed.
+This is the current report. Earlier model-unavailable, proposed-model-choice and lexical-only live results are historical and superseded by the real E5 evidence. [The earlier embedding investigation](SLICE6_EMBEDDING_GATE.md) and [initial real-model measurements](SLICE6_REAL_EMBEDDINGS.md) retain their dated evidence, not current acceptance instructions. ADR 0022 is accepted for local model choice and synthetic quality.
 
-## Delivered behavior and files
+## Delivered scope
 
-- `backend/app/memory/{models,indexing,embeddings,retrieval,router,tools,resolution}.py`: source-linked records, versioned vectors, durable coalescing source jobs, local ONNX adapter, SQL-filtered full-text/cosine/RRF retrieval, search/settings/forget APIs, three read tools and opt-in resolution proposals.
-- Migration `d746053b64a6`: scoped foreign keys, GIN/HNSW indexes, Arabic normalization, source queue triggers and existing-source backfill. `backend/migrations/env.py` registers the models. Domain changes and queue revisions commit together.
-- Existing `backend/app/agent/{worker,tools,llm}.py`, proposal validation, main router and configuration: reuse the worker, registry, audience rules, audit metadata and validated provider path. No parallel LLM client or direct mutation tool was introduced. Generated event contracts are unchanged.
-- `frontend/src/components/memory.tsx`, workspace navigation/routes, channel source chips, shared CSS and API types: global Search, Owner/Admin Memory settings, accessible source toggles, filters, highlights, cursor pages, forgetting preview, degraded/offline states and mobile layout. React renders snippets as text, never HTML.
-- `backend/tests/test_memory.py`, `frontend/tests/memory.test.tsx`, `frontend/e2e/memory.spec.ts`: boundary/lifecycle regressions, safe Unicode highlighting and a full bilingual browser flow. Existing registry expectations include the three new reads.
-- `infra/{memory_backfill,run_eval,check_memory_live}.py`, `eval/similar_bugs/`, CI, `.env.example`, Compose and README: reproducible backfill, isolated evaluation, strict live metadata checks and operating instructions.
-- ADRs [0022](adr/0022-local-multilingual-embeddings.md), [0023](adr/0023-memory-hybrid-ranking.md), [0024](adr/0024-memory-query-time-authorization.md), [0025](adr/0025-memory-indexing-lifecycle.md), [0026](adr/0026-memory-retention-and-forgetting.md). ADR 0022 remains **proposed**, pending actual model comparison.
+Memory indexes messages and tasks, including task comments. It provides persistent source-linked records, content hashes, model/version/dimension metadata, coalescing indexing jobs, settings and migration/backfill support. Documents, notifications, billing and integrations remain outside Slice 6. Try AI is isolated. The optional Search Agent answer card is omitted; audited channel agent runs already expose tools and sources.
 
-Messages are grouped within their channel by thread/time window, with overlap; tasks include title, description, status and comments. Hashes retain unchanged records/vectors. A changed source revision immediately hides stale records while the worker rebuilds that channel/project. Deletes, task moves and archives propagate. Claims use `SKIP LOCKED`, stale-claim recovery and bounded failures; embedding runs outside publication locks. Missing or failing local inference still publishes full-text records with visible degradation.
+Messages are chunked by thread/time window with overlap; tasks include title, description, status and comments. The existing worker processes indexing with `SKIP LOCKED`, bounded failures and stale-claim recovery. Source revisions hide stale records while rebuilding. Edits/deletes, task moves and archives propagate; unchanged content retains records/vectors. Maintenance queues eligible missing active-version vectors. Dimension changes require a migration.
 
-Every candidate query applies current workspace membership, channel membership/private setting, live task/project state, source inclusion, retention and index revision **before ranking and LIMIT**. Services reauthorize results afterward. Agent retrieval also respects its destination audience. Source chips are fetched for the current viewer rather than copied with labels into replayed events. Search returns no unauthorized counts or skipped-source hints.
+Retrieval combines normalized Arabic/English PostgreSQL full-text search with HNSW cosine candidates and equal-weight reciprocal rank fusion (k=60). SQL applies live workspace/channel membership, private-channel inclusion, source/settings state, retention and index revision before ranking/limits. Services reauthorize results afterward; shared agent replies also respect their destination audience. Source chips are fetched for the current viewer. Search never returns unauthorized totals or skipped-source hints.
 
-Private indexing and resolution summaries default off. Retention supports forever, 365 or 90 days and affects derived memory only. Explicit source/record forgetting uses an authorized count preview, signed expiring confirmation, lock/recheck and audit; originals survive. Record suppression keys survive reindexing; forgetting a source disables its inclusion. A newly completed bug after summary opt-in may create an extractive `add_comment` proposal in an eligible public project channel, using the existing approval flow. It creates no comment before human approval and deduplicates completion offers. No extra generation call is needed for that extractive proposal.
+Private-channel indexing and resolution summaries default off. Owners/Admins control per-source inclusion, include-private, forever/365/90-day retention, reindexing and explicit forgetting. Forgetting uses an authorized count preview and signed confirmation, is audited, and preserves originals. Record suppression persists through reindexing; forgetting a source disables inclusion. Opt-in resolution summaries create only an extractive add-comment proposal for human approval, never a direct comment.
 
-The optional Search “Agent answer” card is omitted. Channel agent runs already provide audited answers, tools and sources. Try AI remains isolated. Documents, notifications, billing and integrations are outside this change.
+Read tools are `search_memory`, `find_similar_bugs` and `analyze_bug`; the closed registry, existing provider protocol, worker and audit path are reused. Search/settings provide filters, text-safe highlighted snippets, cursor pagination, offline/degraded states, mobile layout and `dir="auto"` content. Missing local inference visibly degrades to full-text.
 
-## Actual automated verification
+## Implementation map
 
-Commands ran with installed backend dependencies and a local PostgreSQL/pgvector database. Browser tests used the production frontend build, Chromium and an explicitly fake-provider backend. That fake mode validates orchestration/permissions, not real AI performance.
-
-| Check | Actual result |
+| Area | Main files |
 | --- | --- |
-| Backend `.venv/bin/ruff check app migrations tests` plus the new infra helpers | Passed; final combined check clean |
-| Backend `.venv/bin/ruff format --check app migrations tests` plus helpers | Passed; 81 files already formatted |
-| Backend `.venv/bin/pytest -q` | **152 passed, 58.22 s** |
-| Final focused `.venv/bin/pytest -q tests/test_memory.py` | **19 passed, 10.61 s** |
-| `.venv/bin/alembic upgrade head` / `.venv/bin/alembic check` | Upgrade passed; no new upgrade operations detected |
-| Empty-schema and existing-data upgrades | Tested in integration/evaluation; Slice 5 fixture upgrades preserve original data and backfill sources |
-| `backend/.venv/bin/python infra/export_events.py --check` | Passed; no generated-contract drift |
-| `npm run lint` / `npm run typecheck` | Passed |
-| `npm test` | **35 passed across 8 files, 11.67 s** |
-| `npm run build` | Passed; `/search` and `/settings/memory` included |
-| `CI=true PLAYWRIGHT_CHROMIUM_EXECUTABLE=/usr/bin/chromium npm run test:e2e` | **8 passed, 1.2 min**, including Arabic/mobile/offline memory flow |
-| `python3 infra/cloud_build.py` and cloud Compose start | Backend image built; database/backend/frontend started; health, login and frontend API returned HTTP 200 |
-| Evaluation/backfill | Disposable database migrated, indexed, evaluated and dropped; backfill CLI exit 0, one job processed |
+| Memory schema, indexing, retrieval, settings, tools | `backend/app/memory/{models,indexing,embeddings,retrieval,router,tools,resolution}.py` |
+| Database migration | `backend/migrations/versions/d746053b64a6_permission_filtered_workspace_memory_.py` |
+| Agent integration | Existing `backend/app/agent/{worker,tools,llm}.py` and proposal validation |
+| UI | `frontend/src/components/memory.tsx`, workspace routes/navigation, channel source chips, CSS/API types |
+| Tests | `backend/tests/test_memory.py`, `test_memory_live_checker.py`, `test_embedding_download.py`; `frontend/tests/memory.test.tsx`; `frontend/e2e/memory.spec.ts` |
+| Reproduction | `infra/{run_eval,memory_backfill,check_memory_live}.py`, `eval/similar_bugs/` |
+| Decisions | ADRs [0022](adr/0022-local-multilingual-embeddings.md), [0023](adr/0023-memory-hybrid-ranking.md), [0024](adr/0024-memory-query-time-authorization.md), [0025](adr/0025-memory-indexing-lifecycle.md), [0026](adr/0026-memory-retention-and-forgetting.md) |
 
-The final focused check followed the cold-start model-load lock change. A redundant `uv run` invocation could not use its default read-only cache, so the checks were run through the already installed `.venv/bin` executables; no checks were skipped for that reason. The native Windows launcher and physical devices were not exercised in this Linux environment. Cloud containers use the session proxy and trusted CA, with TLS verification enabled. The final runtime has `AGENT_FAKE_PROVIDER=false` and the normal auth rate limit of 10.
+## Selected model and license
 
-Tests cover cross-workspace references/retrieval; private membership and workspace revocation; all three retrieval modes with explicit model stubs; include-private off/on/off; no-leak response shapes; source-chip reauthorization; agent audience restrictions; idempotency; edit/delete/comment/move/archive propagation; retention; model-version requeue; missing and failing inference; signed pagination; forget preview actor/content races; preservation of domain originals; and opt-in proposal-only summaries. Stub embeddings test SQL/lifecycle behavior and never enter the quality harness.
+Select quantized ONNX `Xenova/multilingual-e5-small`, version `761b726dd34fb83930e26aab4e9ac3899aa1fa78-q8`, 384 dimensions. Inference/tokenization run locally, using E5 query/passage prefixes, masked mean pooling and normalized vectors; public weights are stored in ignored persistent caches outside Git and the Docker build context. Workspace text is never sent to an embedding endpoint. This does not mean agent generation is local: authorized agent context is sent to the configured generation provider.
 
-Hosted CI has been read from GitHub, not inferred from local tests. [Run 38977113759](https://github.com/ahmadirshaidat/tandem/actions/runs/38977113759) **passed** on `8e817ff`, including the expanded evaluation-helper lint and all eight browser tests. The PR Checks tab records the subsequent report/configuration commit. A later documentation-only run on `ac0923b` [failed in the browser step](https://github.com/ahmadirshaidat/tandem/actions/runs/38977784061), after the preceding configuration/report run passed. Its check annotation exposed only exit 1, while the signed log-download host is blocked by network policy. The Playwright GitHub reporter was enabled to expose assertion failures through accessible check annotations. [Diagnostic run 38978180817](https://github.com/ahmadirshaidat/tandem/actions/runs/38978180817) passed on `3040be2` with the reporter enabled. The failure did not recur, so its root cause remains unknown; this is an unresolved intermittent browser-test risk, not a claimed fix. Final current-head CI status is recorded in the task completion message.
+Both candidates passed pinned-revision, artifact SHA256 and mixed English/Arabic inference checks. The ONNX conversion card identifies its original model but omits a license field. The original [E5-small card at pinned revision](https://huggingface.co/intfloat/multilingual-e5-small/blob/614241f622f53c4eeff9890bdc4f31cfecc418b3/README.md) was re-fetched on 17 October and declares `license: mit`. See [ADR 0022](adr/0022-local-multilingual-embeddings.md) and [license verification metadata](slice6-license-verification.json). The downloader verifies the expected original-model link and approved license and records the original revision; it rejects unexpected links/unapproved licenses.
 
-## Retrieval evaluation: real measurements, missing semantic comparison
+## Real retrieval evaluation
 
-Reproduce from the repository root:
+Evidence: [raw comparison](../eval/similar_bugs/real-embedding-results.json), [resources/manifests](../eval/similar_bugs/embedding-resources.json). Seed 20261017; unchanged 30 English and 15 Arabic/mixed queries over 75 documents including distractors. No label, normalization, chunk or ranking changes and no test-set tuning. MRR follows all returned pages within the 200-candidate service cap. The harness migrates and drops a disposable database; it does not reset development data or use stub vectors.
+
+| Model/method | English recall@5 / MRR | Arabic recall@5 / MRR | Overall recall@5 / MRR | p95 retrieval |
+| --- | --- | --- | --- | --- |
+| Full-text (E5 control) | 70.00% / .5151 | 46.67% / .4373 | 62.22% / .4892 | 88.33 ms |
+| E5 vector | 83.33% / .7418 | 86.67% / .6806 | 84.44% / .7214 | 371.60 ms |
+| E5 hybrid | 86.67% / .7064 | 80.00% / .6015 | **84.44% / .6714** | 302.28 ms |
+| MiniLM vector | 70.00% / .5450 | 80.00% / .5855 | 73.33% / .5585 | 261.05 ms |
+| MiniLM hybrid | 80.00% / .6419 | 86.67% / .5950 | 82.22% / .6262 | 336.12 ms |
+
+Both pass the 70% overall hybrid target. E5 wins overall hybrid/vector recall and MRR; MiniLM has higher Arabic hybrid recall. E5 hybrid retrieves 38/45 known targets in the first five, missing seven. This small authored fixture supports a demo choice, not production-wide generalization. Fixed weights were retained rather than tuned on held-out labels.
+
+E5 indexing: 1.233 s, 60.85 source documents/s, p95 lag 1224.05 ms. MiniLM: .781 s, 96.07/s, 776.99 ms. The backfill CLI passed with one job. An earlier background-worker HTTP full-text probe measured 996 ms; it is a separate measurement without embedding inference, not vector freshness evidence.
+
+Each cache is about 129.12 MiB. Separate native processes measured E5 load 940.05 ms, first short-query inference 4.86 ms, mean ten warm inferences 5.75 ms, peak process RSS 543.12 MiB; MiniLM 933.05 ms, 3.93 ms, 2.66 ms, 542.92 MiB. Load includes checksums; RSS includes runtime memory. Single-run short-input timings are not capacity guarantees or OS cold-cache measurements.
+
+Reproduce from repository root:
 
 ```bash
-backend/.venv/bin/python infra/run_eval.py --output eval/similar_bugs/results.json
+PYTHONPATH=backend backend/.venv/bin/python -m app.memory.embeddings e5-small --destination "$PWD/.local/models/e5-small"
+PYTHONPATH=backend backend/.venv/bin/python -m app.memory.embeddings minilm --destination "$PWD/.local/models/minilm"
+backend/.venv/bin/python infra/run_eval.py --model-path .local/models/e5-small --model-path .local/models/minilm
+backend/.venv/bin/python infra/memory_backfill.py --workspace WORKSPACE_ID --drain
 ```
 
-The committed synthetic corpus has **30 English pairs, 15 Arabic/mixed pairs and 30 distractors**, totaling 75 indexed earlier bugs and 45 queries. Seed: 20261017. IDs and ranking ties are deterministic. RRF k=60 and equal weights were fixed before evaluation; no test-set tuning occurred. After correcting nondeterministic tie ordering, quality metrics reproduced exactly on two runs. Timings vary; the table uses the latest committed [results.json](../eval/similar_bugs/results.json). MRR follows all result pages within the 200-candidate service cap, including zeros for absent targets.
+## Strict live checks and input tokens
 
-| Method | English recall@5 / MRR (30) | Arabic recall@5 / MRR (15) | Overall recall@5 / MRR (45) | p95 retrieval |
-| --- | --- | --- | --- | --- |
-| Full-text | **70.00% / 0.5151** | **46.67% / 0.4373** | **62.22% / 0.4892** | **195.97 ms** |
-| Vector only | Not run: weights unavailable | Not run | Not run | Unmeasured |
-| Hybrid | Not run: weights unavailable | Not run | **≥70% target unverified** | Unmeasured |
+All **four strict live checks passed on the first attempt**, using Groq `openai/gpt-oss-120b` and exact E5 model/version above. Each next check started 121 seconds after the preceding one finished; no overlapping runs, second attempts, provider/model changes or quota-avoidance probes were used. [Safe per-check/per-turn evidence](../eval/similar_bugs/acceptance-live-spaced.json) retains UTC timestamps, outcomes, HTTP status, an explicit allowlist of retry-after/limit/remaining headers, and token usage. No request/response bodies or credentials were retained. A temporary process-local wrapper observed the existing transport and agent-turn return values; application source and wire payloads were unchanged, and the wrapper was removed after the checks.
 
-Full-text indexing: **1 job, 0.142 s, 528.32 source documents/s, p95 queue lag 135.28 ms**. Separately, the normal background worker made a newly created task visible through HTTP full-text search in **996 ms**, below the approximate 30-second goal for that small case. These numbers exclude embedding inference and do not establish vector throughput or a production SLA. Distractors have limited topic diversity; this fixture alone cannot establish general semantic quality.
+| Check | Start (Asia/Amman, 17 Oct) | Input turn 1 | Input turn 2 | Total input | Total output | Agent latency | Result |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| en `analyze_bug` | 22:35:39 | 2,277 | 2,835 | 5,112 | 582 | 2496 ms | Passed |
+| ar `analyze_bug` | 22:37:46 | 2,578 | 3,562 | 6,140 | 379 | 2288 ms | Passed |
+| en `find_similar_bugs` | 22:39:52 | 2,260 | 2,958 | 5,218 | 882 | 3125 ms | Passed |
+| ar `find_similar_bugs` | 22:41:58 | 2,656 | 3,743 | 6,399 | 710 | 2861 ms | Passed |
 
-Planned local candidates are quantized ONNX `Xenova/multilingual-e5-small` and `Xenova/paraphrase-multilingual-MiniLM-L12-v2`, both configured for 384 dimensions. **Their actual availability, license, artifact size and inference speed were not verified.** The downloader verifies these at installation: pinned revision, MIT/Apache-2.0 card license, hashes, artifact bound and a local mixed-language inference probe. An initial model API request failed with the safe category `URLError`; the runtime host allowlist still excludes Hugging Face. Required additions (`huggingface.co`, `*.huggingface.co`, `*.hf.co`) are saved in the environment draft but require application. No alternate-host/proxy bypass was attempted.
+Every case verified both synthetic tasks through non-degraded vector-only retrieval before generation, completed its required tool, returned two authorized source chips, preserved the two tasks and created zero proposals. All eight provider HTTP calls returned 200 and all eight agent turns used one provider attempt. `retry-after` was absent; response headers reported request limit 1000 and token limit 8000. Observed remaining requests ranged 995–999 and remaining tokens 1516–5499. These are observed headers, not a guarantee of future quota or an inferred billing balance. Groq quota did not block this spaced run.
 
-Use the two-directory comparison command in [the evaluation README](../eval/similar_bugs/README.md) after access is applied. Choose the model from actual recall/MRR, latency, throughput and artifact/resource measurements; update ADR 0022. If hybrid misses 70%, report the miss and use a separate development set for normalization/chunking/weight changes before rerunning a held-out test. Do not relabel full-text fallback as a vector or hybrid pass.
-
-## Live agent checks
-
-The four strict scenarios used synthetic workspaces, real **Groq `openai/gpt-oss-120b`**, the normal agent/provider path, and visibly degraded full-text retrieval. Both English cases passed initially; both Arabic cases passed on one later bounded retry after rate limits. All six attempts are retained in the metadata. [Raw safe metadata](slice6-live-results.json) contains no credentials, questions, answers or provider bodies.
+Reproduction: run each command separately with at least two minutes between completed checks, at most two attempts per case; stop if quota remains the blocker:
 
 ```bash
-backend/.venv/bin/python infra/check_memory_live.py --language en --tool analyze_bug --require-live
-backend/.venv/bin/python infra/check_memory_live.py --language ar --tool analyze_bug --require-live
-backend/.venv/bin/python infra/check_memory_live.py --language en --tool find_similar_bugs --require-live
-backend/.venv/bin/python infra/check_memory_live.py --language ar --tool find_similar_bugs --require-live
+backend/.venv/bin/python infra/check_memory_live.py --language en --tool analyze_bug --require-live --require-embeddings --embedding-model Xenova/multilingual-e5-small
+backend/.venv/bin/python infra/check_memory_live.py --language ar --tool analyze_bug --require-live --require-embeddings --embedding-model Xenova/multilingual-e5-small
+backend/.venv/bin/python infra/check_memory_live.py --language en --tool find_similar_bugs --require-live --require-embeddings --embedding-model Xenova/multilingual-e5-small
+backend/.venv/bin/python infra/check_memory_live.py --language ar --tool find_similar_bugs --require-live --require-embeddings --embedding-model Xenova/multilingual-e5-small
 ```
 
-| Requested tool / language | Result | Agent latency / HTTP wall | Successful-generation input / output tokens | Source chips |
-| --- | --- | --- | --- | --- |
-| `analyze_bug` / English | **Passed** | 2744 / 11236.40 ms | 5113 / 599 | 2 |
-| `analyze_bug` / Arabic | **Passed on bounded retry** | 2412 / 2835.39 ms | 6097 / 510 | 2 |
-| `find_similar_bugs` / English | **Passed** | 2188 / 2561.81 ms | 5214 / 550 | 2 |
-| `find_similar_bugs` / Arabic | **Passed on bounded retry** | 2413 / 2641.35 ms | 6390 / 605 | 2 |
 
-The table shows the latest result for each scenario. All six attempts preserved the two original tasks and created zero proposals. Initially, Arabic analysis failed with `rate_limited` at 229 ms (0/0 successful-generation tokens); Arabic similar-bug failed at 2705 ms after successful tool steps (6388/241 tokens), without finishing its answer. Those initial attempts remain failures, even though later fresh strict runs completed. No provider body was printed or recorded. Usage covers successful generations only; failed HTTP attempt usage is unknown. The first wall measurement includes frontend route compilation/transport/polling and is not model generation time. No Gemini live run was added in Slice 6; its previously documented fallback availability/rate-limit risk remains open. Real answer generation with lexical retrieval does not validate local embeddings.
+The previous [four rate-limited E5 attempts](../eval/similar_bugs/real-embedding-live.json) remain failure evidence. Earlier successful lexical-only runs in `slice6-live-results.json` do not establish semantic acceptance. Latest outcomes are exclusively the spaced runs linked above.
 
-## Screenshots and visual limits
+Input reduction proposals only; none implemented:
 
-Captured from the actual deterministic browser flow; agent text in these images uses the fake provider, and the degraded banner reflects missing local weights:
+1. Shorten repeated instructions and schema metadata used as tool descriptions, while preserving authorization rules, required fields and proposal constraints. The current descriptors are name/mode/JSON argument schemas rather than prose descriptions, so inspect schema titles/defaults and repeated protocol text before assuming prose is the main cost. Keep schema validation and the closed registry.
+2. Offer only tools relevant to the current intent/phase, retaining prerequisite reads and the human-approval boundaries. The current protocol already gates proposals after reads; narrowing other tools would require routing and authorization regression checks.
+3. Trim repeated context and bound source snippets/result fields. Send only necessary evidence and current identifiers/versions; preserve untrusted-data labels, source IDs and hypothesis/citation requirements. Measure quality and usage on a separate development set before changing the held-out evaluation.
+
+Actual successful turn counts above are provider-reported usage, not tokenizer estimates. Failure usage is unknown when absent; zero successful-generation tokens does not establish zero billed failed-attempt usage.
+
+## Automated verification
+
+The implementation's earlier complete local checks passed: backend 152 tests; frontend 35 tests across eight files; browser eight tests. These are historical counts, not claimed fresh counts for this housekeeping commit. The fresh housekeeping regression command `.venv/bin/pytest -q tests/test_memory.py tests/test_memory_live_checker.py tests/test_embedding_download.py` passed **24 tests in 7.87 s**. Earlier embedding checks passed 23 focused tests followed by the expanded three-test downloader suite; Ruff and diff checks passed. Alembic upgrade/check, empty/existing-data upgrade tests, event-contract checks, frontend lint/typecheck/build and backfill are recorded in the earlier implementation evidence.
+
+[CI run 39025113617](https://github.com/ahmadirshaidat/tandem/actions/runs/39025113617) passed on exact application/evidence commit `cb69e104264c865a8b34e05f8c6056fe01efe166`: backend lint/format/tests/migrations, event schema, frontend lint/typecheck/unit/build and browser suite. **Housekeeping test revision `6bf9837596c4dae14d8e527d32a433d3d516d138` also passed [CI run 39063854380](https://github.com/ahmadirshaidat/tandem/actions/runs/39063854380)**, including all browser tests. Current branch checks, including later report-only commits, are available on [PR #3 checks](https://github.com/ahmadirshaidat/tandem/pull/3/checks); their results must be verified independently. CI uses fake agent generation and does not validate real provider availability or download benchmark models.
+
+Tests cover workspace/private isolation, membership revocation, include-private off/on/off, no-leak response shapes, source authorization/audience, idempotency, edit/delete/comment/move/archive propagation, retention, model-version requeue, missing/failing inference, signed cursors, forget preview races/preserved originals and proposal-only summaries. Controlled embedding stubs verify boundary/lifecycle behavior; real weights are used separately for quality.
+
+## Browser CI investigation and fresh captures
+
+**Investigated, with a bounded conclusion.** Original run [38977784061](https://github.com/ahmadirshaidat/tandem/actions/runs/38977784061) exposed only exit 1. A later failed [run 38999835232](https://github.com/ahmadirshaidat/tandem/actions/runs/38999835232) exposed a missing `.memory-source-chips` assertion after a retention change. A deterministic SQL/service regression reproduced an indexing-readiness race: old records disappear immediately when retention queues rebuilding, so an agent asked then has no source to cite. The browser fixture now waits for the exact task to be searchable before asking. Assertions/timeouts remain unchanged; retries are zero.
+
+Three post-fix complete local suites passed 8/8 each (92.36, 89.79, 81.58 seconds), and [CI 39000223061](https://github.com/ahmadirshaidat/tandem/actions/runs/39000223061) passed on fix `1205e7f`. Three earlier local suites also passed, for 48 executions in that investigation. These results support the readiness fix but do not prove the oldest failure had that cause. Its artifact download was retried during this housekeeping and still returned HTTP 403; the original trace remains uninspected.
+
+`frontend/playwright.config.ts` already retains traces and screenshots on failure, with one worker and retries disabled. CI already generates the HTML/GitHub report and uploads both `frontend/test-results/` and `frontend/playwright-report/` on failure for seven days. The later failed run uploaded its failure artifact. No duplicate reporting change was needed.
+
+Fresh E5-active browser verification is recorded in [safe run summaries](slice6-browser-housekeeping.json). The initial startup attempt was invalid: the replacement native backend initially lacked its module path and the suite started before health readiness (1 passed/7 failed). That failed attempt is retained. After correcting startup and checking health, a full suite returned 7 passed/1 failed: `.memory-result` resolved to multiple authorized results with real vector retrieval, while the old English assertion assumed one element. The English and Arabic checks now assert that the required text occurs within the list, retaining the expected task titles and all authorization/source assertions. No product behavior, timeout or retry policy changed.
+
+After that assertion correction, three independent complete suites passed with real E5 embeddings, a production frontend, Chromium, one worker and fake generation:
+
+| Fresh post-correction suite | Passed / failed / skipped / flaky | Wall time | Retries |
+| --- | --- | --- | --- |
+| 1 | 8 / 0 / 0 / 0 | 80.98 s | 0 |
+| 2 | 8 / 0 / 0 / 0 | 73.60 s | 0 |
+| 3 | 8 / 0 / 0 / 0 | 71.80 s | 0 |
+
+That is **24/24 fresh post-correction browser executions**. The two preceding failed attempts remain in the linked summary. Targeted ESLint and `npm run typecheck` passed for the two assertion changes. These runs do not reproduce the old missing-source-chip failure. They verify the complete bilingual/mobile/forget/source flow against real embeddings, while fake generation keeps browser tests deterministic and makes no provider calls.
+
+Screenshots below replace earlier degraded-state captures. E5 identity/version and non-degraded vector retrieval were checked for the capture fixture; Memory settings visibly shows Hybrid. The refreshed agent screenshot comes from the final deterministic suite with E5 active and fake generation; it is not a real-provider answer screenshot. [Screenshot verification and hashes](slice6-screenshot-evidence.json) record that provenance.
 
 - [Memory settings](screenshots/slice6/memory-settings.png)
 - [English search](screenshots/slice6/search-english.png)
 - [Arabic search](screenshots/slice6/search-arabic.png)
 - [390 px Arabic search](screenshots/slice6/search-mobile-arabic.png)
-- [Channel agent answer with authorized source chips](screenshots/slice6/agent-memory-sources.png)
+- [Agent answer with authorized sources](screenshots/slice6/agent-memory-sources.png)
 
-The external design canvas could not be inspected under the environment's access policy; implementation follows `UI_SPEC.md` and existing components. No canvas pixel-match or physical-device acceptance is claimed. Existing light/dark theme tokens are reused; screenshots here show the captured light flow. Browser coverage checks no horizontal overflow at 390 px, automatic text direction, offline state and viewer no-access behavior.
+The external canvas was not inspected; UI follows `UI_SPEC.md` and existing components. Screenshots use light theme; physical-device acceptance and pixel matching are unverified. Mobile evidence is 390 px Chromium emulation. No native Windows launcher verification was added here.
 
-## Remaining gates and practical limits
+## Remaining acceptance and operational limits
 
-1. Apply saved model-download host additions; download/verify both real candidates, run local comparison and record size/speed/resource use. Semantic search and the hybrid quality target are still unaccepted.
-2. Product owner must perform and record the outstanding real-provider Slice 5 UI approval test. Automated approval tests do not replace that manual acceptance.
-3. Groq rate limits remain an operational risk: the initial Arabic attempts failed, while later bounded retries passed. Gemini remains an explicitly unverified fallback for this slice.
-4. Keep PR #3 draft until the embedding/quality and manual acceptance gates are resolved; no merge into `v1` or AWS deployment is claimed here.
+- Product owner must perform and record real-provider Slice 5 UI approval acceptance in [the manual checklist](SLICE4_LIVE_CHECK.md#product-owner-manual-ui-acceptance--pending). Automated synthetic HTTP approval evidence does not satisfy it. PR #2 and Slice 5 are merged; earlier strict Groq English/Arabic approval checks are documented there.
+- The strict Slice 6 English/Arabic live gate passed in the spaced run above. Historical rate limits remain an operational risk; future concurrent calls were not load-tested.
+- Gemini fallback quota/availability remains an open risk; this task does not switch providers/models or revalidate Gemini.
+- The oldest browser failure trace is uninspected despite the later reproduced race and passing fix validation.
+- Whole-source rebuilds temporarily hide changed sources and need large-workspace throughput testing. Each candidate stream caps at 200; cursor order can shift with content. Retention uses task creation time. Forgetting suppresses selected record keys, not independent copies or semantic paraphrases elsewhere. Resolution offers require an eligible public project channel and human review of potentially incomplete evidence.
 
-One hosted browser run failed between passing runs. Failure annotations are now enabled, but the original assertion details remain inaccessible under current network policy; keep this intermittent CI risk open until its cause can be established.
+After browser verification the runtime was restored to `AGENT_FAKE_PROVIDER=false`, auth limit 10, and the verified E5 model/version. Backend health returned HTTP 200 with database/pgvector connected. Temporary diagnostic monkeypatches ran only in the stopped native acceptance process and are not in application source.
 
-Whole-source rebuilds favor deletion correctness for small workspaces and temporarily hide that source after edits; very large channels/projects need incremental-window throughput measurements. Retrieval caps each candidate stream at 200, so broad searches may omit low-ranked sources. Cursor pages recompute ranking and can move as content changes. Vector dimensions are fixed at 384; dimension changes require a migration. Stable record-key forgetting suppresses selected chunks through reindexing, not every semantic paraphrase or independent copy elsewhere. Task retention is based on creation time. Resolution offers require an eligible public project channel and recorded facts may be incomplete until a human reviews them.
-
-The proposed next product step is **Slice 7: collaborative documents**, after Slice 6's model/quality/manual gates pass and the owner accepts this review. No Slice 7 implementation is included.
+PR #3 remains draft. No merge into `v1`, AWS deployment, new features or Slice 7 work was performed. Proposed next product slice is collaborative documents only after the outstanding acceptance gate is resolved.

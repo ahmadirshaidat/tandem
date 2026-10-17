@@ -1,6 +1,6 @@
 # ADR 0022: Local multilingual E5-small embeddings
 
-**Status: accepted for local model choice and synthetic retrieval quality, 17 October 2026.** Full Slice 6 acceptance still requires successful strict live agent checks and the outstanding manual Slice 5 approval test.
+**Status: accepted for local model choice and synthetic retrieval quality, 17 October 2026.** All four spaced strict live agent checks now pass; full Slice 6 acceptance still requires the outstanding manual Slice 5 approval test.
 
 Select `Xenova/multilingual-e5-small`, revision `761b726dd34fb83930e26aab4e9ac3899aa1fa78-q8`, using local CPU ONNX Runtime, a local tokenizer, masked mean pooling and cosine-normalized 384-dimensional vectors. Add `query: ` / `passage: ` prefixes. Keep two inference threads, batches of 16 and 256-token truncation.
 
@@ -10,7 +10,7 @@ Both candidates were downloaded and checked against upstream SHA256 values. Conv
 
 Workspace text never leaves the server for embedding inference. Store public weights in ignored persistent caches, outside Git and Docker build context. Missing/failed inference visibly degrades to full-text. Store model ID/version/dimension with each vector and query only the active revision. Maintenance requeues eligible missing-version embeddings. A dimension change requires an explicit schema/index migration.
 
-All four strict English/Arabic live cases verified the E5 vector index without degradation; Groq generation failed with rate limits, so full live semantic acceptance is still open. Earlier network-blocked evidence is retained as history in the embedding gate report.
+All four spaced strict English/Arabic live cases now pass with the E5 vector index verified without degradation, using unchanged Groq generation. See [current acceptance report](../SLICE6_REPORT.md) and [safe per-turn evidence](../../eval/similar_bugs/acceptance-live-spaced.json). Earlier concurrent checks failed with rate limits and remain historical failure evidence. Earlier network-blocked evidence is retained as history in the embedding gate report.
 
 ## Original model license verification
 

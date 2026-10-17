@@ -1,5 +1,7 @@
 # Real local embeddings — 17 October 2026
 
+**Historical evidence:** current status and latest acceptance results are consolidated in [SLICE6_REPORT.md](SLICE6_REPORT.md). Statements below about blocked downloads or live rate limits describe those earlier attempts.
+
 E5-small is selected and installed in the cloud backend's persistent model volume. The earlier network/download block is resolved. Both candidates passed pinned revision, SHA256 and mixed English/Arabic local inference verification. The ONNX conversion cards omit license metadata, so the downloader now checks their exact expected `base_model` link and records the original model's approved license and revision. Unexpected links and unapproved licenses fail closed.
 
 ## Unchanged synthetic comparison
