@@ -1,6 +1,6 @@
 # Tandem
 
-An AI-native collaborative workspace for software teams. Slices 0–4 are merged into `v1`. **Slice 5 (agent proposals and transactional human approval)** is implemented on `slice-5-approvals`; see [the validation report](docs/SLICE5_REPORT.md). Memory/RAG and documents remain later slices.
+An AI-native collaborative workspace for software teams. Slices 0–5 and the real-provider compatibility fixes are merged into `v1`. **Slice 6 (workspace memory and permission-filtered retrieval)** is implemented on `slice-6-memory`; see [the Slice 6 report](docs/SLICE6_REPORT.md) for actual checks and open acceptance gates. Documents remain a later slice.
 
 ## Requirements
 
@@ -10,20 +10,20 @@ Python 3.12, [uv](https://docs.astral.sh/uv/), Node.js 24, Docker with Compose v
 
 ### Codex desktop / Windows
 
-This is the new **AI workspace** project at `ahmadirshaidat/tandem`, branch `slice-5-approvals`. An older local project named Tandem is a different project. Clone this repository into a **new folder** and open that folder in Codex desktop:
+This is the new **AI workspace** project at `ahmadirshaidat/tandem`, branch `v1`. An older local project named Tandem is a different project. Clone this repository into a **new folder** and open that folder in Codex desktop:
 
 ```powershell
-git clone --branch slice-5-approvals --single-branch https://github.com/ahmadirshaidat/tandem.git tandem-workspace-v1
+git clone --branch v1 --single-branch https://github.com/ahmadirshaidat/tandem.git tandem-workspace-v1
 cd tandem-workspace-v1
 ```
 
-If you already cloned the new project into `C:\Users\ahmad\Documents\tandem-workspace-v1`, update that folder without cloning again:
+If you already cloned the new project into `$env:USERPROFILE\tandem-workspace-v1`, update that folder without cloning again:
 
 ```powershell
-cd "C:\Users\ahmad\Documents\tandem-workspace-v1"
-git fetch origin refs/heads/slice-5-approvals:refs/remotes/origin/slice-5-approvals
-git switch slice-5-approvals
-git pull --ff-only origin slice-5-approvals
+cd "$env:USERPROFILE\tandem-workspace-v1"
+git fetch origin refs/heads/v1:refs/remotes/origin/v1
+git switch v1
+git pull --ff-only origin v1
 node infra/dev.mjs
 ```
 
@@ -91,7 +91,7 @@ To add a future OpenAI key yourself, set `TANDEM_OPENAI_API_KEY` securely and us
 
 Default models are `openai/gpt-oss-120b`, `gemini-3.5-flash`, `deepseek-flash`, and optional `gpt-5.5`; override their respective model variables when provider availability changes. Existing configurations pinning earlier IDs must update their own model settings and restart the backend. Trial output is capped at 512 tokens and input at 4,000 characters, with five trials per user and per workspace per minute and four simultaneous calls per backend process. Switching workspaces does not reset the user's budget. Automatic fallbacks can incur multiple provider requests. Use synthetic test content; only the submitted question is sent externally, and prompt/answer text is not stored in the trial history.
 
-See [the AI provider report](docs/AI_PROVIDER_REPORT.md) for actual live-provider results and limitations. This remains an isolated trial feature. The shared agent has its own permission-aware channel and proposal workflow; memory remains future work. Mobile support is responsive web, not a native iOS/Android app. No public hosting deployment has been performed.
+See [the AI provider report](docs/AI_PROVIDER_REPORT.md) for actual live-provider results and limitations. This remains an isolated trial feature. The shared agent has its own permission-aware channel and proposal workflow; Slice 6 adds local memory retrieval separately from Try AI. Mobile support is responsive web, not a native iOS/Android app. No public hosting deployment has been performed.
 
 ## What is implemented
 
@@ -108,11 +108,11 @@ The frontend now uses the uploaded **Workspace UI UX - Web + Mobile.html** canva
 
 An Owner/Admin enables the workspace agent in **Settings → Agent**, then chooses its channels. Public channels are eligible by default; private channels start off. Every member, including a Viewer, can mention **@Agent** in a message or thread. Adding a mention by editing a message schedules it once; retries/edits never create duplicate runs. The agent replies as its own teal actor with expandable read steps. It has no human membership or seat.
 
-Nine bounded read tools cover messages, full-text workspace search, tasks, projects, channel context, blockers and progress aggregation. They reuse the requesting user's REST authorization services. A shared reply also respects its destination audience: another private channel is excluded even for a requester who can open it. Tool results are untrusted data. Slice 5 adds six proposal tools described below; domain changes require human approval. There are no direct mutation, network-fetch, filesystem, execution, document or memory tools.
+Twelve bounded read tools cover messages, full-text workspace search, tasks, projects, channel context, blockers and progress aggregation. They reuse the requesting user's REST authorization services. A shared reply also respects its destination audience: another private channel is excluded even for a requester who can open it. Tool results are untrusted data. Slice 5 adds six proposal tools described below; domain changes require human approval. Slice 6 adds `search_memory`, `find_similar_bugs` and `analyze_bug` as read-only tools. There are no direct mutation, network-fetch, filesystem, execution or document tools.
 
 Groq → Gemini is the default provider chain. Only an Owner can opt in to DeepSeek/OpenAI for workspace data; the settings screen displays a data-sharing warning. Models/keys remain backend configuration, reused from Try AI. Startup checks configured model IDs and exposes discovery failures in settings rather than guessing availability. Missing keys produce a friendly unavailable message. **Try AI** stays an isolated Admin trial with synthetic questions.
 
-Runs use a PostgreSQL queue (`FOR UPDATE SKIP LOCKED`), four worker slots and one concurrent run per workspace by default. `AGENT_RUN_TIMEOUT_SECONDS` defaults to 60; calls use the existing provider timeout with no SDK retries. User/workspace admission limits default to 5/20 per minute. Settings control the monthly run limit (default 1,000) and pause-at-limit; disabling pause allows overage. Stale jobs fail safely after restart instead of silently rebilling. Keep one Uvicorn worker as required by live presence/fan-out.
+Runs use a PostgreSQL queue (`FOR UPDATE SKIP LOCKED`), four worker slots and one concurrent run per workspace by default. `AGENT_RUN_TIMEOUT_SECONDS` defaults to 60; agent calls use a 15-second attempt timeout, one simplified protocol retry and at most two Gemini 5xx retries, with SDK retries disabled. User/workspace admission limits default to 5/20 per minute. Settings control the monthly run limit (default 1,000) and pause-at-limit; disabling pause allows overage. Stale jobs fail safely after restart instead of silently rebilling. Keep one Uvicorn worker as required by live presence/fan-out.
 
 Settings → **Audit log** is Owner/Admin-only, with time, actor/action/status filters, cursor pagination, redacted details and CSV export (10,000 rows maximum per export; narrow the time range beyond that). Database triggers reject audit UPDATE/DELETE/TRUNCATE. Audit/run/tool metadata contains no prompt, retrieved content or answer; normal channel messages and their existing replay journal retain the conversation. Offline disables the Agent chip and keeps unsent drafts without sending on reconnect.
 
@@ -189,7 +189,7 @@ PLAYWRIGHT_CHROMIUM_EXECUTABLE=/usr/bin/chromium npm run test:e2e
 
 Playwright starts Next.js if needed, but expects the backend to be running. Browser tests exercise two independent user sessions, invitations, role changes, workspace switching and a 390px mobile login. Backend tests cover all workspace routes for isolation, role boundaries, concurrent invitation acceptance, invalid/expired/replayed tokens, session revocation, CSRF, password reset and rate limiting. CI runs lint, tests, production build and browser tests against PostgreSQL.
 
-See [session strategy](docs/adr/0001-authentication-and-sessions.md) and [repository layout](docs/adr/0002-repository-layout.md). Next planned slice: memory and RAG (Slice 6), after real-provider verification and review of Slice 5. Collaborative documents, marketing and billing remain future work.
+See [session strategy](docs/adr/0001-authentication-and-sessions.md) and [repository layout](docs/adr/0002-repository-layout.md). Slice 6 acceptance includes a real local-model evaluation and the outstanding product-owner manual Slice 5 UI test. Collaborative documents are proposed next only after those gates pass. Collaborative documents, marketing and billing remain future work.
 
 
 ## Slice 2: channels and messaging
@@ -238,3 +238,45 @@ node infra/measure_tasks.mjs http://localhost:3000
 ```
 
 This creates synthetic accounts/workspace, seeds 1,000 tasks, measures 20 board HTTP reads, cold board navigation-to-paint and 30 HTTP-edit-to-second-browser-WebSocket deliveries, then signs the test accounts out. `PLAYWRIGHT_CHROMIUM_EXECUTABLE` optionally selects an installed browser. For the desktop launcher origin use `http://localhost:3001` and matching host database configuration. No provider calls occur. See [Slice 3 report](docs/SLICE3_REPORT.md) and ADRs 0008–0011 for validation, measured limits and design decisions.
+
+## Workspace memory and search (Slice 6 branch)
+
+The `slice-6-memory` branch adds persistent message/task/comment indexing, PostgreSQL full-text plus local ONNX/pgvector search, and Owner/Admin controls at **Settings → Memory**. Search is available at **Search** on desktop and through Settings navigation on mobile. Both require a connection. No document indexing is implemented.
+
+Private-channel indexing defaults off. Inclusion never grants access: SQL candidates require current workspace/channel membership and live source/settings state before ranking. Agent retrieval also respects the destination audience. Source chips are re-authorized for the current viewer. Search exposes no inaccessible counts or skipped-source hints.
+
+Memory settings support per-source inclusion, forever/one-year/90-day retention, queued reindexing, and explicit forgetting by source or selected records with a signed count preview. Derived records are removed; original messages/tasks remain. Forgetting a source turns it off and selected record suppression keys survive reindexing. Opt-in resolution summaries create only an extractive add-comment proposal after a new bug completion in an eligible public project channel; a human must approve before any comment exists. All control changes and forgetting are audited.
+
+Embeddings never call an external inference service. The public model files must be downloaded separately and verified before local inference; until then retrieval visibly falls back to full-text. E5-small is selected after real local comparison: 84.44% overall hybrid recall@5 on the unchanged synthetic fixture (70% target). See [ADR 0022](docs/adr/0022-local-multilingual-embeddings.md) and [the real embedding report](docs/SLICE6_REAL_EMBEDDINGS.md). Strict live answer generation remains blocked by provider rate limits.
+
+With the backend container running, download the public E5-small ONNX candidate into its persistent local model directory:
+
+```bash
+docker compose exec backend python -m app.memory.embeddings e5-small
+```
+
+The downloader pins the upstream revision, requires an MIT/Apache-2.0 model-card license (from the conversion or its verified original-model link), checks artifact hashes and performs a local mixed-language inference check. It fails safely when model access/verification is unavailable. Installing a candidate does not itself pass the retrieval evaluation. For native development, run `.venv/bin/python -m app.memory.embeddings e5-small --destination ../.local/models/e5-small` from `backend`; an optional absolute `MEMORY_MODEL_PATH` overrides the default. `MEMORY_EMBEDDING_ENABLED=false` explicitly selects degraded full-text behavior.
+
+Reindex from Memory settings, or from the repository root with backend dependencies installed:
+
+```bash
+backend/.venv/bin/python infra/memory_backfill.py --workspace WORKSPACE_ID --drain
+backend/.venv/bin/python infra/run_eval.py --output eval/similar_bugs/results.json
+```
+
+The evaluation uses a disposable database and the committed 30-English/15-Arabic synthetic pairs, not development data. Real candidate comparison instructions and measurement limits are in [the evaluation README](eval/similar_bugs/README.md). Backfill shares the durable queue consumed by the existing worker; normal indexing needs no extra process. Model/version changes requeue missing active-version embeddings; a dimension change needs an explicit vector/index migration.
+
+Strict optional live checks use synthetic data and real agent runs, with fake mode off. They print safe metadata only:
+
+```bash
+backend/.venv/bin/python infra/check_memory_live.py --language en --tool analyze_bug --require-live
+backend/.venv/bin/python infra/check_memory_live.py --language ar --tool analyze_bug --require-live
+backend/.venv/bin/python infra/check_memory_live.py --language en --tool find_similar_bugs --require-live
+backend/.venv/bin/python infra/check_memory_live.py --language ar --tool find_similar_bugs --require-live
+```
+
+Append `--origin http://localhost:3001` for the desktop launcher. Missing credentials exit 2 in strict mode; failed checks exit 1. Live generation success with degraded retrieval is not a vector/hybrid quality pass. No AWS deployment is performed by Slice 6.
+
+For semantic acceptance, also pass `--require-embeddings --embedding-model MODEL_ID`, where `MODEL_ID` is the exact local model selected by the real comparison. The checker rejects missing embeddings, a different model or missing synthetic-task vectors before requesting paid generation. It verifies both tasks through vector-only retrieval, so full-text hits cannot substitute for a populated vector index. The ordinary `--require-live` commands above still permit visibly degraded full-text retrieval and cannot close the embedding gate.
+
+CI retains failed-test traces, screenshots and the Playwright HTML report in `browser-test-results-RUN_ATTEMPT` for seven days. Download the artifact from the failed Actions run and open its HTML report or trace locally. A passing rerun does not establish the cause of an earlier failure.

@@ -1,0 +1,65 @@
+{
+  "mode": "synthetic_evaluation",
+  "seed": 20261017,
+  "ranking": {
+    "rrf_k": 60,
+    "full_text_weight": 1,
+    "vector_weight": 1,
+    "test_set_tuning": "none; parameters fixed before test"
+  },
+  "mrr_scope": "reciprocal rank over every returned page within the service candidate cap of 200; corpus has 75 documents; missing targets contribute zero",
+  "models": [
+    {
+      "model": {
+        "id": "unavailable",
+        "status": "model_not_downloaded_or_invalid"
+      },
+      "indexing": {
+        "jobs": 1,
+        "seconds": 0.218,
+        "source_documents_per_second": 344.66,
+        "p95_lag_ms": 210.78
+      },
+      "methods": {
+        "full_text": {
+          "status": "completed",
+          "metrics": {
+            "en": {
+              "queries": 30,
+              "recall_at_5": 0.7,
+              "mrr": 0.5151
+            },
+            "ar": {
+              "queries": 15,
+              "recall_at_5": 0.4667,
+              "mrr": 0.4373
+            },
+            "overall": {
+              "queries": 45,
+              "recall_at_5": 0.6222,
+              "mrr": 0.4892
+            }
+          },
+          "p95_retrieval_ms": 163.43
+        },
+        "vector": {
+          "status": "not_run_model_unavailable"
+        },
+        "hybrid": {
+          "status": "not_run_model_unavailable"
+        }
+      }
+    }
+  ],
+  "documents": 75,
+  "queries": 45,
+  "hybrid_target_status": "not_verified_model_unavailable",
+  "backfill_cli": {
+    "exit_code": 0,
+    "status": "passed",
+    "metadata": {
+      "status": "processed",
+      "jobs_processed": 1
+    }
+  }
+}

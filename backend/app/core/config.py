@@ -42,6 +42,9 @@ class Settings(BaseSettings):
     ai_max_output_tokens: int = Field(default=512, ge=16, le=2048)
     proposal_expiry_days: int = Field(default=7, ge=1, le=30)
     proposal_pending_per_channel: int = Field(default=20, ge=1, le=100)
+    memory_model_path: Path = ROOT / ".local" / "models" / "e5-small"
+    memory_embedding_enabled: bool = True
+    memory_index_interval_seconds: float = Field(default=1, ge=0.1, le=10)
     agent_worker_enabled: bool = True
     agent_provider_timeout_seconds: float = Field(default=15, ge=1, le=30)
     agent_max_output_tokens: int = Field(default=2048, ge=256, le=4096)

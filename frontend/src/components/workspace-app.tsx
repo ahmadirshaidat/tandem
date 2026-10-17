@@ -20,6 +20,8 @@ import {
   UserPlus,
   Users,
   Sparkles,
+  Search,
+  Database,
 } from "lucide-react";
 import { ErrorNotice, Field, Logo, ThemeToggle } from "@/components/common";
 import { Button } from "@/components/ui/button";
@@ -43,6 +45,8 @@ import {
 import { ApprovalsInbox } from "./proposals";
 import { AgentSettingsPage, AuditLogPage } from "./agent";
 
+import { SearchPage, MemorySettingsPage } from "./memory";
+
 type Section =
   | "home"
   | "members"
@@ -53,10 +57,19 @@ type Section =
   | "tasks"
   | "agent-settings"
   | "audit"
-  | "inbox";
+  | "inbox"
+  | "search"
+  | "memory";
 import { ProjectNavigation, TasksPage } from "@/components/tasks-page";
 
 const nav = [
+  { href: "/search", section: "search", label: "Search", Icon: Search },
+  {
+    href: "/settings/memory",
+    section: "memory",
+    label: "Memory",
+    Icon: Database,
+  },
   {
     href: "/channels",
     section: "channels",
@@ -353,6 +366,8 @@ export function WorkspaceApp({ section }: { section: Section }) {
               <Link href="/settings">General</Link>
               <Link href="/members">Members</Link>
               <Link href="/settings/agent">Agent</Link>
+              <Link href="/settings/memory">Memory</Link>
+              <Link href="/search">Search</Link>
               <Link href="/settings/audit">Audit log</Link>
               <Link href="/ai">Try AI</Link>
               <Link href="/inbox">Inbox</Link>
@@ -374,6 +389,10 @@ export function WorkspaceApp({ section }: { section: Section }) {
             <ApprovalsInbox key={workspace.id} workspace={workspace} />
           ) : section === "agent-settings" ? (
             <AgentSettingsPage key={workspace.id} workspace={workspace} />
+          ) : section === "search" ? (
+            <SearchPage key={workspace.id} workspace={workspace} />
+          ) : section === "memory" ? (
+            <MemorySettingsPage key={workspace.id} workspace={workspace} />
           ) : section === "audit" ? (
             <AuditLogPage key={workspace.id} workspace={workspace} />
           ) : section === "members" ? (

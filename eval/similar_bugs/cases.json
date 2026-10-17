@@ -1,0 +1,1019 @@
+{
+  "seed": 20261017,
+  "scope": "Synthetic paraphrase pairs only; no real workspace data",
+  "ranking_parameters_fixed_before_test": {
+    "rrf_k": 60,
+    "full_text_weight": 1,
+    "vector_weight": 1
+  },
+  "test_set_tuning": "none",
+  "documents": [
+    {
+      "id": "ar-10",
+      "language": "ar",
+      "title": "JWT refresh retry بعد إلغاء الرمز",
+      "description": "أعاد العميل محاولة JWT refresh رغم إلغاء الرمز. أوقف retries للمصادقة المرفوضة وأظهر طلب تسجيل دخول جديد.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "en-02",
+      "language": "en",
+      "title": "Stale permission cache after membership removal",
+      "description": "Authorization used a cached membership result after a member was removed. Query current workspace membership on every request and invalidate permission caches.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "distractor-02",
+      "language": "en",
+      "title": "Unrelated interface issue 2",
+      "description": "A settings button used an obsolete border token. Replace the style token and check contrast.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "en-15",
+      "language": "en",
+      "title": "SQL wildcard makes literal search too broad",
+      "description": "Search placed unescaped user text in a LIKE pattern. Escape wildcard characters or use a parameterized full-text query.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "distractor-28",
+      "language": "en",
+      "title": "Unrelated interface issue 28",
+      "description": "A settings button used an obsolete border token. Replace the style token and check contrast.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "en-20",
+      "language": "en",
+      "title": "Task ordering precision exhausted",
+      "description": "Fractional ranks became indistinguishable. Rebalance ranks under a workspace lock and broadcast the updated ordering.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "en-08",
+      "language": "en",
+      "title": "WebSocket reconnect loses task updates",
+      "description": "The socket client resumed from a fresh sequence rather than its last event cursor. Replay events after the acknowledged cursor and deduplicate event IDs.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "en-07",
+      "language": "en",
+      "title": "Offline draft sent unexpectedly on reconnect",
+      "description": "The reconnect handler drained an offline write queue. Preserve drafts locally and require an explicit send after reconnecting.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "ar-05",
+      "language": "ar",
+      "title": "اختلاف يوم الموعد النهائي",
+      "description": "تم تحويل تاريخ بلا وقت إلى توقيت UTC. احفظ اليوم كتاريخ تقويمي ولا تحوله بين المناطق الزمنية.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "ar-12",
+      "language": "ar",
+      "title": "عدم تراجع عملية موافقة فاشلة",
+      "description": "نفذت عناصر الخطة في معاملات منفصلة. اجعل تنفيذ كل العناصر معاملة واحدة تتراجع بالكامل عند فشل أي عنصر.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "en-18",
+      "language": "en",
+      "title": "Unstable pagination repeats rows",
+      "description": "Sorting used only a timestamp shared by several rows. Add a stable unique ID tie breaker and bind cursors to the query filters.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "distractor-07",
+      "language": "ar",
+      "title": "مشكلة واجهة غير مرتبطة 7",
+      "description": "ظهر لون قديم لزر الإعدادات. حدث رمز اللون وتحقق من تباين النص في الواجهة.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "en-27",
+      "language": "en",
+      "title": "Multi item approval partially commits",
+      "description": "Each proposal item committed independently. Execute the complete approved payload inside one transaction and roll back all domain mutations on failure.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "ar-09",
+      "language": "ar",
+      "title": "رفع الصور الكبيرة يفشل",
+      "description": "حد حجم الطلب في reverse proxy أصغر من حد المرفقات. اضبط إعداد الرفع في الوكيل مع إبقاء التحقق في التطبيق.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "distractor-20",
+      "language": "en",
+      "title": "Unrelated interface issue 20",
+      "description": "A settings button used an obsolete border token. Replace the style token and check contrast.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "en-28",
+      "language": "en",
+      "title": "Shared answer quotes another private channel",
+      "description": "Retrieval checked requester access but ignored the destination audience. Restrict private context to the destination channel before constructing the shared answer.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "ar-04",
+      "language": "ar",
+      "title": "تحديث قديم يمحو التعديل الجديد",
+      "description": "لم يتم فحص رقم إصدار المهمة عند الحفظ. ارفض النسخة القديمة وأظهر تعارض التعديلات للمستخدم.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "distractor-19",
+      "language": "ar",
+      "title": "مشكلة واجهة غير مرتبطة 19",
+      "description": "ظهر لون قديم لزر الإعدادات. حدث رمز اللون وتحقق من تباين النص في الواجهة.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "ar-11",
+      "language": "ar",
+      "title": "تداخل بيانات مساحتي عمل",
+      "description": "أحد فروع SQL لم يطبق workspace_id قبل ترتيب النتائج. اربط كل مصدر بمساحة العمل الحالية قبل الاسترجاع.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "en-19",
+      "language": "en",
+      "title": "Background worker repeats a completed job",
+      "description": "The job completion marker and mutation committed separately. Use transactional claims, idempotency keys and a durable completion state.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "en-05",
+      "language": "en",
+      "title": "Timezone shifts due date by one day",
+      "description": "A date-only due value was converted through UTC midnight. Preserve calendar dates without timezone conversion.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "en-03",
+      "language": "en",
+      "title": "Database connection pool exhausted",
+      "description": "A request leaked its PostgreSQL session on exceptions. Close sessions in a finally block and bound the database pool size.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "distractor-05",
+      "language": "ar",
+      "title": "مشكلة واجهة غير مرتبطة 5",
+      "description": "ظهر لون قديم لزر الإعدادات. حدث رمز اللون وتحقق من تباين النص في الواجهة.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "ar-01",
+      "language": "ar",
+      "title": "انتهاء رمز الدخول يكرر الطلب",
+      "description": "استمر العميل بإعادة إرسال رمز وصول منتهي. أوقف تكرار المصادقة بعد رفض الرمز واطلب تسجيل الدخول من جديد.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "en-14",
+      "language": "en",
+      "title": "Image type spoofed by extension",
+      "description": "Upload validation trusted the filename suffix. Decode actual image bytes and enforce supported content types and size bounds.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "en-30",
+      "language": "en",
+      "title": "Embedding version mixes incompatible vectors",
+      "description": "Vectors from different model revisions shared one retrieval pool. Store model identity and dimension, rebuild explicitly and query only the active version.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "distractor-15",
+      "language": "ar",
+      "title": "مشكلة واجهة غير مرتبطة 15",
+      "description": "ظهر لون قديم لزر الإعدادات. حدث رمز اللون وتحقق من تباين النص في الواجهة.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "en-13",
+      "language": "en",
+      "title": "Upload blocked by reverse proxy size limit",
+      "description": "Nginx allowed a smaller request body than the application attachment limit. Align proxy limits and retain backend file validation.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "ar-14",
+      "language": "ar",
+      "title": "تعليق طلب النموذج",
+      "description": "لم يكن لطلب النموذج مهلة نقل محددة. ضع timeout لكل محاولة وحدا لعدد الإعادات وموعدا نهائيا لتشغيل الوكيل.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "distractor-04",
+      "language": "en",
+      "title": "Unrelated interface issue 4",
+      "description": "A settings button used an obsolete border token. Replace the style token and check contrast.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "en-10",
+      "language": "en",
+      "title": "Private conversation title leaked in link preview",
+      "description": "Link metadata was serialized before endpoint authorization. Resolve both ends using the current viewer and suppress inaccessible labels.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "distractor-25",
+      "language": "ar",
+      "title": "مشكلة واجهة غير مرتبطة 25",
+      "description": "ظهر لون قديم لزر الإعدادات. حدث رمز اللون وتحقق من تباين النص في الواجهة.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "distractor-08",
+      "language": "en",
+      "title": "Unrelated interface issue 8",
+      "description": "A settings button used an obsolete border token. Replace the style token and check contrast.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "ar-08",
+      "language": "ar",
+      "title": "الذاكرة تعيد المحتوى المنسي",
+      "description": "لم تحفظ عملية النسيان علامات استبعاد ثابتة. احتفظ بمفاتيح السجلات المنسية حتى لا يعيد البناء إدخالها.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "ar-02",
+      "language": "ar",
+      "title": "تسرب نتائج قناة خاصة",
+      "description": "تم حساب ترتيب البحث قبل تطبيق عضوية القناة. طبق صلاحيات المستخدم داخل استعلام قاعدة البيانات وأعد التحقق قبل العرض.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "en-22",
+      "language": "en",
+      "title": "Password reset token reused",
+      "description": "Reset tokens were not marked used transactionally. Hash tokens, enforce expiry and revoke the credential after one successful use.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "distractor-18",
+      "language": "en",
+      "title": "Unrelated interface issue 18",
+      "description": "A settings button used an obsolete border token. Replace the style token and check contrast.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "en-25",
+      "language": "en",
+      "title": "Agent proposal creates tasks before approval",
+      "description": "A model tool called the task mutation service directly. Limit the registry to reads and proposal creation; execute changes only in authenticated human decisions.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "ar-15",
+      "language": "ar",
+      "title": "حذف الأصل عند تنظيف الذاكرة",
+      "description": "حذفت مهمة التنظيف الرسائل الأصلية بدلا من الفهرس المشتق. طبق مدة الاحتفاظ على سجلات الذاكرة والمتجهات فقط.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "distractor-26",
+      "language": "en",
+      "title": "Unrelated interface issue 26",
+      "description": "A settings button used an obsolete border token. Replace the style token and check contrast.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "distractor-12",
+      "language": "en",
+      "title": "Unrelated interface issue 12",
+      "description": "A settings button used an obsolete border token. Replace the style token and check contrast.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "distractor-24",
+      "language": "en",
+      "title": "Unrelated interface issue 24",
+      "description": "A settings button used an obsolete border token. Replace the style token and check contrast.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "distractor-01",
+      "language": "ar",
+      "title": "مشكلة واجهة غير مرتبطة 1",
+      "description": "ظهر لون قديم لزر الإعدادات. حدث رمز اللون وتحقق من تباين النص في الواجهة.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "distractor-09",
+      "language": "ar",
+      "title": "مشكلة واجهة غير مرتبطة 9",
+      "description": "ظهر لون قديم لزر الإعدادات. حدث رمز اللون وتحقق من تباين النص في الواجهة.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "distractor-06",
+      "language": "en",
+      "title": "Unrelated interface issue 6",
+      "description": "A settings button used an obsolete border token. Replace the style token and check contrast.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "en-01",
+      "language": "en",
+      "title": "Expired access token retry loop",
+      "description": "JWT refresh retried the same revoked access token indefinitely. Stop retrying a revoked credential and ask the user to sign in again.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "distractor-10",
+      "language": "en",
+      "title": "Unrelated interface issue 10",
+      "description": "A settings button used an obsolete border token. Replace the style token and check contrast.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "en-09",
+      "language": "en",
+      "title": "Search returns another workspace document",
+      "description": "The retrieval query omitted the workspace predicate on a joined source table. Apply tenant isolation inside every SQL branch before ranking.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "distractor-13",
+      "language": "ar",
+      "title": "مشكلة واجهة غير مرتبطة 13",
+      "description": "ظهر لون قديم لزر الإعدادات. حدث رمز اللون وتحقق من تباين النص في الواجهة.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "distractor-03",
+      "language": "ar",
+      "title": "مشكلة واجهة غير مرتبطة 3",
+      "description": "ظهر لون قديم لزر الإعدادات. حدث رمز اللون وتحقق من تباين النص في الواجهة.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "en-29",
+      "language": "en",
+      "title": "Provider HTTP timeout never releases worker",
+      "description": "Provider transport and run deadlines were missing. Bound attempts, disable hidden SDK retries and reject late results after cancellation.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "en-21",
+      "language": "en",
+      "title": "Invitation accepted with wrong email",
+      "description": "Invite acceptance validated only the token. Bind the invitation to the authenticated email and consume the token exactly once.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "en-17",
+      "language": "en",
+      "title": "Arabic diacritics prevent search matches",
+      "description": "The index stored raw Arabic while the query omitted diacritics. Normalize vowel marks and alef variants consistently at index and query time.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "en-11",
+      "language": "en",
+      "title": "CORS rejects valid production origin",
+      "description": "FRONTEND_URL still pointed to a development origin. Configure the exact HTTPS origin used by the browser and check CSRF origin matching.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "distractor-27",
+      "language": "ar",
+      "title": "مشكلة واجهة غير مرتبطة 27",
+      "description": "ظهر لون قديم لزر الإعدادات. حدث رمز اللون وتحقق من تباين النص في الواجهة.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "distractor-00",
+      "language": "en",
+      "title": "Unrelated interface issue 0",
+      "description": "A settings button used an obsolete border token. Replace the style token and check contrast.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "en-12",
+      "language": "en",
+      "title": "Secure cookie missing on HTTP development",
+      "description": "The browser refused a Secure cookie on plain HTTP localhost. Use development cookie settings locally and HTTPS with secure cookies in production.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "en-06",
+      "language": "en",
+      "title": "Concurrent task edit overwrites newer content",
+      "description": "Task updates lacked optimistic concurrency. Compare the supplied version and return a conflict with the current server record.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "ar-07",
+      "language": "ar",
+      "title": "فشل البحث بسبب تشكيل العربية",
+      "description": "اختلف تطبيع النص العربي بين الفهرس والاستعلام. أزل الحركات ووحد أشكال الألف والياء في الطرفين.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "distractor-29",
+      "language": "ar",
+      "title": "مشكلة واجهة غير مرتبطة 29",
+      "description": "ظهر لون قديم لزر الإعدادات. حدث رمز اللون وتحقق من تباين النص في الواجهة.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "en-26",
+      "language": "en",
+      "title": "Approval retry creates duplicate tasks",
+      "description": "Decision retries generated new operation IDs. Persist the original idempotency key and return the completed result for an exact retry.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "ar-03",
+      "language": "ar",
+      "title": "تكرار المهمة بعد الموافقة",
+      "description": "كل إعادة للموافقة نفذت إنشاء المهام مجددا. احفظ مفتاح العملية وأعد نتيجة التنفيذ السابق دون إضافة نسخة أخرى.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "distractor-14",
+      "language": "en",
+      "title": "Unrelated interface issue 14",
+      "description": "A settings button used an obsolete border token. Replace the style token and check contrast.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "distractor-16",
+      "language": "en",
+      "title": "Unrelated interface issue 16",
+      "description": "A settings button used an obsolete border token. Replace the style token and check contrast.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "en-23",
+      "language": "en",
+      "title": "Memory resurrected after explicit forgetting",
+      "description": "Reindexing ignored explicit forget tombstones. Preserve suppression keys and never delete underlying tasks when forgetting derived memory.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "ar-13",
+      "language": "ar",
+      "title": "الوكيل ينشر سياقا خاصا للجميع",
+      "description": "اكتفى الاسترجاع بصلاحية مقدم الطلب ولم يفحص جمهور الوجهة. امنع سياق القنوات الخاصة الأخرى من الوصول إلى الرد المشترك.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "distractor-21",
+      "language": "ar",
+      "title": "مشكلة واجهة غير مرتبطة 21",
+      "description": "ظهر لون قديم لزر الإعدادات. حدث رمز اللون وتحقق من تباين النص في الواجهة.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "distractor-23",
+      "language": "ar",
+      "title": "مشكلة واجهة غير مرتبطة 23",
+      "description": "ظهر لون قديم لزر الإعدادات. حدث رمز اللون وتحقق من تباين النص في الواجهة.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "distractor-22",
+      "language": "en",
+      "title": "Unrelated interface issue 22",
+      "description": "A settings button used an obsolete border token. Replace the style token and check contrast.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "distractor-17",
+      "language": "ar",
+      "title": "مشكلة واجهة غير مرتبطة 17",
+      "description": "ظهر لون قديم لزر الإعدادات. حدث رمز اللون وتحقق من تباين النص في الواجهة.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "en-16",
+      "language": "en",
+      "title": "Unicode cursor offset splits emoji",
+      "description": "Client offsets counted UTF16 code units but the server counted Unicode codepoints. Convert consistently and preserve surrogate pairs.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "en-24",
+      "language": "en",
+      "title": "Retention worker deletes original messages",
+      "description": "The expiry job targeted source tables instead of derived records. Apply retention only to memory and embeddings.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "distractor-11",
+      "language": "ar",
+      "title": "مشكلة واجهة غير مرتبطة 11",
+      "description": "ظهر لون قديم لزر الإعدادات. حدث رمز اللون وتحقق من تباين النص في الواجهة.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "en-04",
+      "language": "en",
+      "title": "Duplicate payment webhook delivery",
+      "description": "Webhook retries executed the purchase twice. Enforce a unique event identifier and make processing idempotent inside a transaction.",
+      "type": "bug",
+      "status": "done"
+    },
+    {
+      "id": "ar-06",
+      "language": "ar",
+      "title": "انقطاع الاتصال يفقد الأحداث",
+      "description": "لم يطلب عميل WebSocket الأحداث بعد آخر مؤشر محفوظ. أعد تشغيل الأحداث الفائتة واحذف التكرار باستخدام المعرف.",
+      "type": "bug",
+      "status": "done"
+    }
+  ],
+  "queries": [
+    {
+      "id": "query-en-01",
+      "language": "en",
+      "query": "Users get stuck refreshing authentication repeatedly after their login expires",
+      "relevant_ids": [
+        "en-01"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-en-02",
+      "language": "en",
+      "query": "Removed teammates still open restricted pages until the server restarts",
+      "relevant_ids": [
+        "en-02"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-en-03",
+      "language": "en",
+      "query": "Requests freeze under load because all SQL connections remain occupied",
+      "relevant_ids": [
+        "en-03"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-en-04",
+      "language": "en",
+      "query": "The same callback causes two billing entries when delivery is repeated",
+      "relevant_ids": [
+        "en-04"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-en-05",
+      "language": "en",
+      "query": "A date selected in Amman appears as yesterday for another teammate",
+      "relevant_ids": [
+        "en-05"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-en-06",
+      "language": "en",
+      "query": "Two editors save at once and one persons changes disappear",
+      "relevant_ids": [
+        "en-06"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-en-07",
+      "language": "en",
+      "query": "An old chat draft posts by itself when wifi returns",
+      "relevant_ids": [
+        "en-07"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-en-08",
+      "language": "en",
+      "query": "The board misses changes while the live connection is interrupted",
+      "relevant_ids": [
+        "en-08"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-en-09",
+      "language": "en",
+      "query": "Searching one team exposes content owned by a different organization",
+      "relevant_ids": [
+        "en-09"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-en-10",
+      "language": "en",
+      "query": "A public task reveals the name of a conversation the viewer cannot enter",
+      "relevant_ids": [
+        "en-10"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-en-11",
+      "language": "en",
+      "query": "Sign in works locally but browser requests are rejected on the deployed hostname",
+      "relevant_ids": [
+        "en-11"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-en-12",
+      "language": "en",
+      "query": "Login succeeds but the next local request appears anonymous",
+      "relevant_ids": [
+        "en-12"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-en-13",
+      "language": "en",
+      "query": "Small photos work but larger supported attachments fail before reaching Python",
+      "relevant_ids": [
+        "en-13"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-en-14",
+      "language": "en",
+      "query": "A renamed executable is accepted as a photograph",
+      "relevant_ids": [
+        "en-14"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-en-15",
+      "language": "en",
+      "query": "Typing a percent sign matches nearly every item",
+      "relevant_ids": [
+        "en-15"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-en-16",
+      "language": "en",
+      "query": "Selecting text around an emoji produces broken highlighting",
+      "relevant_ids": [
+        "en-16"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-en-17",
+      "language": "en",
+      "query": "Arabic phrases with vowel marks cannot find the same unmarked words",
+      "relevant_ids": [
+        "en-17"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-en-18",
+      "language": "en",
+      "query": "Going to the next results page shows entries already seen",
+      "relevant_ids": [
+        "en-18"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-en-19",
+      "language": "en",
+      "query": "A restarted worker performs the same operation a second time",
+      "relevant_ids": [
+        "en-19"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-en-20",
+      "language": "en",
+      "query": "Dragging cards into a narrow gap stops working after many moves",
+      "relevant_ids": [
+        "en-20"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-en-21",
+      "language": "en",
+      "query": "A forwarded invite lets an unrelated account join the team",
+      "relevant_ids": [
+        "en-21"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-en-22",
+      "language": "en",
+      "query": "A previously consumed reset link still changes the password again",
+      "relevant_ids": [
+        "en-22"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-en-23",
+      "language": "en",
+      "query": "Deleted retrieval records return after a full index rebuild",
+      "relevant_ids": [
+        "en-23"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-en-24",
+      "language": "en",
+      "query": "Changing the memory retention policy removes the chat history too",
+      "relevant_ids": [
+        "en-24"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-en-25",
+      "language": "en",
+      "query": "Tasks appear immediately when the assistant suggests a plan",
+      "relevant_ids": [
+        "en-25"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-en-26",
+      "language": "en",
+      "query": "Clicking approve twice creates another copy of every planned item",
+      "relevant_ids": [
+        "en-26"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-en-27",
+      "language": "en",
+      "query": "The first task remains after a later item fails validation",
+      "relevant_ids": [
+        "en-27"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-en-28",
+      "language": "en",
+      "query": "The assistant replies publicly with evidence from a restricted discussion",
+      "relevant_ids": [
+        "en-28"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-en-29",
+      "language": "en",
+      "query": "A stalled model request occupies an agent slot indefinitely",
+      "relevant_ids": [
+        "en-29"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-en-30",
+      "language": "en",
+      "query": "Semantic ranking becomes erratic after installing a different encoder",
+      "relevant_ids": [
+        "en-30"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-ar-01",
+      "language": "ar",
+      "query": "تسجيل الدخول يدور في حلقة عندما تنتهي الجلسة",
+      "relevant_ids": [
+        "ar-01"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-ar-02",
+      "language": "ar",
+      "query": "لماذا يرى عضو غير مشترك نص محادثة سرية في البحث",
+      "relevant_ids": [
+        "ar-02"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-ar-03",
+      "language": "ar",
+      "query": "ضغطت موافق مرتين فظهرت نسختان من نفس العمل",
+      "relevant_ids": [
+        "ar-03"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-ar-04",
+      "language": "ar",
+      "query": "حفظ زميلان نفس البطاقة وضاع النص الذي كتبه أحدهما",
+      "relevant_ids": [
+        "ar-04"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-ar-05",
+      "language": "ar",
+      "query": "اخترنا يوم الخميس لكن الموعد يظهر الأربعاء عند الفريق",
+      "relevant_ids": [
+        "ar-05"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-ar-06",
+      "language": "ar",
+      "query": "بعد عودة الشبكة لا تعرض اللوحة آخر تغييرات المهام",
+      "relevant_ids": [
+        "ar-06"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-ar-07",
+      "language": "ar",
+      "query": "كلمة بها حركات لا تظهر عند البحث عنها بدون تشكيل",
+      "relevant_ids": [
+        "ar-07"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-ar-08",
+      "language": "ar",
+      "query": "بعد إعادة الفهرسة رجعت نتيجة سبق أن حذفتها من ذاكرة الفريق",
+      "relevant_ids": [
+        "ar-08"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-ar-09",
+      "language": "ar",
+      "query": "صورة مسموحة بالحجم ترفض قبل أن تصل إلى الخادم",
+      "relevant_ids": [
+        "ar-09"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-ar-10",
+      "language": "ar",
+      "query": "المستخدم يبقى عالقا في refresh loop بعد تسجيل الخروج",
+      "relevant_ids": [
+        "ar-10"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-ar-11",
+      "language": "ar",
+      "query": "بحث فريق الدعم يعرض معلومات تخص فريقا مختلفا",
+      "relevant_ids": [
+        "ar-11"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-ar-12",
+      "language": "ar",
+      "query": "فشلت الخطة لكن بعض مهامها ظهرت رغم الخطأ",
+      "relevant_ids": [
+        "ar-12"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-ar-13",
+      "language": "ar",
+      "query": "رد عام للمساعد اقتبس محادثة خاصة يستطيع السائل وحده قراءتها",
+      "relevant_ids": [
+        "ar-13"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-ar-14",
+      "language": "ar",
+      "query": "استدعاء مزود الذكاء الاصطناعي لا ينتهي ويمنع بقية الطلبات",
+      "relevant_ids": [
+        "ar-14"
+      ],
+      "split": "test"
+    },
+    {
+      "id": "query-ar-15",
+      "language": "ar",
+      "query": "اختفى سجل الدردشة بعد تغيير الاحتفاظ إلى تسعين يوما",
+      "relevant_ids": [
+        "ar-15"
+      ],
+      "split": "test"
+    }
+  ]
+}

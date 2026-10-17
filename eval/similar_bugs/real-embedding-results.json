@@ -1,0 +1,190 @@
+{
+  "mode": "synthetic_evaluation",
+  "seed": 20261017,
+  "ranking": {
+    "rrf_k": 60,
+    "full_text_weight": 1,
+    "vector_weight": 1,
+    "test_set_tuning": "none; parameters fixed before test"
+  },
+  "mrr_scope": "reciprocal rank over every returned page within the service candidate cap of 200; corpus has 75 documents; missing targets contribute zero",
+  "models": [
+    {
+      "model": {
+        "id": "Xenova/multilingual-e5-small",
+        "version": "761b726dd34fb83930e26aab4e9ac3899aa1fa78-q8",
+        "dimension": 384,
+        "license": "mit",
+        "model_bytes": {
+          "model.onnx": 118308185,
+          "tokenizer.json": 17082730
+        }
+      },
+      "indexing": {
+        "jobs": 1,
+        "seconds": 1.233,
+        "source_documents_per_second": 60.85,
+        "p95_lag_ms": 1224.05
+      },
+      "methods": {
+        "full_text": {
+          "status": "completed",
+          "metrics": {
+            "en": {
+              "queries": 30,
+              "recall_at_5": 0.7,
+              "mrr": 0.5151
+            },
+            "ar": {
+              "queries": 15,
+              "recall_at_5": 0.4667,
+              "mrr": 0.4373
+            },
+            "overall": {
+              "queries": 45,
+              "recall_at_5": 0.6222,
+              "mrr": 0.4892
+            }
+          },
+          "p95_retrieval_ms": 88.33
+        },
+        "vector": {
+          "status": "completed",
+          "metrics": {
+            "en": {
+              "queries": 30,
+              "recall_at_5": 0.8333,
+              "mrr": 0.7418
+            },
+            "ar": {
+              "queries": 15,
+              "recall_at_5": 0.8667,
+              "mrr": 0.6806
+            },
+            "overall": {
+              "queries": 45,
+              "recall_at_5": 0.8444,
+              "mrr": 0.7214
+            }
+          },
+          "p95_retrieval_ms": 371.6
+        },
+        "hybrid": {
+          "status": "completed",
+          "metrics": {
+            "en": {
+              "queries": 30,
+              "recall_at_5": 0.8667,
+              "mrr": 0.7064
+            },
+            "ar": {
+              "queries": 15,
+              "recall_at_5": 0.8,
+              "mrr": 0.6015
+            },
+            "overall": {
+              "queries": 45,
+              "recall_at_5": 0.8444,
+              "mrr": 0.6714
+            }
+          },
+          "p95_retrieval_ms": 302.28
+        }
+      }
+    },
+    {
+      "model": {
+        "id": "Xenova/paraphrase-multilingual-MiniLM-L12-v2",
+        "version": "2c4055b12046f11709e9df2c122e59ffbdc2f900-q8",
+        "dimension": 384,
+        "license": "apache-2.0",
+        "model_bytes": {
+          "model.onnx": 118308126,
+          "tokenizer.json": 17082913
+        }
+      },
+      "indexing": {
+        "jobs": 1,
+        "seconds": 0.781,
+        "source_documents_per_second": 96.07,
+        "p95_lag_ms": 776.99
+      },
+      "methods": {
+        "full_text": {
+          "status": "completed",
+          "metrics": {
+            "en": {
+              "queries": 30,
+              "recall_at_5": 0.7,
+              "mrr": 0.5151
+            },
+            "ar": {
+              "queries": 15,
+              "recall_at_5": 0.4667,
+              "mrr": 0.4373
+            },
+            "overall": {
+              "queries": 45,
+              "recall_at_5": 0.6222,
+              "mrr": 0.4892
+            }
+          },
+          "p95_retrieval_ms": 65.51
+        },
+        "vector": {
+          "status": "completed",
+          "metrics": {
+            "en": {
+              "queries": 30,
+              "recall_at_5": 0.7,
+              "mrr": 0.545
+            },
+            "ar": {
+              "queries": 15,
+              "recall_at_5": 0.8,
+              "mrr": 0.5855
+            },
+            "overall": {
+              "queries": 45,
+              "recall_at_5": 0.7333,
+              "mrr": 0.5585
+            }
+          },
+          "p95_retrieval_ms": 261.05
+        },
+        "hybrid": {
+          "status": "completed",
+          "metrics": {
+            "en": {
+              "queries": 30,
+              "recall_at_5": 0.8,
+              "mrr": 0.6419
+            },
+            "ar": {
+              "queries": 15,
+              "recall_at_5": 0.8667,
+              "mrr": 0.595
+            },
+            "overall": {
+              "queries": 45,
+              "recall_at_5": 0.8222,
+              "mrr": 0.6262
+            }
+          },
+          "p95_retrieval_ms": 336.12
+        }
+      }
+    }
+  ],
+  "documents": 75,
+  "queries": 45,
+  "hybrid_target_status": "passed",
+  "backfill_cli": {
+    "exit_code": 0,
+    "status": "passed",
+    "metadata": {
+      "status": "processed",
+      "jobs_processed": 1
+    }
+  }
+}
