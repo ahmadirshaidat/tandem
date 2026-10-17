@@ -67,6 +67,7 @@ try:
         embedding_model=embedding.get("model"),
         embedding_version=embedding.get("version"),
         embeddings_required=bool(args.require_embeddings or args.embedding_model),
+        vector_index_verified=False,
     )
     if metadata["embeddings_required"] and embedding["degraded"]:
         raise ValueError("embedding_unavailable")
@@ -120,6 +121,19 @@ try:
         time.sleep(0.5)
     if metadata["embeddings_required"] and result["degraded"]:
         raise ValueError("embedding_unavailable")
+    if metadata["embeddings_required"]:
+        vector_response = client.get(
+            f"/api/workspaces/{wid}/search", params={"query": "JWT", "mode": "vector"}
+        )
+        vector_response.raise_for_status()
+        vector_result = vector_response.json()
+        if vector_result["degraded"]:
+            raise ValueError("embedding_unavailable")
+        if not {target["id"], past["id"]}.issubset(
+            {item["source_id"] for item in vector_result["items"]}
+        ):
+            raise ValueError("vector_index_incomplete")
+        metadata["vector_index_verified"] = True
     config = client.get(f"/api/workspaces/{wid}/agent/settings").json()
     if config["providers"]["groq"]["status"] == "fake_test_mode":
         raise ValueError("fake_mode_rejected")
@@ -244,6 +258,7 @@ except Exception as error:
             "fake_mode_rejected",
             "embedding_unavailable",
             "embedding_model_mismatch",
+            "vector_index_incomplete",
         }
         else "check_failed"
     )

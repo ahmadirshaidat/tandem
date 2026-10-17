@@ -148,7 +148,8 @@
   "checks": {
     "backend_helper_ruff": "passed",
     "frontend_lint": "passed",
-    "frontend_typecheck": "passed"
+    "frontend_typecheck": "passed",
+    "vector_index_guard_regression": "passed_mocked_http_only"
   },
   "live_semantic": {
     "status": "not_run_no_chosen_model",
@@ -182,7 +183,40 @@
           "category": "embedding_unavailable"
         }
       }
-    ]
+    ],
+    "preflights_after_vector_guard": [
+      {
+        "exit_code": 1,
+        "result": {
+          "mode": "live",
+          "provider": "groq",
+          "language": "en",
+          "requested_tool": "analyze_bug",
+          "embedding_model": null,
+          "embedding_version": null,
+          "embeddings_required": true,
+          "vector_index_verified": false,
+          "status": "failed",
+          "category": "embedding_unavailable"
+        }
+      },
+      {
+        "exit_code": 1,
+        "result": {
+          "mode": "live",
+          "provider": "groq",
+          "language": "ar",
+          "requested_tool": "analyze_bug",
+          "embedding_model": null,
+          "embedding_version": null,
+          "embeddings_required": true,
+          "vector_index_verified": false,
+          "status": "failed",
+          "category": "embedding_unavailable"
+        }
+      }
+    ],
+    "positive_vector_path": "unverified_without_real_weights"
   },
   "adr_0022_status": "proposed_not_accepted",
   "restored_runtime": {

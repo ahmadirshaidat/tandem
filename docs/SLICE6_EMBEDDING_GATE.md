@@ -51,9 +51,11 @@ CI now generates the Playwright HTML report alongside GitHub failure annotations
 
 ## Strict live semantic preflight
 
-The live checker now accepts `--require-embeddings` and an optional exact `--embedding-model MODEL_ID`. It rejects missing embeddings or a mismatched model before requesting generation. `--require-live` alone continues to permit degraded retrieval, so the earlier successful Groq/full-text checks do not satisfy this gate.
+The live checker now accepts `--require-embeddings` and an optional exact `--embedding-model MODEL_ID`. It rejects missing embeddings or a mismatched model before requesting generation. When weights are available, it also requires both synthetic tasks to appear in non-degraded vector-only retrieval; hybrid full-text hits cannot substitute for stored vectors. This positive vector path still requires real-model validation. `--require-live` alone continues to permit degraded retrieval, so the earlier successful Groq/full-text checks do not satisfy this gate.
 
 Both English and Arabic preflights ran with `--require-live --require-embeddings` and stopped with exit 1 / **`embedding_unavailable`**, with model/version null. **No generation was attempted.** These are expected blocked preflights, not successful live semantic checks. A successful strict check with the chosen model remains unverified because no model can yet be selected. The runtime was restored to fake-provider off, auth limit 10; backend health, frontend login and proxied CSRF endpoints returned HTTP 200.
+
+A regression test (`test_memory_live_checker.py`, **1 passed in 0.69 s**) supplies mocked HTTP where full-text hits exist but the vector index is empty. The checker rejects it with `vector_index_incomplete` before agent admission/generation. This tests the acceptance guard, not embedding quality. Both real-runtime blocked preflights were repeated after adding the guard and still stopped at `embedding_unavailable`; both sets of metadata are retained in the evidence file.
 
 ## Required next action
 
