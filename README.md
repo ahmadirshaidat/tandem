@@ -1,6 +1,6 @@
 # Tandem
 
-An AI-native collaborative workspace for software teams. Slices 0–5 and the real-provider compatibility fixes are merged into `v1`. **Slice 6 (workspace memory and permission-filtered retrieval)** is implemented on `slice-6-memory`; see [the Slice 6 report](docs/SLICE6_REPORT.md) for actual checks and open acceptance gates. Documents remain a later slice.
+Slices 0–6 and provider compatibility are merged into `v1`. Slice 7 collaborative documents are implemented on `slice-7-documents`; see [the current report](docs/SLICE7_REPORT.md) for checks and open acceptance gates. Prior product-owner manual acceptance remains unrecorded; proceeding was explicitly authorized.
 
 ## Requirements
 
@@ -241,7 +241,7 @@ This creates synthetic accounts/workspace, seeds 1,000 tasks, measures 20 board 
 
 ## Workspace memory and search (Slice 6 branch)
 
-The `slice-6-memory` branch adds persistent message/task/comment indexing, PostgreSQL full-text plus local ONNX/pgvector search, and Owner/Admin controls at **Settings → Memory**. Search is available at **Search** on desktop and through Settings navigation on mobile. Both require a connection. No document indexing is implemented.
+The `slice-6-memory` branch adds persistent message/task/comment indexing, PostgreSQL full-text plus local ONNX/pgvector search, and Owner/Admin controls at **Settings → Memory**. Search is available at **Search** on desktop and through Settings navigation on mobile. Both require a connection. Slice 7 adds document indexing through the same pipeline, controlled by the Documents source toggle.
 
 Private-channel indexing defaults off. Inclusion never grants access: SQL candidates require current workspace/channel membership and live source/settings state before ranking. Agent retrieval also respects the destination audience. Source chips are re-authorized for the current viewer. Search exposes no inaccessible counts or skipped-source hints.
 
@@ -280,3 +280,14 @@ Append `--origin http://localhost:3001` for the desktop launcher. Missing creden
 For semantic acceptance, also pass `--require-embeddings --embedding-model MODEL_ID`, where `MODEL_ID` is the exact local model selected by the real comparison. The checker rejects missing embeddings, a different model or missing synthetic-task vectors before requesting paid generation. It verifies both tasks through vector-only retrieval, so full-text hits cannot substitute for a populated vector index. The ordinary `--require-live` commands above still permit visibly degraded full-text retrieval and cannot close the embedding gate.
 
 CI retains failed-test traces, screenshots and the Playwright HTML report in `browser-test-results-RUN_ATTEMPT` for seven days. Download the artifact from the failed Actions run and open its HTML report or trace locally. A passing rerun does not establish the cause of an earlier failure.
+
+
+## Collaborative documents (Slice 7)
+
+Open **Documents** to create a Spec, Meeting notes, ADR or Bug postmortem in a project. Editors co-edit with Tiptap/Yjs; Viewers read. Private documents require explicit membership even for Admins. Use Suggestions to review exact Agent edits before accepting; the agent has no direct content-writing tool. History supports named snapshots, preview, restore and Markdown export.
+
+Documents persist offline using IndexedDB and a cached shell. Reconnect merges authorized edits; revoked access preserves a Rejected changes copy with download/discard. Agent requests and Suggestions require a connection. Use @ for authorized linked-item search, / for blocks, and Backlinks for connections. Channel message actions can create linked meeting notes.
+
+Compose now starts a small non-root Node document-sync service with the backend. Native development also needs `npm ci --prefix sync` and `backend/.venv/bin/python infra/run_document_sync.py` in a separate terminal. The cloud build helper builds both images. The desktop launcher uses sync port 8003, API 8001 and frontend 3001; native/cloud defaults are sync 8002/API 8000/frontend 3000. Configure `FRONTEND_URL` for the actual browser origin. `DOCUMENT_SYNC_SECRET` may override the server-only derived service credential; it never belongs in frontend variables.
+
+See [Slice 7 report](docs/SLICE7_REPORT.md) and ADRs 0027–0031 for measured server comparison, sync/open/indexing results, limits and remaining acceptance. No public deployment or Slice 8 work is included.

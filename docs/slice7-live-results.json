@@ -1,0 +1,66 @@
+{
+  "spacing": "at least 121 seconds after preceding attempt completed",
+  "provider": "groq",
+  "model": "openai/gpt-oss-120b",
+  "attempts": [
+    {
+      "attempt": 1,
+      "language": "en",
+      "finished_utc": "2026-10-17T20:35:02.848437+00:00",
+      "timestamp_scope": "safe output file completion mtime",
+      "result": {
+        "mode": "live",
+        "provider": "groq",
+        "language": "en",
+        "status": "failed",
+        "model": "openai/gpt-oss-120b",
+        "agent_status": "failed",
+        "agent_latency_ms": 2310,
+        "wall_ms": 2670.09,
+        "category": "rate_limited"
+      }
+    },
+    {
+      "attempt": 2,
+      "language": "en",
+      "started_utc": "2026-10-17T20:38:05.601917+00:00",
+      "finished_utc": "2026-10-17T20:38:11.027795+00:00",
+      "exit_code": 0,
+      "result": {
+        "mode": "live",
+        "provider": "groq",
+        "language": "en",
+        "status": "passed",
+        "model": "openai/gpt-oss-120b",
+        "agent_status": "completed",
+        "agent_latency_ms": 2121,
+        "wall_ms": 2724.83,
+        "unchanged_before_approval": true,
+        "proposal_status": "completed",
+        "double_accept_applied_once": true,
+        "agent_approved_version": true
+      }
+    },
+    {
+      "attempt": 1,
+      "language": "ar",
+      "started_utc": "2026-10-17T20:40:12.027907+00:00",
+      "finished_utc": "2026-10-17T20:40:17.409096+00:00",
+      "exit_code": 0,
+      "result": {
+        "mode": "live",
+        "provider": "groq",
+        "language": "ar",
+        "status": "passed",
+        "model": "openai/gpt-oss-120b",
+        "agent_status": "completed",
+        "agent_latency_ms": 2169,
+        "wall_ms": 2657.01,
+        "unchanged_before_approval": true,
+        "proposal_status": "completed",
+        "double_accept_applied_once": true,
+        "agent_approved_version": true
+      }
+    }
+  ]
+}

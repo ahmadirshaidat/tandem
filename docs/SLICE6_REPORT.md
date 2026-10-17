@@ -2,9 +2,11 @@
 
 Updated 17 October 2026 (Asia/Amman). Branch `slice-6-memory`; [draft PR #3](https://github.com/ahmadirshaidat/tandem/pull/3). No new product features were added during acceptance housekeeping.
 
+**Historical acceptance snapshot:** PR #3 was subsequently merged at `99f0b9f` on explicit user instruction to proceed. Prior manual owner checks remain unverified; this is not a manual acceptance pass. Current document work is tracked in [Slice 7 report](SLICE7_REPORT.md).
+
 ## Current decision
 
-Local E5 embeddings and the synthetic retrieval quality gate are verified. **Full Slice 6 acceptance remains open pending the product owner's manual Slice 5 real-provider UI approval test.** Strict live rerun results and current CI are recorded below; no automated test substitutes for that manual acceptance. Do not merge or begin Slice 7 on the strength of the embedding benchmark alone.
+Local E5 embeddings and the synthetic retrieval quality gate are verified. **Full Slice 6 acceptance remains open pending the product owner's manual Slice 5 real-provider UI approval test.** Strict live rerun results and current CI are recorded below; no automated test substitutes for that manual acceptance. That prerequisite was subsequently overridden by the explicit instruction to proceed; it does not establish manual acceptance.
 
 This is the current report. Earlier model-unavailable, proposed-model-choice and lexical-only live results are historical and superseded by the real E5 evidence. [The earlier embedding investigation](SLICE6_EMBEDDING_GATE.md) and [initial real-model measurements](SLICE6_REAL_EMBEDDINGS.md) retain their dated evidence, not current acceptance instructions. ADR 0022 is accepted for local model choice and synthetic quality.
 
