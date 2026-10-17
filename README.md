@@ -247,7 +247,7 @@ Private-channel indexing defaults off. Inclusion never grants access: SQL candid
 
 Memory settings support per-source inclusion, forever/one-year/90-day retention, queued reindexing, and explicit forgetting by source or selected records with a signed count preview. Derived records are removed; original messages/tasks remain. Forgetting a source turns it off and selected record suppression keys survive reindexing. Opt-in resolution summaries create only an extractive add-comment proposal after a new bug completion in an eligible public project channel; a human must approve before any comment exists. All control changes and forgetting are audited.
 
-Embeddings never call an external inference service. The public model files must be downloaded separately and verified before local inference; until then retrieval visibly falls back to full-text. The candidate choice/quality gate is pending in [ADR 0022](docs/adr/0022-local-multilingual-embeddings.md); no semantic quality is claimed from unit-test model stubs.
+Embeddings never call an external inference service. The public model files must be downloaded separately and verified before local inference; until then retrieval visibly falls back to full-text. E5-small is selected after real local comparison: 84.44% overall hybrid recall@5 on the unchanged synthetic fixture (70% target). See [ADR 0022](docs/adr/0022-local-multilingual-embeddings.md) and [the real embedding report](docs/SLICE6_REAL_EMBEDDINGS.md). Strict live answer generation remains blocked by provider rate limits.
 
 With the backend container running, download the public E5-small ONNX candidate into its persistent local model directory:
 
@@ -255,7 +255,7 @@ With the backend container running, download the public E5-small ONNX candidate 
 docker compose exec backend python -m app.memory.embeddings e5-small
 ```
 
-The downloader pins the upstream revision, requires an MIT/Apache-2.0 model-card license, checks artifact hashes and performs a local mixed-language inference check. It fails safely when model access/verification is unavailable. Installing a candidate does not itself pass the retrieval evaluation. For native development, run `.venv/bin/python -m app.memory.embeddings e5-small --destination ../.local/models/e5-small` from `backend`; an optional absolute `MEMORY_MODEL_PATH` overrides the default. `MEMORY_EMBEDDING_ENABLED=false` explicitly selects degraded full-text behavior.
+The downloader pins the upstream revision, requires an MIT/Apache-2.0 model-card license (from the conversion or its verified original-model link), checks artifact hashes and performs a local mixed-language inference check. It fails safely when model access/verification is unavailable. Installing a candidate does not itself pass the retrieval evaluation. For native development, run `.venv/bin/python -m app.memory.embeddings e5-small --destination ../.local/models/e5-small` from `backend`; an optional absolute `MEMORY_MODEL_PATH` overrides the default. `MEMORY_EMBEDDING_ENABLED=false` explicitly selects degraded full-text behavior.
 
 Reindex from Memory settings, or from the repository root with backend dependencies installed:
 

@@ -1,10 +1,12 @@
 # Slice 6: workspace memory and RAG
 
-Latest follow-up: [17 October embedding gate and browser investigation](SLICE6_EMBEDDING_GATE.md). A retention-reindex race in browser test setup was reproduced and addressed by waiting for fixture readiness. Three suites passed before and three after the correction (48 local executions total); post-fix CI passed. Fresh full-text quality is unchanged. Model downloads and semantic acceptance remain blocked by unapplied network settings.
+Latest embedding evidence: [real local comparison](SLICE6_REAL_EMBEDDINGS.md). E5-small is installed and passes the hybrid quality gate at 84.44%; strict live answer generation remains blocked by Groq rate limits. Earlier blocked evidence below is historical.
+
+Previous follow-up: [17 October embedding gate and browser investigation](SLICE6_EMBEDDING_GATE.md). A retention-reindex race in browser test setup was reproduced and addressed by waiting for fixture readiness. Three suites passed before and three after the correction (48 local executions total); post-fix CI passed. Fresh full-text quality is unchanged. Model downloads and semantic acceptance remain blocked by unapplied network settings.
 
 Validation: 16 October 2026 UTC / 17 October 2026 Asia/Amman. Branch: `slice-6-memory`, based on merged `v1` commit `8d1b3ce`. Draft review: [PR #3](https://github.com/ahmadirshaidat/tandem/pull/3).
 
-**Implementation is delivered for review; acceptance is BLOCKED.** Full-text indexing/search, permission boundaries, APIs, tools and UI passed the automated checks below. Real local embedding weights could not be downloaded under this environment's enforced network policy. Vector/hybrid evaluation and the required ≥70% hybrid recall@5 are unverified. All four latest real Groq checks passed; both Arabic cases required one later bounded retry after initial rate limits. Earlier failures remain recorded. The product owner's manual Slice 5 approval test remains unverified. No AWS deployment or Slice 7 work was performed.
+**Implementation is delivered for review; acceptance is BLOCKED.** Full-text indexing/search, permission boundaries, APIs, tools and UI passed the automated checks below. Real local embedding weights are now installed and the ≥70% hybrid recall@5 target passes; see the latest report above. Strict real-provider semantic answer checks still fail with rate limits. All four latest real Groq checks passed; both Arabic cases required one later bounded retry after initial rate limits. Earlier failures remain recorded. The product owner's manual Slice 5 approval test remains unverified. No AWS deployment or Slice 7 work was performed.
 
 ## Delivered behavior and files
 

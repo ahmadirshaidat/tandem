@@ -14,6 +14,10 @@ CANDIDATES = {
     "e5-small": "Xenova/multilingual-e5-small",
     "minilm": "Xenova/paraphrase-multilingual-MiniLM-L12-v2",
 }
+BASE_MODELS = {
+    "e5-small": "intfloat/multilingual-e5-small",
+    "minilm": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+}
 _lock = threading.Lock()
 _load_lock = threading.Lock()
 _models = {}
@@ -127,6 +131,21 @@ def download(candidate, destination):
         metadata = json.load(response)
     revision = metadata.get("sha", "")
     license_name = metadata.get("cardData", {}).get("license")
+    license_source = {"model": name, "revision": revision}
+    if license_name is None:
+        # These ONNX conversions identify their original model but omit its license.
+        base = BASE_MODELS[candidate]
+        if metadata.get("cardData", {}).get("base_model") != base:
+            raise ValueError("Expected original model link is required")
+        with urllib.request.urlopen(
+            f"https://huggingface.co/api/models/{base}", timeout=30
+        ) as response:
+            original = json.load(response)
+        base_revision = original.get("sha", "")
+        if not re.fullmatch(r"[a-f0-9]{40}", base_revision):
+            raise ValueError("Verified original model revision is required")
+        license_name = original.get("cardData", {}).get("license")
+        license_source = {"model": base, "revision": base_revision}
     if not re.fullmatch(r"[a-f0-9]{40}", revision) or license_name not in {"mit", "apache-2.0"}:
         raise ValueError("Verified revision and approved model license are required")
     destination = Path(destination)
@@ -164,6 +183,7 @@ def download(candidate, destination):
         "version": revision + "-q8",
         "dimension": 384,
         "license": license_name,
+        "license_source": license_source,
         "sha256": sums,
         "bytes": sizes,
         "source": f"https://huggingface.co/{name}/tree/{revision}",
