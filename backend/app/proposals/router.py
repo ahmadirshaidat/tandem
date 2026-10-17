@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Query, Request
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from app.agent.audit import audit
@@ -37,6 +37,17 @@ def list_proposals(
     query = select(Proposal).where(
         Proposal.workspace_id == workspace_id, Proposal.channel_id.in_(ids)
     )
+    from app.documents.models import Document
+    from app.documents.service import visible
+
+    query = query.where(
+        or_(
+            Proposal.kind != "suggest_edit",
+            Proposal.payload["document_id"]
+            .as_string()
+            .in_(visible(db, workspace_id, user.id).with_only_columns(Document.id)),
+        )
+    )
     if pending or actionable:
         from app.core.security import now
 
@@ -48,6 +59,7 @@ def list_proposals(
                 "create_tasks",
                 "update_task",
                 "add_comment",
+                "suggest_edit",
                 "reassign_task",
                 "change_priority",
                 "delete_task",
@@ -64,7 +76,7 @@ def list_proposals(
         query = query.where(Proposal.kind.in_(allowed_kinds))
     if before:
         from fastapi import HTTPException
-        from sqlalchemy import and_, or_
+        from sqlalchemy import and_
 
         anchor = db.scalar(query.where(Proposal.id == before))
         if not anchor:

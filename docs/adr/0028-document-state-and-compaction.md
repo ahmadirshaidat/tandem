@@ -1,0 +1,5 @@
+# ADR 0028: CRDT persistence and projections
+
+The Yjs state is authoritative. Each authorized update locks workspace then document, validates a candidate state with pycrdt, and derives bounded plain text/Markdown and mention links using the internal Yjs transformer. Publish only after persistence. Keep the complete compacted state on the document and at most 100 recent incremental updates. Versions retain independent full state snapshots. Defaults: 64 KiB updates, 1 MiB encoded document state/text, 240 frames/minute/connection, 120-second idle timeout. Malformed/unsupported XML trees are rejected. No document content is logged.
+
+Heading boundaries separate memory chunks; the existing worker and local E5 adapter are reused. Document triggers queue source revisions transactionally. Query SQL joins current document membership/project/source/retention state before ranking and limits, followed by service reauthorization. A Documents memory toggle suppresses document retrieval. Private document sources appear only to explicit members.

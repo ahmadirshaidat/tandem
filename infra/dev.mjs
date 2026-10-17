@@ -195,6 +195,8 @@ try {
       run("python3", ["infra/cloud_start.py"]);
     } else {
       process.env.TANDEM_API_PORT = "8001";
+      process.env.TANDEM_DOCUMENT_PORT = "8003";
+      process.env.DOCUMENT_SYNC_URL = "http://127.0.0.1:8003";
       process.env.TANDEM_DB_PORT = "5433";
       process.env.FRONTEND_URL = originUrl;
       process.env.BACKEND_URL = "http://127.0.0.1:8001";

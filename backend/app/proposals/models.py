@@ -57,11 +57,11 @@ class Proposal(Base):
             ["messages.workspace_id", "messages.channel_id", "messages.id"],
         ),
         CheckConstraint(
-            "kind IN ('create_tasks','update_task','reassign_task','change_priority','delete_task','add_comment')",
+            "kind IN ('create_tasks','update_task','reassign_task','change_priority','delete_task','add_comment','suggest_edit')",
             name="ck_proposal_kind",
         ),
         CheckConstraint(
-            "(kind IN ('reassign_task','change_priority','delete_task') AND risk = 'high') OR (kind IN ('create_tasks','update_task','add_comment') AND risk = 'low')",
+            "(kind IN ('reassign_task','change_priority','delete_task') AND risk = 'high') OR (kind IN ('create_tasks','update_task','add_comment','suggest_edit') AND risk = 'low')",
             name="ck_proposal_risk",
         ),
         CheckConstraint(

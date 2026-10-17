@@ -12,6 +12,7 @@ from app.channels.models import Channel, Message
 from app.core.db import SessionLocal
 from app.core.models import Workspace
 from app.core.security import now
+from app.documents.models import Document
 from app.memory.embeddings import ModelUnavailable, model
 from app.memory.models import (
     MemoryEmbedding,
@@ -37,7 +38,7 @@ def touch(db, wid, kind, sid):
 
 
 def backfill(db, wid):
-    for kind, table in [("channel", Channel), ("project", Project)]:
+    for kind, table in [("channel", Channel), ("project", Project), ("document", Document)]:
         for sid in db.scalars(select(table.id).where(table.workspace_id == wid)):
             touch(db, wid, kind, sid)
 
@@ -67,6 +68,7 @@ def snapshot(db, source, config):
                     "channel_id": cid,
                     "project_id": pid,
                     "task_id": item.id if typ == "task" else None,
+                    "document_id": item.id if typ == "document" else None,
                     "message_id": item.id if typ == "message" else None,
                     "chunk_number": index,
                     "record_key": key,
@@ -79,6 +81,27 @@ def snapshot(db, source, config):
             )
 
     if not source.enabled:
+        return output
+    if source.kind == "document":
+        d = db.get(Document, source.source_id)
+        if not d or d.archived or d.deleted_at or not config.include_documents:
+            return output
+        project = db.get(Project, d.project_id)
+        if not project or project.archived or project.deleted_at:
+            return output
+        # Heading boundaries are preserved; existing chunker bounds long sections.
+        import re
+
+        for section in re.split(r"(?m)(?=^#{1,3} )", d.markdown):
+            if section.strip():
+                prior = len(output)
+                add(d, section, d.title, None, d.project_id, "document")
+                for offset, row in enumerate(output[prior:], prior):
+                    row["chunk_number"] = offset
+                    row["record_key"] = hashlib.sha256(
+                        f"document:{d.id}:{offset}".encode()
+                    ).hexdigest()
+                    row["visibility_scope"] = "document"
         return output
     if source.kind == "channel":
         channel = db.get(Channel, source.source_id)

@@ -40,6 +40,12 @@ jobs:
           cache-dependency-glob: backend/uv.lock
       - name: Install backend
         run: uv sync --project backend --frozen
+      - name: Start document transformation service
+        run: |
+          npm ci --prefix sync
+          node sync/server.mjs > "$RUNNER_TEMP/tandem-document-sync.log" 2>&1 &
+          printf '%s\n' "$!" > "$RUNNER_TEMP/tandem-document-sync.pid"
+          node -e "const t=setInterval(()=>fetch('http://127.0.0.1:8002/health').then(r=>{if(r.ok){clearInterval(t);process.exit(0)}}).catch(()=>{}),200);setTimeout(()=>process.exit(1),15000)"
       - name: Backend lint and integration tests
         working-directory: backend
         run: |
@@ -88,6 +94,13 @@ jobs:
           PLAYWRIGHT_HTML_OPEN: never
         # Put assertion failures in check annotations as well as downloadable logs.
         run: npm run test:e2e -- --reporter=dot,github,html
+      - name: Stop document sync
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/tandem-document-sync.pid" ]; then
+            read -r tandem_document_pid < "$RUNNER_TEMP/tandem-document-sync.pid"
+            kill "$tandem_document_pid" || true
+          fi
       - name: Stop backend
         if: always()
         run: |

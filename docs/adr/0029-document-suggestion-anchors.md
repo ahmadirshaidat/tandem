@@ -1,0 +1,5 @@
+# ADR 0029: Human-approved relative-position Suggestions
+
+Add only `get_document`, `retrieve_documents`, and `propose_suggest_edit` to the closed registry. Proposal input names a document, unique expected text, replacement and reason. The server creates actual Yjs relative positions in XML text and binds them into the canonical payload hash. Never let model-authored binary anchors choose an unchecked target. Approval checks current Editor access and both anchors' resolved type/range and exact expected text. Concurrent edits outside the range preserve anchors; changed/deleted target text produces stale without applying. Existing proposal expiry/hash/idempotency/audit rules apply. Accepted edits use normal CRDT persistence and create an agent-approved version attributed to the human and proposal.
+
+Document suggestion payloads are not copied into channel events. Document panels and proposal REST lists authorize current document access; public shared retrieval excludes private documents, while explicit get_document requires the destination private-channel audience to be a subset of document members. No direct document-writing agent tool exists.

@@ -21,6 +21,7 @@ from app.channels.gateway import router as socket_router
 from app.channels.router import router as channel_router
 from app.core.config import settings
 from app.core.db import engine
+from app.documents.router import router as document_router
 from app.memory.router import router as memory_router
 from app.proposals.router import router as proposal_router
 from app.tasks.router import router as task_router
@@ -49,6 +50,7 @@ async def lifespan(app):
 
 
 app = FastAPI(title="Tandem", version="0.1.0", lifespan=lifespan)
+app.include_router(document_router)
 app.include_router(memory_router)
 app.include_router(agent_router)
 app.include_router(proposal_router)

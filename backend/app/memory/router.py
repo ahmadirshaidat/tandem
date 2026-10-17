@@ -31,6 +31,7 @@ router = APIRouter(prefix="/api/workspaces/{workspace_id}", tags=["memory and se
 
 class SettingsInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
+    include_documents: bool = True
     include_private: bool
     retention_days: Literal[0, 90, 365]
     offer_resolution_summaries: bool
@@ -43,7 +44,7 @@ class SourceInput(BaseModel):
 
 class ForgetInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    source_kind: Literal["channel", "project"] | None = None
+    source_kind: Literal["channel", "project", "document"] | None = None
     source_id: str | None = Field(None, min_length=1, max_length=36)
     record_ids: list[str] = Field(default_factory=list, max_length=100)
     preview_token: str | None = Field(None, max_length=4096)
@@ -76,6 +77,12 @@ def state_out(db, wid, uid):
     for kind, items in [
         ("channel", visible_channels(db, wid, uid)),
         (
+            "document",
+            db.scalars(
+                __import__("app.documents.service", fromlist=["visible"]).visible(db, wid, uid)
+            ),
+        ),
+        (
             "project",
             db.scalars(
                 select(Project).where(Project.workspace_id == wid, Project.deleted_at.is_(None))
@@ -89,7 +96,7 @@ def state_out(db, wid, uid):
                     {
                         "kind": kind,
                         "id": item.id,
-                        "name": item.name,
+                        "name": item.title if kind == "document" else item.name,
                         "is_private": getattr(item, "is_private", False),
                         "enabled": value.enabled,
                         "records": counts.get((kind, item.id), 0),
@@ -102,6 +109,7 @@ def state_out(db, wid, uid):
                 )
     return {
         "include_private": config.include_private,
+        "include_documents": config.include_documents,
         "retention_days": config.retention_days,
         "offer_resolution_summaries": config.offer_resolution_summaries,
         "stats": {"records": len(records), "sources": len(sources)},
@@ -192,6 +200,10 @@ def update_settings(
 def source_access(db, wid, uid, kind, sid):
     if kind == "channel":
         channel_access(db, wid, sid, uid)
+    elif kind == "document":
+        from app.documents.service import document
+
+        document(db, wid, sid, uid)
     else:
         get_project(db, wid, sid)
     source = db.get(MemorySource, (wid, kind, sid))
@@ -203,7 +215,7 @@ def source_access(db, wid, uid, kind, sid):
 @router.patch("/memory/sources/{kind}/{source_id}", dependencies=[Depends(csrf_check)])
 def update_source(
     workspace_id: str,
-    kind: Literal["channel", "project"],
+    kind: Literal["channel", "project", "document"],
     source_id: str,
     data: SourceInput,
     request: Request,
@@ -423,7 +435,7 @@ def agent_sources(
         for ref in summary.get("sources", []):
             if (
                 ref not in refs
-                and ref.get("type") in {"message", "task"}
+                and ref.get("type") in {"message", "task", "document"}
                 and isinstance(ref.get("id"), str)
             ):
                 refs.append(ref)

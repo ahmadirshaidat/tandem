@@ -75,6 +75,12 @@ REGISTRY.update(
 )
 
 
+from app.documents.tools import GetDocument, RetrieveDocuments  # noqa: E402
+from app.documents.tools import read as document_read  # noqa: E402
+
+REGISTRY.update(get_document=GetDocument, retrieve_documents=RetrieveDocuments)
+
+
 def descriptors():
     return [
         {
@@ -87,6 +93,8 @@ def descriptors():
 
 
 def read_tool(db, run, name, args):
+    if name in {"get_document", "retrieve_documents"}:
+        return document_read(db, run, name, args)
     access(db, run.workspace_id, run.requester_id)
     run_access(db, run)
     channels = allowed_channels(db, run.workspace_id, run.requester_id, run.channel_id)
@@ -96,7 +104,13 @@ def read_tool(db, run, name, args):
         if args.channel_id not in ids:
             raise HTTPException(404, "Context unavailable")
         ids = [args.channel_id]
-    if name in {"search_memory", "find_similar_bugs", "analyze_bug"}:
+    if name in {
+        "search_memory",
+        "find_similar_bugs",
+        "analyze_bug",
+        "get_document",
+        "retrieve_documents",
+    }:
         return retrieve_tool(db, run, name, args, ids)
     if name == "list_projects":
         return [
@@ -215,7 +229,13 @@ def execute(db, run, name, arguments):
         else 0
     )
     refs = []
-    if status == "ok" and name in {"search_memory", "find_similar_bugs", "analyze_bug"}:
+    if status == "ok" and name in {
+        "search_memory",
+        "find_similar_bugs",
+        "analyze_bug",
+        "get_document",
+        "retrieve_documents",
+    }:
         count = len(result.get("items", result.get("similar_bugs", [])))
 
         def collect(value):

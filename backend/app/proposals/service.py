@@ -52,6 +52,10 @@ def validate_payload(db, wid, uid, kind, payload, *, creation=False, check_dupli
         parsed = PAYLOADS[kind].model_validate(payload)
     except (KeyError, ValidationError):
         raise HTTPException(422, "Invalid proposal payload") from None
+    if kind == "suggest_edit":
+        from app.documents.tools import validate_suggestion
+
+        return validate_suggestion(db, wid, uid, parsed, creation)
     versions = {}
     if kind == "create_tasks":
         seen = set()
@@ -120,6 +124,10 @@ def validate_sources(db, run, sources):
             if not m:
                 raise HTTPException(404, "Source unavailable")
             channel_access(db, run.workspace_id, m.channel_id, run.requester_id)
+        elif source.type == "document":
+            from app.documents.service import shared_access
+
+            shared_access(db, run.workspace_id, source.id, run.requester_id, run.channel_id)
         else:
             get_task(db, run.workspace_id, source.id)
         result.append(source.model_dump())
@@ -150,6 +158,8 @@ def proposal_out(db, p):
             if not t or t.deleted_at:
                 continue
             sources.append({**source, "label": t.key, "url": "/tasks?task=" + t.id})
+        elif source["type"] == "document":
+            continue
         else:
             m = db.get(Message, source["id"])
             if not m or m.deleted_at:
@@ -218,6 +228,8 @@ def proposal_audit(db, p, action, actor_type, actor_id, request_id, arguments=No
 
 
 def publish(db, p, kind="proposal.updated"):
+    if p.kind == "suggest_edit":
+        return  # Private edits are fetched through current-viewer document authorization.
     record_event(db, db.get(Channel, p.channel_id), kind, {"proposal": proposal_out(db, p)})
 
 
@@ -237,6 +249,10 @@ def create_proposal(db, run, kind, payload, sources=None):
     data, versions = validate_payload(
         db, run.workspace_id, run.requester_id, kind, payload, creation=True, check_duplicates=False
     )
+    if kind == "suggest_edit":
+        from app.documents.service import shared_access
+
+        shared_access(db, run.workspace_id, data["document_id"], run.requester_id, run.channel_id)
     refs = validate_sources(db, run, sources)
     key = digest({"kind": kind, "payload": data, "sources": refs})
     existing = db.scalar(
@@ -276,6 +292,20 @@ def create_proposal(db, run, kind, payload, sources=None):
     )
     db.add(p)
     db.flush()
+    if kind == "suggest_edit":
+        from app.documents.models import DocumentSuggestion
+
+        db.add(
+            DocumentSuggestion(
+                workspace_id=p.workspace_id,
+                document_id=data["document_id"],
+                proposal_id=p.id,
+                **{
+                    k: data[k]
+                    for k in ["from_anchor", "to_anchor", "expected_text", "replacement", "reason"]
+                },
+            )
+        )
     sync_items(db, p)
     proposal_audit(db, p, "proposal.created", "agent", run.workspace_id, run.request_id)
     publish(db, p, "proposal.created")
@@ -295,6 +325,10 @@ def get_proposal(db, wid, pid, uid, *, lock=False):
     if not p:
         raise HTTPException(404, "Proposal unavailable")
     channel_access(db, wid, p.channel_id, uid, lock=lock)
+    if p.kind == "suggest_edit":
+        from app.documents.service import document
+
+        document(db, wid, p.payload["document_id"], uid)
     return p
 
 
@@ -409,6 +443,18 @@ def decide(db, p, uid, data, action, request_id):
             request_id,
             action="proposal.cancelled" if action == "cancel" else None,
         )
+        return p
+    if p.kind == "suggest_edit":
+        if action == "edit-approve":
+            raise HTTPException(422, "Review or reject this exact document suggestion")
+        from app.documents.tools import apply
+
+        result = apply(db, p, uid)
+        if result is None:
+            transition(db, p, "stale", "system", None, request_id)
+            return p
+        p.execution_result, p.executed_at = result, now()
+        transition(db, p, "completed", "user", uid, request_id)
         return p
     # Compare captured target versions before edits; edits cannot silently rebase a stale target.
     for task_id, version in p.target_versions.items():

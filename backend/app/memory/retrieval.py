@@ -16,6 +16,7 @@ from app.channels.service import channel_access
 from app.core.config import settings
 from app.core.models import Membership
 from app.core.security import now
+from app.documents.models import Document, DocumentMember
 from app.memory.embeddings import ModelUnavailable, model
 from app.memory.models import MemoryEmbedding, MemoryRecord, MemorySettings, MemorySource
 from app.tasks.models import Project, Task
@@ -25,7 +26,7 @@ from app.tasks.service import access, get_project, get_task
 class SearchInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
     query: str = Field(min_length=1, max_length=200)
-    source_type: Literal["message", "task"] | None = None
+    source_type: Literal["message", "task", "document"] | None = None
     project_id: str | None = Field(None, max_length=36)
     channel_id: str | None = Field(None, max_length=36)
     assignee_id: str | None = Field(None, max_length=36)
@@ -39,7 +40,11 @@ class SearchInput(BaseModel):
 
 def authorized(db, wid, uid, *, channel_ids=None, inputs=None, bugs_only=False):
     r = MemoryRecord
-    current_project = case((r.source_type == "message", Channel.project_id), else_=Task.project_id)
+    current_project = case(
+        (r.source_type == "message", Channel.project_id),
+        (r.source_type == "document", Document.project_id),
+        else_=Task.project_id,
+    )
     q = (
         select(r)
         .join(
@@ -59,6 +64,9 @@ def authorized(db, wid, uid, *, channel_ids=None, inputs=None, bugs_only=False):
         )
         .outerjoin(
             Channel, and_(Channel.workspace_id == r.workspace_id, Channel.id == r.channel_id)
+        )
+        .outerjoin(
+            Document, and_(Document.workspace_id == r.workspace_id, Document.id == r.document_id)
         )
         .outerjoin(Task, and_(Task.workspace_id == r.workspace_id, Task.id == r.task_id))
         .outerjoin(
@@ -102,7 +110,30 @@ def authorized(db, wid, uid, *, channel_ids=None, inputs=None, bugs_only=False):
         Project.deleted_at.is_(None),
         Project.archived.is_(False),
     )
-    q = q.where(or_(message_ok, task_ok))
+    document_ok = and_(
+        r.source_type == "document",
+        r.group_id == Document.id,
+        Document.deleted_at.is_(None),
+        Document.archived.is_(False),
+        Project.deleted_at.is_(None),
+        Project.archived.is_(False),
+        MemorySettings.include_documents.is_(True),
+        or_(
+            Document.is_private.is_(False),
+            exists(
+                select(DocumentMember.user_id).where(
+                    DocumentMember.workspace_id == wid,
+                    DocumentMember.document_id == Document.id,
+                    DocumentMember.user_id == uid,
+                )
+            ),
+        ),
+    )
+    if channel_ids is not None:
+        # Shared agent searches conservatively exclude private documents. Explicit get_document
+        # separately checks the complete destination audience.
+        document_ok = and_(document_ok, Document.is_private.is_(False))
+    q = q.where(or_(message_ok, task_ok, document_ok))
     days = func.coalesce(MemorySettings.retention_days, 0)
     q = q.where(or_(days == 0, r.source_created_at >= func.now() - days * text("interval '1 day'")))
     if bugs_only:
@@ -144,6 +175,10 @@ def reauthorize(db, record, wid, uid, *, channel_ids=None):
         )
         if not message:
             raise HTTPException(404, "Source unavailable")
+    elif record.source_type == "document":
+        from app.documents.service import document
+
+        document(db, wid, record.document_id, uid)
     else:
         task = get_task(db, wid, record.task_id)
         if get_project(db, wid, task.project_id).archived:
@@ -180,6 +215,8 @@ def result_out(record, query):
         "source": {"type": record.source_type, "id": record.source_id},
         "href": f"/channels?channel={record.channel_id}&message={record.source_id}"
         if record.source_type == "message"
+        else f"/documents?document={record.source_id}"
+        if record.source_type == "document"
         else f"/tasks?task={record.source_id}",
     }
 

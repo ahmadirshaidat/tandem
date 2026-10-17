@@ -111,6 +111,7 @@ def test_registry_only_proposals_no_direct_mutation_and_viewer_request(client_fa
         "propose_change_priority",
         "propose_delete_task",
         "propose_add_comment",
+        "propose_suggest_edit",
     }
     assert all(
         d["mode"] == "read" or (d["mode"] == "proposal" and d["name"].startswith("propose_"))

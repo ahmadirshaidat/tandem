@@ -1,0 +1,3 @@
+# ADR 0030: Append-only version history and restore
+
+Create a version at document creation, after two minutes of activity, on last-editor leave, on accepted Suggestions, and on explicit named save. Versions capture CRDT state, Markdown, revision, human creator, actor type and optional proposal attribution. Naming a version changes only its label. Restore computes a new Yjs transaction replacing the current fragment with cloned snapshot nodes, then creates a new version; it does not reset a CRDT to an old incompatible state or delete history. Database schema downgrades are administrative/destructive operations, separate from the product's restore workflow.

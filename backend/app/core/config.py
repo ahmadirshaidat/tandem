@@ -42,6 +42,10 @@ class Settings(BaseSettings):
     ai_max_output_tokens: int = Field(default=512, ge=16, le=2048)
     proposal_expiry_days: int = Field(default=7, ge=1, le=30)
     proposal_pending_per_channel: int = Field(default=20, ge=1, le=100)
+    document_sync_url: str = "http://127.0.0.1:8002"
+    document_sync_secret: SecretStr | None = None
+    document_update_bytes: int = 65536
+    document_max_bytes: int = 1048576
     memory_model_path: Path = ROOT / ".local" / "models" / "e5-small"
     memory_embedding_enabled: bool = True
     memory_index_interval_seconds: float = Field(default=1, ge=0.1, le=10)

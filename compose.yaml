@@ -49,6 +49,7 @@ services:
       PROPOSAL_EXPIRY_DAYS: ${PROPOSAL_EXPIRY_DAYS:-7}
       PROPOSAL_PENDING_PER_CHANNEL: ${PROPOSAL_PENDING_PER_CHANNEL:-20}
       MEMORY_EMBEDDING_ENABLED: ${MEMORY_EMBEDDING_ENABLED:-true}
+      DOCUMENT_SYNC_URL: http://document-sync:8002
       MEMORY_MODEL_PATH: /app/.local/models/e5-small
       MEMORY_INDEX_INTERVAL_SECONDS: ${MEMORY_INDEX_INTERVAL_SECONDS:-1}
       AGENT_FAKE_PROVIDER: ${AGENT_FAKE_PROVIDER:-false}
@@ -77,6 +78,25 @@ services:
       interval: 3s
       timeout: 5s
       retries: 30
+  document-sync:
+    build:
+      context: ./sync
+    environment:
+      JWT_SECRET: ${JWT_SECRET:?Run bootstrap first}
+      DOCUMENT_BACKEND_URL: http://backend:8000
+      DOCUMENT_SYNC_HOST: 0.0.0.0
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+    ports:
+      - "127.0.0.1:${TANDEM_DOCUMENT_PORT:-8002}:8002"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8002/health').then(r=>{if(!r.ok)process.exit(1)})"]
+      interval: 3s
+      timeout: 5s
+      retries: 30
+
 volumes:
   postgres_data:
   mail_outbox:
