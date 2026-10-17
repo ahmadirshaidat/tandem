@@ -1,4 +1,5 @@
 import * as Y from "yjs";
+import { api } from "./api";
 import type { DocumentSyncEvent } from "./events.generated";
 import {
   Awareness,
@@ -203,7 +204,13 @@ export class DocumentSync {
     };
     this.socket.onclose = (event) => {
       this.socket = null;
-      if (event.code === 4003) this.retain();
+      if (event.code === 4001) {
+        void api("/auth/me")
+          .then(() => {
+            if (!this.closed) this.connect();
+          })
+          .catch(() => this.retain());
+      } else if (event.code === 4003 || event.code === 4002) this.retain();
       else if (!this.closed && !this.rejected) {
         this.status = "Not synced yet";
         this.notify();

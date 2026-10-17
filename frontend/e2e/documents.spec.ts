@@ -341,3 +341,93 @@ test("Viewer updates are rejected and session revocation closes document sync", 
   await a.close();
   await b.close();
 });
+
+test("document sync renews an expired access cookie through the existing refresh session", async ({
+  browser,
+}) => {
+  const context = await browser.newContext();
+  await context.addInitScript(() => {
+    const NativeSocket = window.WebSocket;
+    const sockets: WebSocket[] = [];
+    Object.assign(window, { documentAcceptanceSockets: sockets });
+    window.WebSocket = class extends NativeSocket {
+      constructor(url: string | URL, protocols?: string | string[]) {
+        super(url, protocols);
+        if (String(url).includes("/api/document-sync/")) sockets.push(this);
+      }
+    };
+  });
+  await write(context, "/auth/register", {
+    name: "Refresh editor",
+    email: `doc-refresh-${Date.now()}@example.com`,
+    password: "synthetic-doc-refresh-password",
+  });
+  const workspace = await write(context, "/workspaces", {
+    name: "Refresh room",
+  });
+  const base = `/workspaces/${workspace.id}`;
+  const project = await write(context, base + "/projects", {
+    name: "Refresh",
+    key: "REF",
+  });
+  const doc = await write(context, base + "/documents", {
+    project_id: project.id,
+    title: "Session continuity",
+  });
+  const page = await context.newPage();
+  await page.goto("/documents?document=" + doc.id);
+  const editor = page.getByRole("textbox", {
+    name: "Document content",
+    exact: true,
+  });
+  await expect(editor).toContainText("Describe the problem.");
+  const access = (await context.cookies()).find(
+    (c) => c.name === "tandem_access",
+  )!;
+  // An unsigned expired fixture must be denied by Python. It only selects retry UX;
+  // the real HttpOnly refresh session must issue a valid cookie before reconnect.
+  const expired = `e30.${Buffer.from(JSON.stringify({ exp: 1 })).toString("base64url")}.invalid`;
+  await context.addCookies([{ ...access, value: expired }]);
+  await page.evaluate(() => {
+    const sockets = (
+      window as unknown as { documentAcceptanceSockets: WebSocket[] }
+    ).documentAcceptanceSockets;
+    sockets.at(-1)!.close();
+  });
+  await expect
+    .poll(
+      async () =>
+        (await context.cookies()).find((c) => c.name === "tandem_access")
+          ?.value !== expired,
+    )
+    .toBeTruthy();
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const sockets = (
+          window as unknown as { documentAcceptanceSockets: WebSocket[] }
+        ).documentAcceptanceSockets;
+        return (
+          sockets.length >= 3 && sockets.at(-1)?.readyState === WebSocket.OPEN
+        );
+      }),
+    )
+    .toBeTruthy();
+  await editor.click();
+  await page.keyboard.press("Control+End");
+  await page.keyboard.type(" Renewed session edit");
+  await expect
+    .poll(
+      async () =>
+        (
+          await (
+            await context.request.get("/api" + base + `/documents/${doc.id}`)
+          ).json()
+        ).text,
+    )
+    .toContain("Renewed session edit");
+  await expect(
+    page.getByRole("heading", { name: "Rejected changes", exact: true }),
+  ).toHaveCount(0);
+  await context.close();
+});

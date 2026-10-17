@@ -95,7 +95,7 @@ wss.on("connection", (ws, req) => {
       console.warn(
         JSON.stringify({ event: "document_authority", status: r.status }),
       );
-      throw Error("access");
+      throw Object.assign(Error("access"), { status: r.status });
     }
     return r.json();
   }
@@ -107,10 +107,27 @@ wss.on("connection", (ws, req) => {
       guard = value.permission_stamp;
       ws.canEdit = value.can_edit;
       return value;
-    } catch {
+    } catch (error) {
       live = false;
-      ws.send(JSON.stringify({ type: "rejected" }));
-      ws.close(4003, "Access changed");
+      let tokenExpired = false;
+      try {
+        const token = (req.headers.cookie || "")
+          .split("; ")
+          .find((x) => x.startsWith("tandem_access="))
+          ?.slice(14);
+        const payload = JSON.parse(
+          Buffer.from(token.split(".")[1], "base64url").toString(),
+        );
+        tokenExpired = Number(payload.exp) <= Date.now() / 1000;
+      } catch {}
+      // This unverified timestamp affects only retry UX. Python remains the authority;
+      // the refreshed connection must authenticate and authorize again.
+      if (error.status === 401 && tokenExpired)
+        ws.close(4001, "Refresh session");
+      else {
+        ws.send(JSON.stringify({ type: "rejected" }));
+        ws.close(4003, "Access changed");
+      }
       throw Error("access");
     }
   }
