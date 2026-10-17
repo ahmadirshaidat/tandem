@@ -1,0 +1,94 @@
+[
+  {
+    "run": 1,
+    "exit_code": 1,
+    "wall_seconds": 13.95,
+    "stats": {
+      "startTime": "2026-10-17T19:42:12.583Z",
+      "duration": 13229.927,
+      "expected": 1,
+      "skipped": 0,
+      "unexpected": 7,
+      "flaky": 0
+    },
+    "retries": 0,
+    "workers": 1,
+    "real_embeddings": "not verified; backend startup failed",
+    "generation": "explicit fake provider",
+    "classification": "Invalid startup attempt: native backend module path was initially missing; health was not awaited before suite. Failures retained, not a product fix.",
+    "phase": "invalid_startup"
+  },
+  {
+    "run": 1,
+    "exit_code": 1,
+    "wall_seconds": 69.37,
+    "stats": {
+      "startTime": "2026-10-17T19:42:49.825Z",
+      "duration": 68714.2,
+      "expected": 7,
+      "skipped": 0,
+      "unexpected": 1,
+      "flaky": 0
+    },
+    "retries": 0,
+    "workers": 1,
+    "real_embeddings": "Xenova/multilingual-e5-small",
+    "generation": "explicit fake provider",
+    "classification": "Healthy backend with real E5: 7 passed, 1 failed. Memory search assertion assumed a single result; vector search correctly returned multiple authorized candidates.",
+    "phase": "before_list_assertion_fix"
+  },
+  {
+    "run": 1,
+    "exit_code": 0,
+    "wall_seconds": 80.98,
+    "stats": {
+      "startTime": "2026-10-17T19:44:05.295Z",
+      "duration": 80335.261,
+      "expected": 8,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "retries": 0,
+    "workers": 1,
+    "real_embeddings": "Xenova/multilingual-e5-small",
+    "generation": "explicit fake provider",
+    "phase": "after_list_assertion_fix"
+  },
+  {
+    "run": 2,
+    "exit_code": 0,
+    "wall_seconds": 73.6,
+    "stats": {
+      "startTime": "2026-10-17T19:45:26.241Z",
+      "duration": 72990.541,
+      "expected": 8,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "retries": 0,
+    "workers": 1,
+    "real_embeddings": "Xenova/multilingual-e5-small",
+    "generation": "explicit fake provider",
+    "phase": "after_list_assertion_fix"
+  },
+  {
+    "run": 3,
+    "exit_code": 0,
+    "wall_seconds": 71.8,
+    "stats": {
+      "startTime": "2026-10-17T19:46:39.819Z",
+      "duration": 71186.238,
+      "expected": 8,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "retries": 0,
+    "workers": 1,
+    "real_embeddings": "Xenova/multilingual-e5-small",
+    "generation": "explicit fake provider",
+    "phase": "after_list_assertion_fix"
+  }
+]

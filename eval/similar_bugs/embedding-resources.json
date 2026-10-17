@@ -1,0 +1,54 @@
+[
+  {
+    "load_ms": 940.0494169999547,
+    "first_inference_ms": 4.856298000049719,
+    "warm_inference_ms": 5.751768000004631,
+    "peak_rss_kib": 556160,
+    "candidate": "e5-small",
+    "manifest": {
+      "model": "Xenova/multilingual-e5-small",
+      "version": "761b726dd34fb83930e26aab4e9ac3899aa1fa78-q8",
+      "dimension": 384,
+      "license": "mit",
+      "license_source": {
+        "model": "intfloat/multilingual-e5-small",
+        "revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3"
+      },
+      "sha256": {
+        "model.onnx": "f80102d3f2a1229f387d3c81909990d8945513e347b0eab049f7de3c6f98c193",
+        "tokenizer.json": "0b44a9d7b51c3c62626640cda0e2c2f70fdacdc25bbbd68038369d14ebdf4c39"
+      },
+      "bytes": {
+        "model.onnx": 118308185,
+        "tokenizer.json": 17082730
+      },
+      "source": "https://huggingface.co/Xenova/multilingual-e5-small/tree/761b726dd34fb83930e26aab4e9ac3899aa1fa78"
+    }
+  },
+  {
+    "load_ms": 933.0457680000563,
+    "first_inference_ms": 3.934953999987556,
+    "warm_inference_ms": 2.664861700009169,
+    "peak_rss_kib": 555948,
+    "candidate": "minilm",
+    "manifest": {
+      "model": "Xenova/paraphrase-multilingual-MiniLM-L12-v2",
+      "version": "2c4055b12046f11709e9df2c122e59ffbdc2f900-q8",
+      "dimension": 384,
+      "license": "apache-2.0",
+      "license_source": {
+        "model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+        "revision": "e8f8c211226b894fcb81acc59f3b34ba3efd5f42"
+      },
+      "sha256": {
+        "model.onnx": "66fc00f5f29afcaff34092e1bdd20008ca3918265a82fb9695a551e510cc4ebc",
+        "tokenizer.json": "b60b6b43406a48bf3638526314f3d232d97058bc93472ff2de930d43686fa441"
+      },
+      "bytes": {
+        "model.onnx": 118308126,
+        "tokenizer.json": 17082913
+      },
+      "source": "https://huggingface.co/Xenova/paraphrase-multilingual-MiniLM-L12-v2/tree/2c4055b12046f11709e9df2c122e59ffbdc2f900"
+    }
+  }
+]

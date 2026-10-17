@@ -58,6 +58,7 @@ import {
   type Proposal,
 } from "@/lib/proposals";
 import { AgentSteps, AgentPanel, AgentActivity } from "./agent";
+import { AgentMemorySources } from "./memory";
 import { NewTaskDialog } from "./task-dialogs";
 
 function watchChannelSelection(callback: () => void) {
@@ -1013,7 +1014,15 @@ function ChannelRoom({
                     online={online}
                   />
                 ))}
-              {message.agent_run && <AgentSteps run={message.agent_run} />}
+              {message.agent_run && (
+                <>
+                  <AgentSteps run={message.agent_run} />
+                  <AgentMemorySources
+                    workspaceId={workspace.id}
+                    runId={message.agent_run.id}
+                  />
+                </>
+              )}
               {message.mentions_agent && (
                 <span
                   className="chip chip-agent"

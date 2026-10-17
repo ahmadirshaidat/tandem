@@ -1,0 +1,36 @@
+{
+  "search_settings_capture_utc": "2026-10-17T19:36:07.467Z",
+  "verified_settings": {
+    "model": "Xenova/multilingual-e5-small",
+    "version": "761b726dd34fb83930e26aab4e9ac3899aa1fa78-q8",
+    "degraded": false
+  },
+  "vector_preflight": "non-degraded vector search returned both synthetic tasks",
+  "search_settings_degraded_banner": "absent; checked before capture",
+  "agent_capture": "last E5-active deterministic browser suite; explicit fake generation, not real-provider answer evidence",
+  "browser_emulation": {
+    "mobile_width": 390
+  },
+  "screenshots": [
+    {
+      "file": "agent-memory-sources.png",
+      "sha256": "d2225aa70f3dbdafe8b0b408653e48069b6293f41d4fa26e17632a6bacd5cde3"
+    },
+    {
+      "file": "memory-settings.png",
+      "sha256": "eec2ac3442ce06eb2c5f6afcc1f656b94153778fe3f71f3c3344e4758c1fae7d"
+    },
+    {
+      "file": "search-arabic.png",
+      "sha256": "8f9b5c07983423076e90ff2a85eee612b491f6e6f22fc2c42c7284b159e778fd"
+    },
+    {
+      "file": "search-english.png",
+      "sha256": "64e3b74ef77085ddc8b551ac967a39fedca3f82410da5a57394996ab37ce1d41"
+    },
+    {
+      "file": "search-mobile-arabic.png",
+      "sha256": "8ffa4385eaa47b8ebf4c69ac45412d71de18639856b19fb7366943389da606a3"
+    }
+  ]
+}

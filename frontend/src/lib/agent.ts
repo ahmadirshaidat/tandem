@@ -42,6 +42,9 @@ export function stepLabel(name: string, count: number) {
       : "Drafted a proposal";
   if (name === "get_channel_context" || name === "summarize_channel")
     return `Read ${count} ${count === 1 ? "message" : "messages"}`;
+  if (name === "search_memory") return "Searched memory";
+  if (name === "find_similar_bugs") return "Found similar bugs";
+  if (name === "analyze_bug") return "Analyzed bug evidence";
   if (name === "search_messages") return "Searched messages";
   if (name === "search_workspace") return "Searched workspace";
   return name.replaceAll("_", " ");

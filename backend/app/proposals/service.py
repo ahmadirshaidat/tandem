@@ -10,7 +10,7 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.agent.audit import audit
-from app.agent.service import configuration, run_access
+from app.agent.service import allowed_channels, configuration, run_access
 from app.channels.models import Channel, Message
 from app.channels.service import channel_access, record_event
 from app.core.config import settings
@@ -106,7 +106,14 @@ def validate_sources(db, run, sources):
                 select(Message).where(
                     Message.workspace_id == run.workspace_id,
                     Message.id == source.id,
-                    Message.channel_id == run.channel_id,
+                    Message.channel_id.in_(
+                        [
+                            c.id
+                            for c in allowed_channels(
+                                db, run.workspace_id, run.requester_id, run.channel_id
+                            )
+                        ]
+                    ),
                     Message.deleted_at.is_(None),
                 )
             )

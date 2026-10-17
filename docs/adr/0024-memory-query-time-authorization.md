@@ -1,0 +1,7 @@
+# ADR 0024: Current permissions in SQL and source reauthorization
+
+Every memory candidate query joins current workspace membership, source/index revision, channel/project/task state and memory settings before rank/distance and LIMIT. Private-channel retrieval requires both include-private enabled and current channel membership. Archive/deletion, source exclusion, retention and stale index revisions remove candidates. Project permissions currently inherit workspace membership; do not invent or cache a separate project ACL. Copied scope IDs are references, not authorization decisions.
+
+After SQL filtering, reauthorize through the existing channel/task/project services and recheck revision/settings. Agent searches additionally intersect the existing requester-and-destination audience rule: another private channel cannot be quoted into a shared answer. A task ID or linked message does not grant access. Expose neither inaccessible counts nor skipped-source hints.
+
+Source chips use a separate current-viewer endpoint, not labels copied into historical/replayed events. Store only bounded source references in existing tool-call metadata. Current source-chip requests repeat SQL filtering and service authorization, so revoked/deleted/forgotten sources disappear. Destination channel access is checked before exposing a run's sources. Retrieval text remains untrusted data in the existing sealed agent protocol; no native tool, external network or mutation capability is added.

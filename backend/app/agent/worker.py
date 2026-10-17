@@ -445,6 +445,7 @@ def recover_stale():
 
 async def worker_loop():
     next_expiry = 0.0
+    next_memory = 0.0
     while True:
         try:
             if time.monotonic() >= next_expiry:
@@ -453,8 +454,16 @@ async def worker_loop():
                 with SessionLocal() as db:
                     expire_pending(db, new_id())
                     db.commit()
+                from app.memory.indexing import run_maintenance
+
+                await asyncio.to_thread(run_maintenance)
                 next_expiry = time.monotonic() + 30
             recover_stale()
+            from app.memory.indexing import process_one
+
+            if time.monotonic() >= next_memory:
+                await asyncio.to_thread(process_one)
+                next_memory = time.monotonic() + settings.memory_index_interval_seconds
             rid = claim()
             if rid:
                 await process_run(rid)

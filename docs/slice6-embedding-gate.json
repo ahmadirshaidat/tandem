@@ -1,0 +1,313 @@
+{
+  "date_utc": "2026-10-17",
+  "branch": "slice-6-memory",
+  "status": "blocked_network_not_applied",
+  "chosen_model": null,
+  "network": {
+    "observations_current": true,
+    "state": "enforced",
+    "requested_hosts_active": [],
+    "saved_model_hosts": [
+      "huggingface.co",
+      "*.huggingface.co",
+      "*.hf.co"
+    ],
+    "saved_ci_diagnostic_hosts": [
+      "results-receiver.actions.githubusercontent.com",
+      "productionresultssa15.blob.core.windows.net"
+    ],
+    "draft_status": "saved",
+    "requires_publish": true,
+    "action": "Review and save environment settings, then publish; saving a draft does not apply the runtime policy"
+  },
+  "models": [
+    {
+      "id": "Xenova/multilingual-e5-small",
+      "download_probe": "URLError",
+      "manifest_installed": false,
+      "license": null,
+      "artifact_bytes": null,
+      "verified_hashes": null,
+      "inference_speed": null,
+      "cold_start_ms": null,
+      "model_memory_bytes": null,
+      "comparison_status": "not_run_network_blocked"
+    },
+    {
+      "id": "Xenova/paraphrase-multilingual-MiniLM-L12-v2",
+      "download_probe": "URLError",
+      "manifest_installed": false,
+      "license": null,
+      "artifact_bytes": null,
+      "verified_hashes": null,
+      "inference_speed": null,
+      "cold_start_ms": null,
+      "model_memory_bytes": null,
+      "comparison_status": "not_run_network_blocked"
+    }
+  ],
+  "optional_bge_m3": {
+    "status": "not_run_network_blocked",
+    "artifact_bytes": null,
+    "model_memory_bytes": null
+  },
+  "input_conventions": {
+    "implementation": "Existing adapter adds E5 query/passage prefixes and does not add them for MiniLM",
+    "real_weight_validation": "not_run"
+  },
+  "resources": {
+    "cgroup_memory_limit_bytes": 34359738368,
+    "cgroup_cpu_limit_cores": 4,
+    "existing_backend_image_bytes": 798135795,
+    "weights_baked_into_image": false,
+    "model_cache_native": ".local/models/<candidate>",
+    "model_cache_container": "/app/.local/models/<candidate> in persistent tandem_mail_outbox volume",
+    "model_memory_and_cold_start": "unmeasured; no verified weights available"
+  },
+  "evaluation": {
+    "file": "eval/similar_bugs/embedding-gate-full-text.json",
+    "held_out_sha256": "22890a87048e5ae86acef4f12cf7b69c07d21419d8fd90343eec992598f2965c",
+    "held_out_unchanged": true,
+    "normalization_chunking_weight_tuning": "none",
+    "hybrid_target_status": "not_verified_model_unavailable"
+  },
+  "browser_repeats": {
+    "runs": [
+      {
+        "attempt": 1,
+        "exit_code": 0,
+        "seconds": 109.15,
+        "stats": {
+          "startTime": "2026-10-17T03:30:30.438Z",
+          "duration": 106634.233,
+          "expected": 8,
+          "skipped": 0,
+          "unexpected": 0,
+          "flaky": 0
+        },
+        "failures": []
+      },
+      {
+        "attempt": 2,
+        "exit_code": 0,
+        "seconds": 94.3,
+        "stats": {
+          "startTime": "2026-10-17T03:32:19.127Z",
+          "duration": 92216.58,
+          "expected": 8,
+          "skipped": 0,
+          "unexpected": 0,
+          "flaky": 0
+        },
+        "failures": []
+      },
+      {
+        "attempt": 3,
+        "exit_code": 0,
+        "seconds": 87.25,
+        "stats": {
+          "startTime": "2026-10-17T03:33:52.350Z",
+          "duration": 86287.732,
+          "expected": 8,
+          "skipped": 0,
+          "unexpected": 0,
+          "flaky": 0
+        },
+        "failures": []
+      }
+    ],
+    "total_passed": 24,
+    "skipped": 0,
+    "unexpected": 0,
+    "retries": 0,
+    "provider": "fake",
+    "original_failure_reproduced": false,
+    "root_cause": "unverified",
+    "non_failing_observation": "Next.js proxy ECONNRESET messages appeared in successful runs; no causal link to the original failure established"
+  },
+  "failure_artifacts": {
+    "trace": "retain-on-failure",
+    "screenshot": "only-on-failure",
+    "html_report": "enabled",
+    "retention_days": 7,
+    "artifact_name": "browser-test-results-RUN_ATTEMPT",
+    "new_failure_upload_observed": true,
+    "original_artifact": {
+      "run": 38977784061,
+      "id": 12079502710,
+      "name": "browser-test-results",
+      "size_in_bytes": 5393849,
+      "download_status": "blocked at productionresultssa15.blob.core.windows.net"
+    },
+    "followup_artifact": {
+      "run": 38999835232,
+      "id": 12088587668,
+      "name": "browser-test-results-1",
+      "size_in_bytes": 9673759,
+      "upload_step": "success",
+      "contents_inspected": false
+    }
+  },
+  "ci_latest_verified": {
+    "sha": "1205e7fa16e743f5a14a58c4210d559c16abb988",
+    "conclusion": "success",
+    "url": "https://github.com/ahmadirshaidat/tandem/actions/runs/39000223061"
+  },
+  "checks": {
+    "backend_helper_ruff": "passed",
+    "frontend_lint": "passed",
+    "frontend_typecheck": "passed",
+    "vector_index_guard_regression": "passed_mocked_http_only",
+    "memory_and_guard_regressions": {
+      "passed": 21,
+      "seconds": 12.26
+    }
+  },
+  "live_semantic": {
+    "status": "not_run_no_chosen_model",
+    "generation_attempted": false,
+    "preflights": [
+      {
+        "exit_code": 1,
+        "result": {
+          "mode": "live",
+          "provider": "groq",
+          "language": "en",
+          "requested_tool": "analyze_bug",
+          "embedding_model": null,
+          "embedding_version": null,
+          "embeddings_required": true,
+          "status": "failed",
+          "category": "embedding_unavailable"
+        }
+      },
+      {
+        "exit_code": 1,
+        "result": {
+          "mode": "live",
+          "provider": "groq",
+          "language": "ar",
+          "requested_tool": "analyze_bug",
+          "embedding_model": null,
+          "embedding_version": null,
+          "embeddings_required": true,
+          "status": "failed",
+          "category": "embedding_unavailable"
+        }
+      }
+    ],
+    "preflights_after_vector_guard": [
+      {
+        "exit_code": 1,
+        "result": {
+          "mode": "live",
+          "provider": "groq",
+          "language": "en",
+          "requested_tool": "analyze_bug",
+          "embedding_model": null,
+          "embedding_version": null,
+          "embeddings_required": true,
+          "vector_index_verified": false,
+          "status": "failed",
+          "category": "embedding_unavailable"
+        }
+      },
+      {
+        "exit_code": 1,
+        "result": {
+          "mode": "live",
+          "provider": "groq",
+          "language": "ar",
+          "requested_tool": "analyze_bug",
+          "embedding_model": null,
+          "embedding_version": null,
+          "embeddings_required": true,
+          "vector_index_verified": false,
+          "status": "failed",
+          "category": "embedding_unavailable"
+        }
+      }
+    ],
+    "positive_vector_path": "unverified_without_real_weights"
+  },
+  "adr_0022_status": "proposed_not_accepted",
+  "restored_runtime": {
+    "fake_provider": false,
+    "auth_rate_limit": 10,
+    "backend_health_http": 200,
+    "frontend_login_http": 200,
+    "proxied_csrf_http": 200
+  },
+  "browser_followup": {
+    "run": "https://github.com/ahmadirshaidat/tandem/actions/runs/38999835232",
+    "passed": 7,
+    "failed": 1,
+    "assertion": "Expected task source chip missing after agent reply",
+    "test": "frontend/e2e/memory.spec.ts:237",
+    "reproduced_fixture_race": "Retention save invalidates indexed sources; an agent run before reindex completion gets no task citations",
+    "deterministic_backend_regression": {
+      "passed": 1,
+      "seconds": 2.19,
+      "embeddings": "mocked; not model acceptance"
+    },
+    "fix": "Wait for the exact task to become searchable after saving retention before asking agent",
+    "source_chip_assertion_unchanged": true,
+    "original_failure_same_cause": "unconfirmed_without_original_trace",
+    "post_fix_browser_validation": {
+      "runs": [
+        {
+          "attempt": 1,
+          "exit_code": 0,
+          "seconds": 92.36,
+          "stats": {
+            "startTime": "2026-10-17T03:49:50.329Z",
+            "duration": 90957.52500000001,
+            "expected": 8,
+            "skipped": 0,
+            "unexpected": 0,
+            "flaky": 0
+          },
+          "failures": []
+        },
+        {
+          "attempt": 2,
+          "exit_code": 0,
+          "seconds": 89.79,
+          "stats": {
+            "startTime": "2026-10-17T03:51:22.464Z",
+            "duration": 88585.837,
+            "expected": 8,
+            "skipped": 0,
+            "unexpected": 0,
+            "flaky": 0
+          },
+          "failures": []
+        },
+        {
+          "attempt": 3,
+          "exit_code": 0,
+          "seconds": 81.58,
+          "stats": {
+            "startTime": "2026-10-17T03:52:52.171Z",
+            "duration": 80501.74399999999,
+            "expected": 8,
+            "skipped": 0,
+            "unexpected": 0,
+            "flaky": 0
+          },
+          "failures": []
+        }
+      ],
+      "passed": 24,
+      "skipped": 0,
+      "unexpected": 0,
+      "retries": 0,
+      "ci": {
+        "sha": "1205e7fa16e743f5a14a58c4210d559c16abb988",
+        "conclusion": "success",
+        "url": "https://github.com/ahmadirshaidat/tandem/actions/runs/39000223061"
+      }
+    }
+  },
+  "browser_local_executions_total_passed": 48
+}
