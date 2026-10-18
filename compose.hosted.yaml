@@ -61,6 +61,7 @@ services:
   document-sync:
     build:
       context: ./sync
+      dockerfile: Dockerfile.hosted
     environment:
       DOCUMENT_SYNC_SECRET: ${DOCUMENT_SYNC_SECRET:?Set a separate shared sync secret}
       DOCUMENT_BACKEND_URL: ${BACKEND_URL:-http://backend:8000}

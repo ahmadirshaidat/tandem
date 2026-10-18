@@ -379,7 +379,7 @@ try {
         provider_calls: 0,
         email_mode: "resend",
         email_delivery: "not tested; no email requests made",
-        hosting: "local containers; Railway and Sites not deployed",
+        hosting: "local containers; does not verify Railway or Sites",
       },
       null,
       2,

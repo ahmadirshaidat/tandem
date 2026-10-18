@@ -1,0 +1,8 @@
+FROM node:24-bookworm-slim
+WORKDIR /app
+COPY --chown=node:node package.json package-lock.json ./
+RUN npm ci --omit=dev
+COPY --chown=node:node *.mjs ./
+USER node
+EXPOSE 8002
+CMD ["node", "server.mjs"]

@@ -1,16 +1,16 @@
 # Hosted manual-testing deployment
 
-Prepared 18 October 2026. This branch packages the existing Slice 7 snapshot for hosting; it does not implement Slice 8 or satisfy owner acceptance. **No Railway deployment or new Sites publication has occurred.** Existing Sites pages are frontend previews and cannot establish full-stack acceptance.
+Prepared 18 October 2026. This branch packages the existing Slice 7 snapshot for hosting; it does not implement Slice 8 or satisfy owner acceptance. Railway deployment has been attempted; see [the build failure evidence](evidence/hosted-deployment/RAILWAY_BUILD_FAILURE.md). No new Sites publication has occurred. Existing Sites pages are frontend previews and cannot establish full-stack acceptance.
 
 ## Selected route and remaining account requirements
 
 Use Railway for four services: PostgreSQL with pgvector, Python API with local E5 inference, Node document sync, and the existing Next.js frontend. Only the frontend gets a public HTTPS domain. Database, API and sync communicate over private networking. OpenAI Sites cannot run these Docker services directly; a Sites entry point requires a separately reachable deployment first.
 
-Railway is connected. The private [Tandem project](https://railway.com/project/58f9f37c-aa18-46e7-8e73-0ab6873ede54?environmentId=3ad12379-4643-441c-aea0-9868d6c863a9) has a `manual-testing` environment with the database, API and document sync **staged, not deployed**, plus two staged 500 MB volumes. The owner confirmed Free/Trial only with no paid billing enabled; the budget remains **$0 out of pocket**. The connected app does not expose the account balance. Do not upgrade the plan or promise that this stack fits a free allowance. Persistent PostgreSQL and local ONNX inference require real memory and disk; a sleeping or memory-limited service may not be suitable.
+Railway is connected. The private [Tandem project](https://railway.com/project/58f9f37c-aa18-46e7-8e73-0ab6873ede54?environmentId=3ad12379-4643-441c-aea0-9868d6c863a9) has a `manual-testing` environment with the database, API and document sync plus two 500 MB volumes. The owner applied the prepared deployment: PostgreSQL came online, while the first API and sync builds failed validation before compilation. Current recovery evidence is linked above. The owner confirmed Free/Trial only with no paid billing enabled; the budget remains **$0 out of pocket**. The connected app does not expose the account balance. Do not upgrade the plan or promise that this stack fits a free allowance.
 
-Railway disables SMTP on Free, Trial and Hobby plans. This branch therefore supports Resend HTTPS delivery for the existing password-reset emails, in addition to the original SMTP and local outbox modes. Secure deployments still reject local outbox mode and incomplete mail configuration. Add `RESEND_API_KEY` and `MAIL_FROM` as private shared variables in the Railway environment; the API service references them. A Resend test sender (`Tandem <onboarding@resend.dev>`) can send only to the Resend account owner; arbitrary recipients require a verified domain. Real email delivery remains unverified until credentials are supplied and a reset is received.
+Railway disables SMTP on Free, Trial and Hobby plans. This branch therefore supports Resend HTTPS delivery for the existing password-reset emails, in addition to the original SMTP and local outbox modes. Secure deployments still reject local outbox mode and incomplete mail configuration. The owner-supplied test `RESEND_API_KEY` and `MAIL_FROM` are saved privately in the Railway environment; the API service references them. A Resend test sender (`Tandem <onboarding@resend.dev>`) can send only to the Resend account owner; arbitrary recipients require a verified domain. Real email delivery remains unverified until a reset is received.
 
-Externally usable Groq/Gemini keys must also be supplied privately before enabling the agent worker. The staged worker is currently disabled and fake mode is off. Runtime proxy placeholders from the development environment are not portable keys. Never paste keys into chat, commit an `.env`, or print resolved Compose configuration. No running paid resources have been provisioned.
+Externally usable Groq/Gemini keys must also be supplied privately before enabling the agent worker. The configured worker is currently disabled and fake mode is off. Runtime proxy placeholders from the development environment are not portable keys. Never paste keys into chat, commit an `.env`, or print resolved Compose configuration. No paid plan upgrade has been authorized.
 
 ## Deployment inputs
 
@@ -20,7 +20,7 @@ Externally usable Groq/Gemini keys must also be supplied privately before enabli
 | --- | --- | --- | --- |
 | `db` | `pgvector/pgvector:pg17` | PostgreSQL 5432 | `/var/lib/postgresql/data` |
 | `backend` | repository root, `infra/Dockerfile.hosted-backend` | HTTP 8000, health `/health` | `/data` |
-| `document-sync` | context `sync`, `Dockerfile` | HTTP/WebSocket 8002, health `/health` | none; Python persists document state |
+| `document-sync` | context `sync`, `Dockerfile.hosted` | HTTP/WebSocket 8002, health `/health` | none; Python persists document state |
 | `frontend` | context `frontend`, `Dockerfile` | HTTP 3000, health `/login` | none |
 
 In Railway, set service source roots/build paths to match these contexts; a backend service needs access to both `backend/` and `infra/`. Its Dockerfile path is `infra/Dockerfile.hosted-backend`. Frontend Docker build arguments **must** receive the actual private `BACKEND_URL` and `DOCUMENT_SYNC_URL`; Next.js bakes rewrites during the build. Runtime-only changes to those URLs require a frontend rebuild. Use the project's actual private DNS names rather than assuming Compose aliases exist on Railway. New Railway networks support IPv4; verify connectivity for these IPv4-bound API/sync services if using an older IPv6-only project.
@@ -42,12 +42,12 @@ Build without credentials in the Docker context:
 ```bash
 docker build -f infra/Dockerfile.hosted-backend -t tandem-hosted-backend:local .
 docker build -t tandem-hosted-frontend:local frontend
-docker build -t tandem-document-sync:latest sync
+docker build -f sync/Dockerfile.hosted -t tandem-document-sync:latest sync
 backend/.venv/bin/pytest -q -c backend/pyproject.toml infra/test_hosted_backend.py
 node infra/check_hosted_stack.mjs
 ```
 
-Restricted cloud runtimes may require their existing public CA and proxy build arguments; never bake credentials into an image. The smoke driver requires Docker, OpenSSL, installed `sync` dependencies and the existing verified public E5 cache at `.local/models/e5-small`. It creates an isolated network, fresh database and volume, generates ephemeral test credentials and a trusted local TLS certificate, then removes its resources. The local cache avoids an upstream download during this check. It does not modify the normal development database or send mail or agent requests. On abrupt process termination, inspect and remove only resources bearing that run's `tandem-hosted-check-` prefix.
+Railway rejects BuildKit secret mounts, so the hosted Dockerfiles do not contain them. The ordinary development Dockerfiles keep their cloud trust support. In this restricted cloud workspace, use `python infra/cloud_build.py --hosted backend document-sync frontend`: it streams a temporary Dockerfile with dependency-install CA mounts to local Docker, without changing the tracked hosted files or persisting the CA in an image. TLS verification stays enabled. The smoke driver requires Docker, OpenSSL, installed `sync` dependencies and the existing verified public E5 cache at `.local/models/e5-small`. It creates an isolated network, fresh database and volume, generates ephemeral test credentials and a trusted local TLS certificate, then removes its resources. The local cache avoids an upstream download during this check. It does not modify the normal development database or send mail or agent requests. On abrupt process termination, inspect and remove only resources bearing that run's `tandem-hosted-check-` prefix.
 
 See [the recorded checks](evidence/hosted-deployment/LOCAL_CHECKS.md). The startup regression suite checks fail-closed HTTPS/real-mail/fake-mode configuration and persistent-directory handling; CI includes it. Email transport tests mock the external service and verify error redaction and reset-link preservation. These checks do not replace real email receipt, the integration/browser suite or the [owner checklist](MANUAL_ACCEPTANCE.md).
 

@@ -2,9 +2,7 @@ FROM node:24-bookworm-slim AS build
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY package.json package-lock.json ./
-RUN --mount=type=secret,id=proxy_ca \
-    if [ -s /run/secrets/proxy_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/proxy_ca; fi; \
-    npm ci --include=dev
+RUN npm ci --include=dev
 COPY . ./
 ARG BACKEND_URL=http://backend:8000
 ARG DOCUMENT_SYNC_URL=http://document-sync:8002
