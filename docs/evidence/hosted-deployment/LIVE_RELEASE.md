@@ -58,7 +58,7 @@ process memory only. No credential was written to source, shell arguments or log
   CSRF/RSC headers, WebSocket response preservation, fixed upstream routing,
   redirects and redacted failures.
 - Guarded frontend image built; frontend lint passed. The isolated Docker stack
-  passed actual HTTPS registration/login, secure cookies, unauthenticated denial,
+  passed actual HTTPS registration with an authenticated session, secure cookies, unauthenticated denial,
   direct HTTP/WebSocket rejection, E5 active, API UID 10001, and a persisted WSS
   Yjs edit. [Safe metadata](local-gateway-stack.json). No mail/provider requests.
 - [CI run 39140809420](https://github.com/ahmadirshaidat/tandem/actions/runs/39140809420)
