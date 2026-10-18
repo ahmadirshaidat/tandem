@@ -1,3 +1,4 @@
+from email.utils import parseaddr
 from pathlib import Path
 
 from pydantic import Field, SecretStr, field_validator, model_validator
@@ -22,6 +23,7 @@ class Settings(BaseSettings):
     smtp_port: int = 587
     smtp_user: str | None = None
     smtp_password: str | None = None
+    resend_api_key: SecretStr | None = None
     mail_from: str = "Tandem <no-reply@localhost>"
     attachment_dir: Path = ROOT / ".local" / "attachments"
     message_requests_per_minute: int = Field(default=60, ge=1, le=600)
@@ -61,7 +63,12 @@ class Settings(BaseSettings):
     ai_requests_per_minute: int = Field(default=5, ge=1, le=60)
 
     @field_validator(
-        "groq_api_key", "deepseek_api_key", "gemini_api_key", "tandem_openai_api_key", mode="before"
+        "groq_api_key",
+        "deepseek_api_key",
+        "gemini_api_key",
+        "tandem_openai_api_key",
+        "resend_api_key",
+        mode="before",
     )
     @classmethod
     def empty_key_is_missing(cls, value):
@@ -71,12 +78,18 @@ class Settings(BaseSettings):
     def validate_mail(self):
         if self.ai_primary_provider not in {"groq", "gemini", "deepseek", "openai"}:
             raise ValueError("AI_PRIMARY_PROVIDER must be groq, gemini, deepseek, or openai")
-        if self.mail_mode not in {"outbox", "smtp"}:
-            raise ValueError("MAIL_MODE must be outbox or smtp")
+        if self.mail_mode not in {"outbox", "smtp", "resend"}:
+            raise ValueError("MAIL_MODE must be outbox, smtp or resend")
         if self.cookie_secure and self.mail_mode == "outbox":
-            raise ValueError("Production requires SMTP mail delivery")
+            raise ValueError("Production requires real mail delivery (smtp or resend)")
         if self.mail_mode == "smtp" and not self.smtp_host:
             raise ValueError("SMTP_HOST is required for SMTP delivery")
+        if self.mail_mode == "resend":
+            if not self.resend_api_key or not self.resend_api_key.get_secret_value().strip():
+                raise ValueError("RESEND_API_KEY is required for HTTPS email delivery")
+            address = parseaddr(self.mail_from)[1]
+            if "@" not in address or address.rsplit("@", 1)[1] in {"", "localhost"}:
+                raise ValueError("MAIL_FROM must identify a verified email sender")
         return self
 
 

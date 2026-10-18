@@ -1,0 +1,20 @@
+{
+  "status": "passed",
+  "https_login": true,
+  "secure_auth_cookies": true,
+  "unauthenticated_denied": true,
+  "e5_active": true,
+  "model": {
+    "name": "Xenova/multilingual-e5-small",
+    "version": "761b726dd34fb83930e26aab4e9ac3899aa1fa78-q8"
+  },
+  "backend_uid": 10001,
+  "websocket_ack": true,
+  "document_persisted": true,
+  "fake_provider": false,
+  "agent_worker": false,
+  "provider_calls": 0,
+  "email_mode": "resend",
+  "email_delivery": "not tested; no email requests made",
+  "hosting": "local containers; Railway and Sites not deployed"
+}
