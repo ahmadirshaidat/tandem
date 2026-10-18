@@ -6,6 +6,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { command, servicesReady } from "./dev-runtime.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const frontend = path.join(root, "frontend");
@@ -21,15 +22,9 @@ const windows = process.platform === "win32";
 const cloud = flags.has("--cloud");
 const port = cloud ? 3000 : 3001;
 const originUrl = `http://localhost:${port}`;
+const documentSyncUrl = `http://127.0.0.1:${cloud ? 8002 : 8003}`;
 const url = `${originUrl}/login`;
 let server;
-
-function command(program, args) {
-  // npm.cmd needs the Windows command interpreter. All arguments here are fixed.
-  return windows && program === "npm"
-    ? ["cmd.exe", ["/d", "/s", "/c", `npm ${args.join(" ")}`]]
-    : [program, args];
-}
 
 function run(program, args, cwd = root) {
   const [executable, arguments_] = command(program, args);
@@ -64,14 +59,7 @@ async function frontendReady() {
 
 async function ready() {
   if (!(await frontendReady())) return false;
-  try {
-    const api = await fetch(`${originUrl}/api/auth/csrf`, {
-      signal: AbortSignal.timeout(4000),
-    });
-    return api.ok && typeof (await api.json()).csrf_token === "string";
-  } catch {
-    return false;
-  }
+  return servicesReady(originUrl, documentSyncUrl);
 }
 
 async function requireFreePort() {
@@ -174,7 +162,7 @@ try {
     if (!supported.has(flag)) throw new Error(`Unknown option: ${flag}`);
   if (flags.has("--help")) {
     console.log(
-      "node infra/dev.mjs [--no-open] [--skip-install] [--skip-build] [--cloud]\nRequires Node.js 24 and running Docker Desktop. This new desktop project uses localhost:3001, API 8001, database 5433, and separate tandem-workspace-v1 Docker data. Starts real services then opens the browser. Ctrl+C stops its frontend. --skip-build requires an existing backend image. --cloud preserves the existing cloud ports and proxy/trust helper.",
+      "node infra/dev.mjs [--no-open] [--skip-install] [--skip-build] [--cloud]\nRequires Node.js 24 and running Docker Desktop. This new desktop project uses localhost:3001, API 8001, document sync 8003, database 5433, and separate tandem-workspace-v1 Docker data. Starts real services then opens the browser. Ctrl+C stops its frontend. --skip-build requires existing backend and document-sync images. --cloud preserves the existing cloud ports and proxy/trust helper.",
     );
   } else {
     if (Number(process.versions.node.split(".")[0]) < 24)
@@ -219,10 +207,10 @@ try {
     if (existingFrontend) {
       if (!(await ready()))
         throw new Error(
-          "The existing frontend cannot reach the API. Check BACKEND_URL and the startup output above.",
+          "The existing frontend or document-sync service is not ready. Check BACKEND_URL, document port and the startup output above.",
         );
       console.log(
-        `Tandem and its API are ready at ${url}. Reusing the existing frontend.`,
+        `Tandem, its API and document sync are ready at ${url}. Reusing the existing frontend.`,
       );
       openBrowser();
     } else {
@@ -258,7 +246,7 @@ try {
       }
       if (!connected)
         throw new Error(
-          "The frontend and API did not become ready. Check the startup output above. No existing data was removed.",
+          "The frontend, API and document-sync service did not become ready. Check the startup output above. No existing data was removed.",
         );
       console.log(
         `\nTandem is ready at ${url}\nSign up, create a workspace, and invite your team. Keep this terminal open. Ctrl+C stops the frontend.\n`,

@@ -35,7 +35,17 @@ Ensure **Node.js 24** and **Docker Desktop** are installed with Docker running. 
 node infra/dev.mjs
 ```
 
-The launcher creates development configuration only if `.env` is missing, installs locked frontend dependencies, starts PostgreSQL and the backend with migrations, and starts the frontend. It opens **`http://localhost:3001/login`** only after checking this project's identity and its API. The new desktop project uses separate `tandem-workspace-v1` Docker containers/volumes, API port **8001**, and database port **5433**. It leaves an older project on port 3000 alone. Sign up, create a workspace, invite your team, and open Chat or Tasks. Your new workspace includes #general. Owners and Admins create projects, then Editors can add tasks. Keep the terminal open; Ctrl+C stops its frontend. Existing `.env` files and database data are preserved. Python and uv are only needed inside the backend container for this workflow.
+The launcher creates development configuration only if `.env` is missing, installs locked frontend dependencies, starts PostgreSQL, the backend with migrations, and the Node document-sync service through Docker Compose, then starts the frontend. It opens **`http://localhost:3001/login`** only after checking this project's identity, its API and the document-sync health endpoint. The new desktop project uses separate `tandem-workspace-v1` Docker containers/volumes, API port **8001**, document-sync port **8003**, and database port **5433**. It leaves an older project on port 3000 alone. Sign up, create a workspace, invite your team, and open Chat, Tasks or Documents. Your new workspace includes #general. Owners and Admins create projects, then Editors can add tasks. Keep the terminal open; Ctrl+C stops its frontend. Existing `.env` files and database data are preserved. Python and uv are only needed inside the backend container for this workflow.
+
+While PR #4 is still a draft, `v1` does not contain Slice 7. To review it in an existing clone, fetch its branch and switch without discarding local changes:
+
+```powershell
+git fetch origin refs/heads/slice-7-documents:refs/remotes/origin/slice-7-documents
+git switch --track origin/slice-7-documents
+node infra/dev.mjs
+```
+
+If the local branch already exists, use `git switch slice-7-documents` instead of `--track`. Review on this branch does not establish owner acceptance or merge it.
 
 If this frontend is already running, the launcher refreshes the backend configuration and reuses it. It verifies the `X-Tandem-Project` header rather than identifying an app by its name alone. If port 3001 belongs to another app, it stops with an explanation instead of killing that app. Use `--no-open` to leave browser opening to Codex and `--skip-install` when dependencies are already installed. Local provider keys belong in this new folder's ignored `.env`; keys saved in a cloud workspace do not automatically appear on your computer.
 
@@ -189,7 +199,7 @@ PLAYWRIGHT_CHROMIUM_EXECUTABLE=/usr/bin/chromium npm run test:e2e
 
 Playwright starts Next.js if needed, but expects the backend to be running. Browser tests exercise two independent user sessions, invitations, role changes, workspace switching and a 390px mobile login. Backend tests cover all workspace routes for isolation, role boundaries, concurrent invitation acceptance, invalid/expired/replayed tokens, session revocation, CSRF, password reset and rate limiting. CI runs lint, tests, production build and browser tests against PostgreSQL.
 
-See [session strategy](docs/adr/0001-authentication-and-sessions.md) and [repository layout](docs/adr/0002-repository-layout.md). Slice 6 acceptance includes a real local-model evaluation and the outstanding product-owner manual Slice 5 UI test. Collaborative documents are proposed next only after those gates pass. Collaborative documents, marketing and billing remain future work.
+See [session strategy](docs/adr/0001-authentication-and-sessions.md) and [repository layout](docs/adr/0002-repository-layout.md). Slice 6 acceptance includes a real local-model evaluation and the outstanding product-owner manual Slice 5 UI test. Slice 7 collaborative documents are implemented on the review branch; the owner manual gates remain unverified. Marketing and billing remain future work.
 
 
 ## Slice 2: channels and messaging
@@ -288,6 +298,8 @@ Open **Documents** to create a Spec, Meeting notes, ADR or Bug postmortem in a p
 
 Documents persist offline using IndexedDB and a cached shell. Reconnect merges authorized edits; revoked access preserves a Rejected changes copy with download/discard. Agent requests and Suggestions require a connection. Use @ for authorized linked-item search, / for blocks, and Backlinks for connections. Channel message actions can create linked meeting notes.
 
-Compose now starts a small non-root Node document-sync service with the backend. Native development also needs `npm ci --prefix sync` and `backend/.venv/bin/python infra/run_document_sync.py` in a separate terminal. The cloud build helper builds both images. The desktop launcher uses sync port 8003, API 8001 and frontend 3001; native/cloud defaults are sync 8002/API 8000/frontend 3000. Configure `FRONTEND_URL` for the actual browser origin. `DOCUMENT_SYNC_SECRET` may override the server-only derived service credential; it never belongs in frontend variables.
+Compose now starts a small non-root Node document-sync service with the backend. Native development also needs `npm ci --prefix sync` and `backend/.venv/bin/python infra/run_document_sync.py` in a separate terminal. The cloud build helper builds both images. `--skip-build` requires both images to exist; a normal desktop launcher invocation builds both. The desktop launcher uses sync port 8003, API 8001 and frontend 3001; native/cloud defaults are sync 8002/API 8000/frontend 3000. Configure `FRONTEND_URL` for the actual browser origin. `DOCUMENT_SYNC_SECRET` may override the server-only derived service credential; it never belongs in frontend variables.
+
+Windows CI checks launcher syntax, native npm process dispatch, and service-readiness behavior. This is a smoke check; a full `node infra/dev.mjs` run with Docker Desktop on a real Windows computer remains unverified.
 
 See [Slice 7 report](docs/SLICE7_REPORT.md) and ADRs 0027–0031 for measured server comparison, sync/open/indexing results, limits and remaining acceptance. No public deployment or Slice 8 work is included.
