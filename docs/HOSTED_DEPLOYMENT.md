@@ -1,12 +1,12 @@
 # Hosted manual-testing deployment
 
-Prepared 18 October 2026. This branch packages the existing Slice 7 snapshot for hosting; it does not implement Slice 8 or satisfy owner acceptance. PostgreSQL, the Python API and document sync are now ONLINE with successful Railway deployments. See [the failure and recovery evidence](evidence/hosted-deployment/RAILWAY_BUILD_FAILURE.md). Frontend/Sites connection is being prepared separately; owner acceptance remains pending.
+Prepared 18 October 2026. This branch packages the existing Slice 7 snapshot for hosting; it does not implement Slice 8 or satisfy owner acceptance. PostgreSQL, the Python API, document sync and the guarded frontend are now ONLINE with successful Railway deployments. The existing private Site is published and connected to that frontend. See [the failure and recovery evidence](evidence/hosted-deployment/RAILWAY_BUILD_FAILURE.md). See [the current deployed release](evidence/hosted-deployment/LIVE_RELEASE.md) for exact versions, checks and remaining limitations. Owner acceptance remains pending.
 
 ## Selected route and remaining account requirements
 
 Use Railway for four services: PostgreSQL with pgvector, Python API with local E5 inference, Node document sync, and the existing Next.js frontend. Only the frontend gets a public HTTPS domain. Database, API and sync communicate over private networking. OpenAI Sites cannot run these Docker services directly; a Sites entry point requires a separately reachable deployment first.
 
-Railway is connected. The private [Tandem project](https://railway.com/project/58f9f37c-aa18-46e7-8e73-0ab6873ede54?environmentId=3ad12379-4643-441c-aea0-9868d6c863a9) has a `manual-testing` environment with the database, API and document sync plus two 500 MB volumes. The owner applied the corrected deployment after the first API and sync builds failed Dockerfile validation. All three current deployments are successful. A fourth, guarded frontend service is configured for the Site connection. Current recovery evidence is linked above. The owner confirmed Free/Trial only with no paid billing enabled; the budget remains **$0 out of pocket**. The connected app does not expose the account balance. Do not upgrade the plan or promise that this stack fits a free allowance.
+Railway is connected. The private [Tandem project](https://railway.com/project/58f9f37c-aa18-46e7-8e73-0ab6873ede54?environmentId=3ad12379-4643-441c-aea0-9868d6c863a9) has a `manual-testing` environment with the database, API and document sync plus two 500 MB volumes. The owner applied the corrected deployment after the first API and sync builds failed Dockerfile validation. All three current deployments are successful. The fourth, guarded frontend service and private Sites gateway are deployed. Current recovery evidence is linked above. The owner confirmed Free/Trial only with no paid billing enabled; the budget remains **$0 out of pocket**. The connected app does not expose the account balance. Do not upgrade the plan or promise that this stack fits a free allowance.
 
 Railway disables SMTP on Free, Trial and Hobby plans. This branch therefore supports Resend HTTPS delivery for the existing password-reset emails, in addition to the original SMTP and local outbox modes. Secure deployments still reject local outbox mode and incomplete mail configuration. The owner-supplied test `RESEND_API_KEY` and `MAIL_FROM` are saved privately in the Railway environment; the API service references them. A Resend test sender (`Tandem <onboarding@resend.dev>`) can send only to the Resend account owner; arbitrary recipients require a verified domain. Real email delivery remains unverified until a reset is received.
 
@@ -53,7 +53,7 @@ See [the recorded checks](evidence/hosted-deployment/LOCAL_CHECKS.md). The start
 
 ## Sites follow-through
 
-The existing private Site is the entry point. `infra/sites-gateway.mjs` is the
+The existing private [Tandem Site](https://tandem-workspace-preview.ahmad-majed.chatgpt.site) is the deployed entry point. `infra/sites-gateway.mjs` is the
 Worker source copied into that Site's source repository. Runtime values
 `UPSTREAM_ORIGIN` and secret `TANDEM_GATEWAY_SECRET` select the guarded Railway
 frontend. The Worker forwards only Tandem session cookies and the necessary
