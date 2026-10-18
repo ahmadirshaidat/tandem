@@ -40,13 +40,21 @@ jobs:
           cache-dependency-glob: backend/uv.lock
       - name: Install backend
         run: uv sync --project backend --frozen
+      - name: Start document transformation service
+        run: |
+          node --test infra/dev-runtime.test.mjs
+          npm ci --prefix sync
+          node --test sync/crdt.test.mjs
+          node sync/server.mjs > "$RUNNER_TEMP/tandem-document-sync.log" 2>&1 &
+          printf '%s\n' "$!" > "$RUNNER_TEMP/tandem-document-sync.pid"
+          node -e "const t=setInterval(()=>fetch('http://127.0.0.1:8002/health').then(r=>{if(r.ok){clearInterval(t);process.exit(0)}}).catch(()=>{}),200);setTimeout(()=>process.exit(1),15000)"
       - name: Backend lint and integration tests
         working-directory: backend
         run: |
           uv run --frozen ruff check app migrations tests
           uv run --frozen ruff format --check app migrations tests
-          uv run --frozen ruff check --config pyproject.toml ../infra/check_approval_live.py ../infra/check_agent_models.py ../infra/check_agent_providers.py ../infra/run_eval.py ../infra/memory_backfill.py ../infra/check_memory_live.py
-          uv run --frozen ruff format --check --config pyproject.toml ../infra/check_approval_live.py ../infra/check_agent_models.py ../infra/check_agent_providers.py ../infra/run_eval.py ../infra/memory_backfill.py ../infra/check_memory_live.py
+          uv run --frozen ruff check --config pyproject.toml ../infra/check_approval_live.py ../infra/check_agent_models.py ../infra/check_agent_providers.py ../infra/run_eval.py ../infra/memory_backfill.py ../infra/check_memory_live.py ../infra/check_document_live.py ../infra/run_document_sync.py
+          uv run --frozen ruff format --check --config pyproject.toml ../infra/check_approval_live.py ../infra/check_agent_models.py ../infra/check_agent_providers.py ../infra/run_eval.py ../infra/memory_backfill.py ../infra/check_memory_live.py ../infra/check_document_live.py ../infra/run_document_sync.py
           uv run --frozen pytest -q
           uv run --frozen alembic upgrade head
           uv run --frozen alembic check
@@ -88,6 +96,13 @@ jobs:
           PLAYWRIGHT_HTML_OPEN: never
         # Put assertion failures in check annotations as well as downloadable logs.
         run: npm run test:e2e -- --reporter=dot,github,html
+      - name: Stop document sync
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/tandem-document-sync.pid" ]; then
+            read -r tandem_document_pid < "$RUNNER_TEMP/tandem-document-sync.pid"
+            kill "$tandem_document_pid" || true
+          fi
       - name: Stop backend
         if: always()
         run: |
@@ -105,3 +120,16 @@ jobs:
           path: |
             frontend/test-results/
             frontend/playwright-report/
+
+  windows-launcher-smoke:
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24'
+      - name: Check launcher and native Windows npm dispatch
+        run: |
+          node --check infra/dev.mjs
+          node --test infra/dev-runtime.test.mjs

@@ -4,6 +4,7 @@ from app.agent import models as agent_models  # noqa: F401
 from app.channels import models as channel_models  # noqa: F401
 from app.core import models  # noqa: F401
 from app.core.db import Base, engine
+from app.documents import models as document_models  # noqa: F401
 from app.memory import models as memory_models  # noqa: F401
 from app.proposals import models as proposal_models  # noqa: F401
 from app.tasks import models as task_models  # noqa: F401

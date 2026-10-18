@@ -12,7 +12,7 @@ import { ErrorNotice } from "./common";
 
 export type MemoryResult = {
   id: string;
-  source_type: "message" | "task";
+  source_type: "message" | "task" | "document";
   source_id: string;
   title: string;
   snippet: string;
@@ -29,7 +29,7 @@ type SearchResult = {
   note: string;
 };
 type Source = {
-  kind: "channel" | "project";
+  kind: "channel" | "project" | "document";
   id: string;
   name: string;
   is_private: boolean;
@@ -41,6 +41,7 @@ type Source = {
   error: string | null;
 };
 type Settings = {
+  include_documents: boolean;
   include_private: boolean;
   retention_days: number;
   offer_resolution_summaries: boolean;
@@ -51,7 +52,7 @@ type Settings = {
   version: string | null;
 };
 type Selection =
-  | { source_kind: "channel" | "project"; source_id: string }
+  | { source_kind: "channel" | "project" | "document"; source_id: string }
   | { record_ids: string[] };
 type Preview = { count: number; preview_token: string };
 
@@ -459,7 +460,10 @@ export function MemorySettingsPage({ workspace }: { workspace: Workspace }) {
     Partial<
       Pick<
         Settings,
-        "include_private" | "retention_days" | "offer_resolution_summaries"
+        | "include_documents"
+        | "include_private"
+        | "retention_days"
+        | "offer_resolution_summaries"
       >
     >
   >({});
@@ -477,6 +481,8 @@ export function MemorySettingsPage({ workspace }: { workspace: Workspace }) {
       api(base + "/settings", {
         method: "PUT",
         body: JSON.stringify({
+          include_documents:
+            draft.include_documents ?? current.data!.include_documents,
           include_private:
             draft.include_private ?? current.data!.include_private,
           retention_days: draft.retention_days ?? current.data!.retention_days,
@@ -558,6 +564,19 @@ export function MemorySettingsPage({ workspace }: { workspace: Workspace }) {
       {current.isPending && <p role="status">Loading memory settings…</p>}
       {value && (
         <>
+          <label>
+            <input
+              type="checkbox"
+              role="switch"
+              checked={
+                draft.include_documents ?? value.include_documents ?? true
+              }
+              onChange={(e) =>
+                setDraft({ ...draft, include_documents: e.target.checked })
+              }
+            />
+            Documents
+          </label>
           <Degraded active={value.degraded} />
           <div className="memory-stats">
             <div className="card card-body">

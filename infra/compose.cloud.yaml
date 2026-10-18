@@ -1,6 +1,16 @@
 # Optional: use the cloud's existing proxy and trusted CA for dependency builds.
 # No certificate or proxy settings are persisted in the image.
 services:
+  document-sync:
+    build:
+      args:
+        - HTTP_PROXY
+        - HTTPS_PROXY
+        - NO_PROXY
+      secrets:
+        - proxy_ca
+      extra_hosts:
+        - "${TANDEM_PROXY_HOST}:${TANDEM_PROXY_IP}"
   backend:
     environment:
       HTTP_PROXY: ${HTTP_PROXY}

@@ -195,3 +195,11 @@ export type SocketEvent = {
   seq: number | null;
   data: EventData;
 };
+export type DocumentSyncEvent = {
+  type: "state" | "ack" | "rejected" | "awareness";
+  state?: string | null;
+  revision?: number | null;
+  can_edit?: boolean | null;
+  update_id?: string | null;
+  data?: string | null;
+};

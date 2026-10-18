@@ -9,6 +9,7 @@ from typing import get_args
 root = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(root / "backend"))
 from app.channels.schemas import EventType, SocketCommand, SocketEvent  # noqa: E402
+from app.documents.schemas import DocumentSyncEvent  # noqa: E402
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--check", action="store_true")
@@ -62,10 +63,16 @@ contract += (
 for name, definition in schema.get("$defs", {}).items():
     contract += f"export type {name} = {ts_type(definition)};\n"
 contract += f"export type SocketEvent = {ts_type(schema)};\n"
+contract += f"export type DocumentSyncEvent = {ts_type(DocumentSyncEvent.model_json_schema())};\n"
 outputs = {
     root / "frontend/src/lib/events.generated.ts": contract,
     root / "docs/channel-events.schema.json": json.dumps(
-        {"event": schema, "command": SocketCommand.model_json_schema()}, indent=2
+        {
+            "event": schema,
+            "command": SocketCommand.model_json_schema(),
+            "document_event": DocumentSyncEvent.model_json_schema(),
+        },
+        indent=2,
     )
     + "\n",
 }

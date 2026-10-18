@@ -6,7 +6,13 @@ from pydantic import Field, model_validator
 from app.tasks.schemas import CommentInput, Priority, Status, StrictInput, TaskInput
 
 Kind = Literal[
-    "create_tasks", "update_task", "reassign_task", "change_priority", "delete_task", "add_comment"
+    "create_tasks",
+    "update_task",
+    "reassign_task",
+    "change_priority",
+    "delete_task",
+    "add_comment",
+    "suggest_edit",
 ]
 
 
@@ -76,7 +82,10 @@ class AddComment(Target, CommentInput):
     pass
 
 
+from app.documents.tools import SuggestEdit  # noqa: E402
+
 PAYLOADS = {
+    "suggest_edit": SuggestEdit,
     "create_tasks": CreateTasks,
     "update_task": UpdateTask,
     "reassign_task": ReassignTask,
@@ -87,7 +96,7 @@ PAYLOADS = {
 
 
 class Source(StrictInput):
-    type: Literal["message", "task"]
+    type: Literal["message", "task", "document"]
     id: str = Field(min_length=1, max_length=36)
 
 

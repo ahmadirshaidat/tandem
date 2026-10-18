@@ -1,0 +1,22 @@
+{
+  "status": "superseded_harness_bug",
+  "reason": "Uncorrelated websocket broadcasts could be mistaken for the reply to a later command; convergence false and missing denial fields were not valid engine results. The corrected harness correlates request IDs.",
+  "results": [
+    {
+      "server": "python",
+      "samples": 100,
+      "p95_sync_ms": 1.9219840000000659,
+      "rss_kib": 41860,
+      "concurrent_same_word_converged": false,
+      "authorization": "synthetic guard only; production integration assessed separately"
+    },
+    {
+      "server": "node",
+      "samples": 100,
+      "p95_sync_ms": 1.1987359999998262,
+      "rss_kib": 54576,
+      "concurrent_same_word_converged": false,
+      "authorization": "synthetic guard only; production integration assessed separately"
+    }
+  ]
+}

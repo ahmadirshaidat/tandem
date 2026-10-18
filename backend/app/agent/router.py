@@ -216,8 +216,37 @@ def recent(workspace_id: str, user: User = Depends(current_user), db: Session = 
     ]
 
 
-def audit_query(db, wid, before, after, until, actor, action, status, actor_id=None):
+def audit_query(
+    db, wid, before, after, until, actor, action, status, actor_id=None, viewer_id=None
+):
     q = select(AuditEvent).where(AuditEvent.workspace_id == wid)
+    if viewer_id is not None:
+        from sqlalchemy import exists
+
+        from app.documents.models import Document, DocumentMember
+        from app.proposals.models import Proposal
+
+        private_ids = select(Document.id).where(
+            Document.workspace_id == wid,
+            Document.is_private.is_(True),
+            ~exists(
+                select(DocumentMember.user_id).where(
+                    DocumentMember.workspace_id == wid,
+                    DocumentMember.document_id == Document.id,
+                    DocumentMember.user_id == viewer_id,
+                )
+            ),
+        )
+        hidden_proposals = select(Proposal.id).where(
+            Proposal.workspace_id == wid,
+            Proposal.kind == "suggest_edit",
+            Proposal.payload["document_id"].as_string().in_(private_ids),
+        )
+        q = q.where(
+            ~and_(AuditEvent.target_type == "document", AuditEvent.target_id.in_(private_ids)),
+            ~and_(AuditEvent.target_type == "proposal", AuditEvent.target_id.in_(hidden_proposals)),
+        )
+    cursor_base = q
     for value, column, operator in [
         (after, AuditEvent.created_at, "ge"),
         (until, AuditEvent.created_at, "le"),
@@ -232,9 +261,7 @@ def audit_query(db, wid, before, after, until, actor, action, status, actor_id=N
     if actor_id:
         q = q.where(AuditEvent.actor_id == actor_id)
     if before:
-        anchor = db.scalar(
-            select(AuditEvent).where(AuditEvent.workspace_id == wid, AuditEvent.id == before)
-        )
+        anchor = db.scalar(cursor_base.where(AuditEvent.id == before))
         if not anchor:
             raise HTTPException(422, "Invalid audit cursor")
         q = q.where(
@@ -286,7 +313,16 @@ def read_audit(
     rows = list(
         db.scalars(
             audit_query(
-                db, workspace_id, before, after, until, actor, action, status, actor_id
+                db,
+                workspace_id,
+                before,
+                after,
+                until,
+                actor,
+                action,
+                status,
+                actor_id,
+                viewer_id=user.id,
             ).limit((10000 if export else limit) + 1)
         )
     )

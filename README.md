@@ -1,6 +1,12 @@
 # Tandem
 
-An AI-native collaborative workspace for software teams. Slices 0–5 and the real-provider compatibility fixes are merged into `v1`. **Slice 6 (workspace memory and permission-filtered retrieval)** is implemented on `slice-6-memory`; see [the Slice 6 report](docs/SLICE6_REPORT.md) for actual checks and open acceptance gates. Documents remain a later slice.
+Slices 0–6 and provider compatibility are merged into `v1`. Slice 7 collaborative documents are implemented on `slice-7-documents`; see [the current report](docs/SLICE7_REPORT.md) for checks and open acceptance gates. Prior product-owner manual acceptance remains unrecorded; proceeding was explicitly authorized.
+
+## Manual acceptance and new-chat handoff
+
+The `main` branch is a manual-testing snapshot of the latest Slice 7 code; `v1` remains the canonical acceptance branch and PR #4 remains draft pending owner results. Select `main` explicitly in a new chat or clone with `git clone --branch main https://github.com/ahmadirshaidat/tandem.git`.
+
+Use [the owner checklist](docs/MANUAL_ACCEPTANCE.md) to record manual Slices 5–7 results; every item starts as Not tested. [The Sites/new-chat handoff](docs/SITES_MANUAL_TEST_HANDOFF.md) explains the required full-stack runtime and contains a copyable prompt. A testing branch or CI pass does not establish owner acceptance. Slice 8 remains gated by recorded results and the accepted Slice 7 merge into `v1`.
 
 ## Requirements
 
@@ -35,7 +41,17 @@ Ensure **Node.js 24** and **Docker Desktop** are installed with Docker running. 
 node infra/dev.mjs
 ```
 
-The launcher creates development configuration only if `.env` is missing, installs locked frontend dependencies, starts PostgreSQL and the backend with migrations, and starts the frontend. It opens **`http://localhost:3001/login`** only after checking this project's identity and its API. The new desktop project uses separate `tandem-workspace-v1` Docker containers/volumes, API port **8001**, and database port **5433**. It leaves an older project on port 3000 alone. Sign up, create a workspace, invite your team, and open Chat or Tasks. Your new workspace includes #general. Owners and Admins create projects, then Editors can add tasks. Keep the terminal open; Ctrl+C stops its frontend. Existing `.env` files and database data are preserved. Python and uv are only needed inside the backend container for this workflow.
+The launcher creates development configuration only if `.env` is missing, installs locked frontend dependencies, starts PostgreSQL, the backend with migrations, and the Node document-sync service through Docker Compose, then starts the frontend. It opens **`http://localhost:3001/login`** only after checking this project's identity, its API and the document-sync health endpoint. The new desktop project uses separate `tandem-workspace-v1` Docker containers/volumes, API port **8001**, document-sync port **8003**, and database port **5433**. It leaves an older project on port 3000 alone. Sign up, create a workspace, invite your team, and open Chat, Tasks or Documents. Your new workspace includes #general. Owners and Admins create projects, then Editors can add tasks. Keep the terminal open; Ctrl+C stops its frontend. Existing `.env` files and database data are preserved. Python and uv are only needed inside the backend container for this workflow.
+
+While PR #4 is still a draft, `v1` does not contain Slice 7. To review it in an existing clone, fetch its branch and switch without discarding local changes:
+
+```powershell
+git fetch origin refs/heads/slice-7-documents:refs/remotes/origin/slice-7-documents
+git switch --no-track -c slice-7-documents origin/slice-7-documents
+node infra/dev.mjs
+```
+
+If the local branch already exists, use `git switch slice-7-documents` instead of creating it again. The explicit fetch and `--no-track` also work in a single-branch `v1` clone; update this review branch with `git pull --ff-only origin slice-7-documents`. Review on this branch does not establish owner acceptance or merge it.
 
 If this frontend is already running, the launcher refreshes the backend configuration and reuses it. It verifies the `X-Tandem-Project` header rather than identifying an app by its name alone. If port 3001 belongs to another app, it stops with an explanation instead of killing that app. Use `--no-open` to leave browser opening to Codex and `--skip-install` when dependencies are already installed. Local provider keys belong in this new folder's ignored `.env`; keys saved in a cloud workspace do not automatically appear on your computer.
 
@@ -189,7 +205,7 @@ PLAYWRIGHT_CHROMIUM_EXECUTABLE=/usr/bin/chromium npm run test:e2e
 
 Playwright starts Next.js if needed, but expects the backend to be running. Browser tests exercise two independent user sessions, invitations, role changes, workspace switching and a 390px mobile login. Backend tests cover all workspace routes for isolation, role boundaries, concurrent invitation acceptance, invalid/expired/replayed tokens, session revocation, CSRF, password reset and rate limiting. CI runs lint, tests, production build and browser tests against PostgreSQL.
 
-See [session strategy](docs/adr/0001-authentication-and-sessions.md) and [repository layout](docs/adr/0002-repository-layout.md). Slice 6 acceptance includes a real local-model evaluation and the outstanding product-owner manual Slice 5 UI test. Collaborative documents are proposed next only after those gates pass. Collaborative documents, marketing and billing remain future work.
+See [session strategy](docs/adr/0001-authentication-and-sessions.md) and [repository layout](docs/adr/0002-repository-layout.md). Slice 6 acceptance includes a real local-model evaluation and the outstanding product-owner manual Slice 5 UI test. Slice 7 collaborative documents are implemented on the review branch; the owner manual gates remain unverified. Marketing and billing remain future work.
 
 
 ## Slice 2: channels and messaging
@@ -241,7 +257,7 @@ This creates synthetic accounts/workspace, seeds 1,000 tasks, measures 20 board 
 
 ## Workspace memory and search (Slice 6 branch)
 
-The `slice-6-memory` branch adds persistent message/task/comment indexing, PostgreSQL full-text plus local ONNX/pgvector search, and Owner/Admin controls at **Settings → Memory**. Search is available at **Search** on desktop and through Settings navigation on mobile. Both require a connection. No document indexing is implemented.
+The `slice-6-memory` branch adds persistent message/task/comment indexing, PostgreSQL full-text plus local ONNX/pgvector search, and Owner/Admin controls at **Settings → Memory**. Search is available at **Search** on desktop and through Settings navigation on mobile. Both require a connection. Slice 7 adds document indexing through the same pipeline, controlled by the Documents source toggle.
 
 Private-channel indexing defaults off. Inclusion never grants access: SQL candidates require current workspace/channel membership and live source/settings state before ranking. Agent retrieval also respects the destination audience. Source chips are re-authorized for the current viewer. Search exposes no inaccessible counts or skipped-source hints.
 
@@ -280,3 +296,16 @@ Append `--origin http://localhost:3001` for the desktop launcher. Missing creden
 For semantic acceptance, also pass `--require-embeddings --embedding-model MODEL_ID`, where `MODEL_ID` is the exact local model selected by the real comparison. The checker rejects missing embeddings, a different model or missing synthetic-task vectors before requesting paid generation. It verifies both tasks through vector-only retrieval, so full-text hits cannot substitute for a populated vector index. The ordinary `--require-live` commands above still permit visibly degraded full-text retrieval and cannot close the embedding gate.
 
 CI retains failed-test traces, screenshots and the Playwright HTML report in `browser-test-results-RUN_ATTEMPT` for seven days. Download the artifact from the failed Actions run and open its HTML report or trace locally. A passing rerun does not establish the cause of an earlier failure.
+
+
+## Collaborative documents (Slice 7)
+
+Open **Documents** to create a Spec, Meeting notes, ADR or Bug postmortem in a project. Editors co-edit with Tiptap/Yjs; Viewers read. Private documents require explicit membership even for Admins. Use Suggestions to review exact Agent edits before accepting; the agent has no direct content-writing tool. History supports named snapshots, preview, restore and Markdown export.
+
+Documents persist offline using IndexedDB and a cached shell. Reconnect merges authorized edits; revoked access preserves a Rejected changes copy with download/discard. Agent requests and Suggestions require a connection. Use @ for authorized linked-item search, / for blocks, and Backlinks for connections. Channel message actions can create linked meeting notes.
+
+Compose now starts a small non-root Node document-sync service with the backend. Native development also needs `npm ci --prefix sync` and `backend/.venv/bin/python infra/run_document_sync.py` in a separate terminal. The cloud build helper builds both images. `--skip-build` requires both images to exist; a normal desktop launcher invocation builds both. The desktop launcher uses sync port 8003, API 8001 and frontend 3001; native/cloud defaults are sync 8002/API 8000/frontend 3000. Configure `FRONTEND_URL` for the actual browser origin. `DOCUMENT_SYNC_SECRET` may override the server-only derived service credential; it never belongs in frontend variables.
+
+Windows CI checks launcher syntax, native npm process dispatch, and service-readiness behavior (8/8 smoke tests passed on `79fa662`). This is a smoke check; a full `node infra/dev.mjs` run with Docker Desktop on a real Windows computer remains unverified.
+
+See [Slice 7 report](docs/SLICE7_REPORT.md) and ADRs 0027–0031 for measured server comparison, sync/open/indexing results, limits and remaining acceptance. No public deployment or Slice 8 work is included.

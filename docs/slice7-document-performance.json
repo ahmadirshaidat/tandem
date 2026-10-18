@@ -1,0 +1,12 @@
+{
+  "mode": "synthetic_production_path",
+  "samples": 30,
+  "p95_sync_ms": 407.22164299999986,
+  "under_500_ms": true,
+  "document_utf8_bytes": 52827,
+  "open_50kb_ms": 2627.0344030000015,
+  "indexing_lag_ms": 18295.828255999997,
+  "indexing_target_verified": true,
+  "transport": "Node WS -> Python current authorization and PostgreSQL persistence -> authorized recipient",
+  "generation": "none"
+}

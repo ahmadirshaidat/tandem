@@ -30,6 +30,7 @@ class MemorySettings(Base):
     workspace_id: Mapped[str] = mapped_column(
         ForeignKey("workspaces.id", ondelete="CASCADE"), primary_key=True
     )
+    include_documents: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
     include_private: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     retention_days: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     offer_resolution_summaries: Mapped[bool] = mapped_column(
@@ -73,7 +74,7 @@ class MemorySource(Base):
             ondelete="CASCADE",
         ),
         CheckConstraint(
-            "(kind = 'channel' AND channel_id IS NOT NULL AND channel_id = source_id AND project_id IS NULL) OR (kind = 'project' AND project_id IS NOT NULL AND project_id = source_id AND channel_id IS NULL)",
+            "(kind = 'channel' AND channel_id IS NOT NULL AND channel_id = source_id AND project_id IS NULL) OR (kind = 'project' AND project_id IS NOT NULL AND project_id = source_id AND channel_id IS NULL) OR (kind = 'document' AND channel_id IS NULL AND project_id IS NULL)",
             name="ck_memory_source_kind",
         ),
         CheckConstraint(
@@ -104,6 +105,7 @@ class MemoryRecord(Base):
     source_id: Mapped[str] = mapped_column(String(36))
     channel_id: Mapped[str | None] = mapped_column(String(36))
     project_id: Mapped[str | None] = mapped_column(String(36))
+    document_id: Mapped[str | None] = mapped_column(String(36))
     task_id: Mapped[str | None] = mapped_column(String(36))
     message_id: Mapped[str | None] = mapped_column(String(36))
     chunk_number: Mapped[int] = mapped_column(Integer)
@@ -124,6 +126,11 @@ class MemoryRecord(Base):
     )
     __table_args__ = (
         source_fk(),
+        ForeignKeyConstraint(
+            ["workspace_id", "document_id"],
+            ["documents.workspace_id", "documents.id"],
+            ondelete="CASCADE",
+        ),
         UniqueConstraint("workspace_id", "id", name="uq_memory_record_scope"),
         UniqueConstraint("workspace_id", "record_key", name="uq_memory_record_key"),
         ForeignKeyConstraint(
@@ -140,11 +147,11 @@ class MemoryRecord(Base):
             ondelete="CASCADE",
         ),
         CheckConstraint(
-            "(source_type = 'message' AND message_id IS NOT NULL AND message_id = source_id AND channel_id IS NOT NULL AND task_id IS NULL) OR (source_type = 'task' AND task_id IS NOT NULL AND task_id = source_id AND project_id IS NOT NULL AND message_id IS NULL)",
+            "(source_type = 'message' AND message_id IS NOT NULL AND message_id = source_id AND channel_id IS NOT NULL AND task_id IS NULL) OR (source_type = 'task' AND task_id IS NOT NULL AND task_id = source_id AND project_id IS NOT NULL AND message_id IS NULL) OR (source_type = 'document' AND document_id IS NOT NULL AND document_id = source_id AND project_id IS NOT NULL AND message_id IS NULL AND task_id IS NULL)",
             name="ck_memory_record_source",
         ),
         CheckConstraint(
-            "chunk_number >= 0 AND status = 'ready' AND visibility_scope IN ('channel','project')",
+            "chunk_number >= 0 AND status = 'ready' AND visibility_scope IN ('channel','project','document')",
             name="ck_memory_record_state",
         ),
         Index("ix_memory_fts", "search_vector", postgresql_using="gin"),

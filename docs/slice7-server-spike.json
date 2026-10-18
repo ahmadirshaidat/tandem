@@ -1,0 +1,22 @@
+[
+  {
+    "server": "python",
+    "samples": 100,
+    "p95_sync_ms": 2.4658730000001015,
+    "rss_kib": 41932,
+    "concurrent_same_word_converged": true,
+    "viewer_denied": true,
+    "malformed_rejected": true,
+    "authorization": "synthetic guard only; production integration assessed separately"
+  },
+  {
+    "server": "node",
+    "samples": 100,
+    "p95_sync_ms": 1.1884820000000218,
+    "rss_kib": 55620,
+    "concurrent_same_word_converged": true,
+    "viewer_denied": true,
+    "malformed_rejected": true,
+    "authorization": "synthetic guard only; production integration assessed separately"
+  }
+]

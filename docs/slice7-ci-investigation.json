@@ -1,0 +1,86 @@
+{
+  "checked_utc": "2026-10-18T12:21:13.790075+00:00",
+  "baseline_head": "d9df90e9d935f5eecf6396687476bcba88359b59",
+  "baseline_run": {
+    "number": 50,
+    "id": 39068164321,
+    "conclusion": "success",
+    "backend_tests": 163,
+    "frontend_tests": 35,
+    "browser_tests": 11,
+    "check_annotations": [
+      {
+        "level": "notice",
+        "title": "Playwright Run Summary",
+        "message": "11 passed (1.1m)"
+      }
+    ]
+  },
+  "historical_failures": [
+    {
+      "number": 43,
+      "id": 39067074306,
+      "failed_step": "Check shared live event contract",
+      "cause": "app.documents.schemas was not included in the commit",
+      "fix_commit": "59e96175272f92c84484f9315c47452babeb8eaa",
+      "fix": "Committed backend/app/documents/schemas.py; run 44 passed"
+    },
+    {
+      "number": 46,
+      "id": 39067480168,
+      "failed_step": "Backend lint and integration tests",
+      "cause": "Two helpers were formatted with a different Ruff configuration",
+      "affected_files": [
+        "infra/check_document_live.py",
+        "infra/run_document_sync.py"
+      ],
+      "fix_commit": "f25d9cab788e2b176212640296bacbfa6b9c676a",
+      "fix": "Format with backend/pyproject.toml; runs 47-50 passed"
+    }
+  ],
+  "expected_postgres_rejection_logs": [
+    {
+      "message": "audit_events is append-only",
+      "tests": [
+        "test_audit_immutable",
+        "test_settings_audit_authorization_redaction_filters_and_export"
+      ]
+    },
+    {
+      "message": "duplicate key violates ix_users_email",
+      "test": "test_duplicate_email_is_case_insensitive"
+    },
+    {
+      "message": "memory_sources composite foreign key rejected",
+      "test": "test_memory_sources_cannot_reference_another_workspace"
+    }
+  ],
+  "merge_order": {
+    "pr3": {
+      "merged": true,
+      "target": "v1",
+      "merge_commit": "99f0b9f60fecad8fd902598a8e2646b1967973d2",
+      "merged_utc": "2026-10-17T20:00:15Z"
+    },
+    "pr4": {
+      "merged": false,
+      "draft": true,
+      "target": "v1",
+      "base_sha": "99f0b9f60fecad8fd902598a8e2646b1967973d2"
+    }
+  },
+  "manual_owner_acceptance": {
+    "slice5": "unverified",
+    "slice6": "unverified",
+    "slice7": "unverified"
+  },
+  "launcher_followup": {
+    "commit": "79fa662b56c4c0a2fc27f11ae53543d7f5265337",
+    "run_id": 39126826111,
+    "windows_job_id": 117673603282,
+    "windows_smoke_conclusion": "success",
+    "windows_tests": 8,
+    "windows_failures": 0,
+    "windows_docker_desktop_full_startup": "unverified"
+  }
+}

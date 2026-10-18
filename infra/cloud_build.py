@@ -20,6 +20,7 @@ raise SystemExit(
             "plain",
             "build",
             "backend",
+            "document-sync",
         ],
         cwd=root,
         env=environment,

@@ -1,0 +1,28 @@
+{
+  "mode": "desktop_compose_configuration_only",
+  "services": [
+    "backend",
+    "db",
+    "document-sync"
+  ],
+  "published_ports": {
+    "backend": [
+      "8001"
+    ],
+    "db": [
+      "5433"
+    ],
+    "document-sync": [
+      "8003"
+    ]
+  },
+  "backend_document_sync_url": "http://document-sync:8002",
+  "document_sync_authority_url": "http://backend:8000",
+  "document_sync_depends_on": {
+    "backend": {
+      "condition": "service_healthy",
+      "required": true
+    }
+  },
+  "windows_docker_desktop_end_to_end_verified": false
+}

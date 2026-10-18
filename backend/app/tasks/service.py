@@ -371,6 +371,16 @@ def resolve_item(db, workspace_id, kind, item_id, user_id):
                 "url": f"/channels?channel={channel.id}&message={message.id}",
                 "message": message,
             }
+    if kind == "document":
+        from app.documents.service import document
+
+        d = document(db, workspace_id, item_id, user_id)
+        return {
+            "type": "document",
+            "id": d.id,
+            "label": d.title,
+            "url": "/documents?document=" + d.id,
+        }
     raise HTTPException(404, LINK_NOT_FOUND)
 
 
@@ -394,7 +404,9 @@ def create_link(db, workspace_id, data, user_id, *, check_version=True):
     source = resolve_item(db, workspace_id, data.source_type, data.source_id, user_id)
     target = resolve_item(db, workspace_id, data.target_type, data.target_id, user_id)
     tasks = [item["task"] for item in [source, target] if "task" in item]
-    if not tasks or (data.source_type == data.target_type and data.source_id == data.target_id):
+    if (not tasks and "document" not in {data.source_type, data.target_type}) or (
+        data.source_type == data.target_type and data.source_id == data.target_id
+    ):
         raise HTTPException(422, "A link must connect a task to a different task or message")
     existing = db.scalar(
         select(Link).where(

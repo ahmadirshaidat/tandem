@@ -82,6 +82,8 @@ def test_registry_read_only_mutation_refusal_viewer_and_loop(client_factory, db)
         "search_memory",
         "find_similar_bugs",
         "analyze_bug",
+        "get_document",
+        "retrieve_documents",
     }
     assert all(d["mode"] in {"read", "proposal"} for d in descriptors())
     for schema in REGISTRY.values():

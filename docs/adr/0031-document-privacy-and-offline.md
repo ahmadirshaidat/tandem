@@ -1,0 +1,5 @@
+# ADR 0031: Current document authorization and offline recovery
+
+Projects inherit workspace access. A private document additionally requires explicit document membership, including for Owners/Admins. Viewers may read but cannot submit CRDT updates; Editors create/edit/name/restore; Admins/Owners archive/delete/change privacy/manage members. Authentication, CSRF, membership and role checks stay in Python. The Node transport checks every sender and recipient through that authority and polls at 500 ms to close revoked/changed sessions and roles.
+
+Persist CRDT updates using IndexedDB under user/workspace/document-specific keys. Offline document edits merge after authorized reconnect. Changed/revoked permissions reject updates; retain the local CRDT and expose Rejected changes with download and explicit discard. Do not silently replay rejected changes on later reload. Agent requests and Suggestions require a connection. Lists, backlinks, versions, export, memory and errors reauthorize document visibility and expose no unauthorized counts or hints. Awareness remains ephemeral; rendering uses Tiptap schema/text nodes, never raw HTML.
