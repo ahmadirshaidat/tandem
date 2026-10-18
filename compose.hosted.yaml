@@ -1,0 +1,90 @@
+# Provider-neutral deployment/import baseline. Railway variables and private DNS
+# must be resolved after account connection, before deploying these services.
+name: tandem-hosted
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: tandem
+      POSTGRES_DB: tandem
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set a fresh database password securely}
+    volumes:
+      - database:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tandem -d tandem"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+  backend:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.hosted-backend
+    # The launcher initializes the mounted volume, then drops to UID 10001
+    # before migrations, model loading and the application. Railway also needs
+    # RAILWAY_RUN_UID=0 because its volumes mount with root ownership.
+    user: "0:0"
+    environment:
+      RAILWAY_RUN_UID: "0"
+      DATABASE_URL: ${DATABASE_URL:?Set a private database connection URL}
+      JWT_SECRET: ${JWT_SECRET:?Set a fresh signing secret securely}
+      DOCUMENT_SYNC_SECRET: ${DOCUMENT_SYNC_SECRET:?Set a separate shared sync secret}
+      FRONTEND_URL: ${FRONTEND_URL:?Set the final HTTPS app origin}
+      COOKIE_SECURE: "true"
+      MAIL_MODE: smtp
+      SMTP_HOST: ${SMTP_HOST:?Set a real SMTP host}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:?Set the SMTP sender}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-120b}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.5-flash}
+      AGENT_FAKE_PROVIDER: "false"
+      AGENT_WORKER_ENABLED: ${AGENT_WORKER_ENABLED:-true}
+      DOCUMENT_SYNC_URL: ${DOCUMENT_SYNC_URL:-http://document-sync:8002}
+      MEMORY_EMBEDDING_ENABLED: "true"
+    volumes:
+      - app-data:/data
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 5s
+      timeout: 5s
+      start_period: 180s
+      retries: 60
+  document-sync:
+    build:
+      context: ./sync
+    environment:
+      DOCUMENT_SYNC_SECRET: ${DOCUMENT_SYNC_SECRET:?Set a separate shared sync secret}
+      DOCUMENT_BACKEND_URL: ${BACKEND_URL:-http://backend:8000}
+      DOCUMENT_SYNC_HOST: 0.0.0.0
+      FRONTEND_URL: ${FRONTEND_URL:?Set the final HTTPS app origin}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8002/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        BACKEND_URL: ${BACKEND_URL:-http://backend:8000}
+        DOCUMENT_SYNC_URL: ${DOCUMENT_SYNC_URL:-http://document-sync:8002}
+    ports:
+      - "127.0.0.1:${TANDEM_HOSTED_PORT:-3030}:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+      document-sync:
+        condition: service_healthy
+    restart: unless-stopped
+volumes:
+  database:
+  app-data:

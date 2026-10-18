@@ -8,6 +8,8 @@ The `main` branch is a manual-testing snapshot of the latest Slice 7 code; `v1` 
 
 Use [the owner checklist](docs/MANUAL_ACCEPTANCE.md) to record manual Slices 5–7 results; every item starts as Not tested. [The Sites/new-chat handoff](docs/SITES_MANUAL_TEST_HANDOFF.md) explains the required full-stack runtime and contains a copyable prompt. A testing branch or CI pass does not establish owner acceptance. Slice 8 remains gated by recorded results and the accepted Slice 7 merge into `v1`.
 
+For the requested hosted test environment, see [the deployment recipe and current blockers](docs/HOSTED_DEPLOYMENT.md). It packages the existing app for Railway; account connection, credit checks and real hosted verification are still required before a usable deployment can be claimed.
+
 ## Requirements
 
 Python 3.12, [uv](https://docs.astral.sh/uv/), Node.js 24, Docker with Compose v2. PostgreSQL runs in Docker; no LLM credentials are required. The test database user needs CREATE DATABASE permission (the local Compose user has it).
