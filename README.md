@@ -41,11 +41,11 @@ While PR #4 is still a draft, `v1` does not contain Slice 7. To review it in an 
 
 ```powershell
 git fetch origin refs/heads/slice-7-documents:refs/remotes/origin/slice-7-documents
-git switch --track origin/slice-7-documents
+git switch --no-track -c slice-7-documents origin/slice-7-documents
 node infra/dev.mjs
 ```
 
-If the local branch already exists, use `git switch slice-7-documents` instead of `--track`. Review on this branch does not establish owner acceptance or merge it.
+If the local branch already exists, use `git switch slice-7-documents` instead of creating it again. The explicit fetch and `--no-track` also work in a single-branch `v1` clone; update this review branch with `git pull --ff-only origin slice-7-documents`. Review on this branch does not establish owner acceptance or merge it.
 
 If this frontend is already running, the launcher refreshes the backend configuration and reuses it. It verifies the `X-Tandem-Project` header rather than identifying an app by its name alone. If port 3001 belongs to another app, it stops with an explanation instead of killing that app. Use `--no-open` to leave browser opening to Codex and `--skip-install` when dependencies are already installed. Local provider keys belong in this new folder's ignored `.env`; keys saved in a cloud workspace do not automatically appear on your computer.
 
