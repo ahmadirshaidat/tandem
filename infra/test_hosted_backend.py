@@ -28,6 +28,24 @@ def test_valid_hosted_settings():
     module.validate(valid())
 
 
+def test_https_mail_without_smtp():
+    data = valid()
+    data.update(
+        MAIL_MODE="resend", RESEND_API_KEY="synthetic-key", MAIL_FROM="Tandem <test@example.com>"
+    )
+    del data["SMTP_HOST"]
+    module.validate(data)
+
+
+@pytest.mark.parametrize("field", ["RESEND_API_KEY", "MAIL_FROM"])
+def test_https_mail_cannot_start_without_credentials_and_sender(field):
+    data = valid()
+    data.update(MAIL_MODE="resend", RESEND_API_KEY="synthetic-key", MAIL_FROM="test@example.com")
+    del data[field]
+    with pytest.raises(ValueError, match=field):
+        module.validate(data)
+
+
 @pytest.mark.parametrize(
     "key,value",
     [

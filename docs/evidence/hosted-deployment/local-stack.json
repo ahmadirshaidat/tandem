@@ -14,6 +14,7 @@
   "fake_provider": false,
   "agent_worker": false,
   "provider_calls": 0,
-  "smtp_delivery": "not tested",
+  "email_mode": "resend",
+  "email_delivery": "not tested; no email requests made",
   "hosting": "local containers; Railway and Sites not deployed"
 }

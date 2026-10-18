@@ -31,12 +31,13 @@ services:
       DOCUMENT_SYNC_SECRET: ${DOCUMENT_SYNC_SECRET:?Set a separate shared sync secret}
       FRONTEND_URL: ${FRONTEND_URL:?Set the final HTTPS app origin}
       COOKIE_SECURE: "true"
-      MAIL_MODE: smtp
-      SMTP_HOST: ${SMTP_HOST:?Set a real SMTP host}
+      MAIL_MODE: ${MAIL_MODE:-resend}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
-      MAIL_FROM: ${MAIL_FROM:?Set the SMTP sender}
+      MAIL_FROM: ${MAIL_FROM:?Set the email sender}
       GROQ_API_KEY: ${GROQ_API_KEY:-}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-120b}

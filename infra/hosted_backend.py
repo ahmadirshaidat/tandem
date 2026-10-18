@@ -4,13 +4,14 @@ import os
 import pwd
 import subprocess
 import sys
+from email.utils import parseaddr
 from pathlib import Path
 from urllib.parse import urlsplit
 
 
 def validate(environment):
     errors = []
-    for name in ("DATABASE_URL", "JWT_SECRET", "FRONTEND_URL", "SMTP_HOST"):
+    for name in ("DATABASE_URL", "JWT_SECRET", "FRONTEND_URL"):
         if not environment.get(name):
             errors.append(name)
     if len(environment.get("JWT_SECRET", "")) < 32:
@@ -25,8 +26,17 @@ def validate(environment):
         errors.append("FRONTEND_URL (valid HTTPS origin required)")
     if environment.get("COOKIE_SECURE", "").lower() not in ("true", "1"):
         errors.append("COOKIE_SECURE=true")
-    if environment.get("MAIL_MODE") != "smtp":
-        errors.append("MAIL_MODE=smtp")
+    if environment.get("MAIL_MODE") == "smtp":
+        if not environment.get("SMTP_HOST"):
+            errors.append("SMTP_HOST")
+    elif environment.get("MAIL_MODE") == "resend":
+        if not environment.get("RESEND_API_KEY", "").strip():
+            errors.append("RESEND_API_KEY")
+        address = parseaddr(environment.get("MAIL_FROM", ""))[1]
+        if "@" not in address or address.rsplit("@", 1)[1] in {"", "localhost"}:
+            errors.append("MAIL_FROM (verified sender required)")
+    else:
+        errors.append("MAIL_MODE=smtp or resend")
     if environment.get("AGENT_FAKE_PROVIDER", "false").lower() not in ("false", "0"):
         errors.append("AGENT_FAKE_PROVIDER=false")
     if errors:
