@@ -65,6 +65,8 @@ jobs:
         run: npm ci
       - name: Check shared live event contract
         run: backend/.venv/bin/python infra/export_events.py --check
+      - name: Check private Sites gateway
+        run: node --test infra/sites-gateway.test.mjs
       - name: Frontend checks
         working-directory: frontend
         run: |

@@ -79,6 +79,8 @@ services:
       args:
         BACKEND_URL: ${BACKEND_URL:-http://backend:8000}
         DOCUMENT_SYNC_URL: ${DOCUMENT_SYNC_URL:-http://document-sync:8002}
+    environment:
+      SITES_GATEWAY_SECRET: ${SITES_GATEWAY_SECRET:?Set a separate private Sites gateway secret}
     ports:
       - "127.0.0.1:${TANDEM_HOSTED_PORT:-3030}:3000"
     depends_on:

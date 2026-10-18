@@ -1,12 +1,12 @@
 # Hosted manual-testing deployment
 
-Prepared 18 October 2026. This branch packages the existing Slice 7 snapshot for hosting; it does not implement Slice 8 or satisfy owner acceptance. Railway deployment has been attempted; see [the build failure evidence](evidence/hosted-deployment/RAILWAY_BUILD_FAILURE.md). No new Sites publication has occurred. Existing Sites pages are frontend previews and cannot establish full-stack acceptance.
+Prepared 18 October 2026. This branch packages the existing Slice 7 snapshot for hosting; it does not implement Slice 8 or satisfy owner acceptance. PostgreSQL, the Python API and document sync are now ONLINE with successful Railway deployments. See [the failure and recovery evidence](evidence/hosted-deployment/RAILWAY_BUILD_FAILURE.md). Frontend/Sites connection is being prepared separately; owner acceptance remains pending.
 
 ## Selected route and remaining account requirements
 
 Use Railway for four services: PostgreSQL with pgvector, Python API with local E5 inference, Node document sync, and the existing Next.js frontend. Only the frontend gets a public HTTPS domain. Database, API and sync communicate over private networking. OpenAI Sites cannot run these Docker services directly; a Sites entry point requires a separately reachable deployment first.
 
-Railway is connected. The private [Tandem project](https://railway.com/project/58f9f37c-aa18-46e7-8e73-0ab6873ede54?environmentId=3ad12379-4643-441c-aea0-9868d6c863a9) has a `manual-testing` environment with the database, API and document sync plus two 500 MB volumes. The owner applied the prepared deployment: PostgreSQL came online, while the first API and sync builds failed validation before compilation. Current recovery evidence is linked above. The owner confirmed Free/Trial only with no paid billing enabled; the budget remains **$0 out of pocket**. The connected app does not expose the account balance. Do not upgrade the plan or promise that this stack fits a free allowance.
+Railway is connected. The private [Tandem project](https://railway.com/project/58f9f37c-aa18-46e7-8e73-0ab6873ede54?environmentId=3ad12379-4643-441c-aea0-9868d6c863a9) has a `manual-testing` environment with the database, API and document sync plus two 500 MB volumes. The owner applied the corrected deployment after the first API and sync builds failed Dockerfile validation. All three current deployments are successful. A fourth, guarded frontend service is configured for the Site connection. Current recovery evidence is linked above. The owner confirmed Free/Trial only with no paid billing enabled; the budget remains **$0 out of pocket**. The connected app does not expose the account balance. Do not upgrade the plan or promise that this stack fits a free allowance.
 
 Railway disables SMTP on Free, Trial and Hobby plans. This branch therefore supports Resend HTTPS delivery for the existing password-reset emails, in addition to the original SMTP and local outbox modes. Secure deployments still reject local outbox mode and incomplete mail configuration. The owner-supplied test `RESEND_API_KEY` and `MAIL_FROM` are saved privately in the Railway environment; the API service references them. A Resend test sender (`Tandem <onboarding@resend.dev>`) can send only to the Resend account owner; arbitrary recipients require a verified domain. Real email delivery remains unverified until a reset is received.
 
@@ -21,13 +21,13 @@ Externally usable Groq/Gemini keys must also be supplied privately before enabli
 | `db` | `pgvector/pgvector:pg17` | PostgreSQL 5432 | `/var/lib/postgresql/data` |
 | `backend` | repository root, `infra/Dockerfile.hosted-backend` | HTTP 8000, health `/health` | `/data` |
 | `document-sync` | context `sync`, `Dockerfile.hosted` | HTTP/WebSocket 8002, health `/health` | none; Python persists document state |
-| `frontend` | context `frontend`, `Dockerfile` | HTTP 3000, health `/login` | none |
+| `frontend` | context `frontend`, `Dockerfile` | HTTP 3000, health `/health` | none |
 
 In Railway, set service source roots/build paths to match these contexts; a backend service needs access to both `backend/` and `infra/`. Its Dockerfile path is `infra/Dockerfile.hosted-backend`. Frontend Docker build arguments **must** receive the actual private `BACKEND_URL` and `DOCUMENT_SYNC_URL`; Next.js bakes rewrites during the build. Runtime-only changes to those URLs require a frontend rebuild. Use the project's actual private DNS names rather than assuming Compose aliases exist on Railway. New Railway networks support IPv4; verify connectivity for these IPv4-bound API/sync services if using an older IPv6-only project.
 
-Generate fresh database, JWT and document-sync secrets privately. Supply the backend's `DATABASE_URL` using the private database endpoint. The bootstrap accepts `postgres://`, `postgresql://` or the existing `postgresql+psycopg://` form. Backend and sync must share `DOCUMENT_SYNC_SECRET`; the frontend needs neither this secret nor provider keys. Keep database credentials out of public/frontend variables.
+Generate fresh database, JWT and document-sync secrets privately. Supply the backend's `DATABASE_URL` using the private database endpoint. The bootstrap accepts `postgres://`, `postgresql://` or the existing `postgresql+psycopg://` form. Backend and sync must share `DOCUMENT_SYNC_SECRET`; the frontend needs neither this secret nor provider keys. Give the frontend a separate random `SITES_GATEWAY_SECRET`, stored privately in Sites as `TANDEM_GATEWAY_SECRET` as well. Keep database credentials out of public/frontend variables.
 
-Assign the frontend HTTPS domain, then set that exact origin, without a trailing slash, as `FRONTEND_URL` on backend and sync. The staged configuration uses the existing Sites origin; it will work only after its gateway is connected. Set `COOKIE_SECURE=true`, `MAIL_MODE=resend`, `RESEND_API_KEY` and an authorized `MAIL_FROM`. On an SMTP-capable host, use `MAIL_MODE=smtp`, `SMTP_HOST` and the correct port/authentication instead. Keep `AGENT_FAKE_PROVIDER=false`. Supply existing authorized Groq/Gemini models and credentials without substitutions to evade quota. Disable agent workers temporarily if real-provider testing is not yet ready, and record that limitation.
+Assign the frontend HTTPS domain, then set that exact origin, without a trailing slash, as `FRONTEND_URL` on backend and sync. The API and sync configuration uses the existing Sites origin; the gateway must use that same origin. Set `COOKIE_SECURE=true`, `MAIL_MODE=resend`, `RESEND_API_KEY` and an authorized `MAIL_FROM`. On an SMTP-capable host, use `MAIL_MODE=smtp`, `SMTP_HOST` and the correct port/authentication instead. Keep `AGENT_FAKE_PROVIDER=false`. Supply existing authorized Groq/Gemini models and credentials without substitutions to evade quota. Disable agent workers temporarily if real-provider testing is not yet ready, and record that limitation.
 
 Railway mounts volumes with root ownership. Set backend `RAILWAY_RUN_UID=0` (Compose uses `user: 0:0`). The launcher initializes only the controlled `/data` directories, then drops to UID/GID 10001 **before** migrations, model loading and Uvicorn. Confirm the actual main process's `/proc/1/status`, rather than the user of an interactive exec command. Attach a persistent `/data` volume for attachments and E5; avoid recursive ownership changes on every boot.
 
@@ -53,7 +53,28 @@ See [the recorded checks](evidence/hosted-deployment/LOCAL_CHECKS.md). The start
 
 ## Sites follow-through
 
-After the real backend is reachable, connect the existing private Tandem Site to the hosted application and verify the full authentication and WebSocket path. Preserve its owner-only audience. A Sites proxy must forward only Tandem's required cookies/headers and must not send Sites platform authentication upstream. Before treating the Sites audience as an access boundary, protect the separate hosted frontend against bypass. This gateway integration is **not implemented or tested** by these container changes. Do not publish another disconnected frontend or describe a preview as an acceptance environment.
+The existing private Site is the entry point. `infra/sites-gateway.mjs` is the
+Worker source copied into that Site's source repository. Runtime values
+`UPSTREAM_ORIGIN` and secret `TANDEM_GATEWAY_SECRET` select the guarded Railway
+frontend. The Worker forwards only Tandem session cookies and the necessary
+application/CSRF/RSC/WebSocket headers; Sites identity and authorization stay at
+Sites. Redirects to the upstream origin return to the Site and responses are
+private/no-store. The Site's owner-only audience must remain unchanged.
+
+`frontend/server.mjs` requires the matching `SITES_GATEWAY_SECRET` before serving
+HTTP or accepting WebSocket upgrades. Next.js runs on loopback port 3001 behind
+this guard, so its own upgrade listener cannot bypass the outer check. Only
+GET `/health` is public; it reports readiness after Next responds. The secret is
+removed before proxying requests into Next and is omitted from its child process.
+Ordinary local `npm run dev` / `npm start` keep their existing behavior; the hosted
+Docker image uses the guarded entry point. The Compose baseline also requires the
+secret and needs a trusted gateway to inject it for browser use.
+
+Gateway tests cover credential isolation, session and CSRF forwarding, RSC,
+WebSocket response preservation, fixed upstream routing, redirects and redacted
+failures. The isolated stack smoke also checks direct HTTP/WebSocket rejection
+and authenticated document persistence through the guard. These tests do not
+establish a live Cloudflare-to-Railway WebSocket connection or owner acceptance.
 
 ## Hosting reference sources
 

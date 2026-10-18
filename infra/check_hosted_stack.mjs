@@ -22,6 +22,7 @@ const run = (...args) =>
     stdio: ["ignore", "pipe", "pipe"],
   }).trim();
 const secret = () => randomBytes(32).toString("hex");
+const gatewaySecret = secret();
 function start(name, image, env = {}, extra = []) {
   const full = stamp + "-" + name;
   names.push(full);
@@ -88,7 +89,11 @@ const proxy = https.createServer(
         port: upstream,
         path: req.url,
         method: req.method,
-        headers: { ...req.headers, "x-forwarded-proto": "https" },
+        headers: {
+          ...req.headers,
+          "x-forwarded-proto": "https",
+          "x-tandem-gateway": gatewaySecret,
+        },
       },
       (r) => {
         res.writeHead(r.statusCode, r.headers);
@@ -110,7 +115,7 @@ proxy.on("upgrade", (req, socket, head) => {
           (s, h, i) => s + h + (i % 2 ? "\r\n" : ": "),
           "",
         ) +
-        "\r\n",
+        `x-tandem-gateway: ${gatewaySecret}\r\n\r\n`,
     );
     if (head.length) target.write(head);
     socket.pipe(target);
@@ -262,12 +267,44 @@ try {
       ) === "",
     "backend",
   );
-  const front = start("frontend", "tandem-hosted-frontend:local", {}, [
-    "-p",
-    "127.0.0.1::3000",
-  ]);
+  const front = start(
+    "frontend",
+    "tandem-hosted-frontend:local",
+    { SITES_GATEWAY_SECRET: gatewaySecret },
+    ["-p", "127.0.0.1::3000"],
+  );
   upstream = Number(run("port", front, "3000/tcp").split(":").at(-1));
   await wait(async () => (await request("/login")).status === 200, "frontend");
+  assert.equal(
+    (await fetch(`http://127.0.0.1:${upstream}/health`)).status,
+    200,
+  );
+  for (const path of ["/login", "/api/auth/csrf", "/_next/static/test"]) {
+    for (const headers of [{}, { "x-tandem-gateway": "wrong" }]) {
+      assert.equal(
+        (await fetch(`http://127.0.0.1:${upstream}${path}`, { headers }))
+          .status,
+        403,
+      );
+    }
+  }
+  await new Promise((resolve, reject) => {
+    const denied = new WebSocket(
+      `ws://127.0.0.1:${upstream}/api/document-sync/test/test`,
+    );
+    denied.on("open", () => reject(Error("unguarded WebSocket")));
+    denied.on("error", () => {});
+    denied.on("unexpected-response", (_req, res) => {
+      try {
+        assert.equal(res.statusCode, 403);
+        res.resume();
+        denied.terminate();
+        resolve();
+      } catch (error) {
+        reject(error);
+      }
+    });
+  });
   assert.equal(
     (await request("/api/workspaces", { anonymous: true })).status,
     401,
@@ -369,6 +406,8 @@ try {
         https_login: true,
         secure_auth_cookies: true,
         unauthenticated_denied: true,
+        direct_frontend_http_denied: true,
+        direct_frontend_websocket_denied: true,
         e5_active: true,
         model: { name: memory.json.model, version: memory.json.version },
         backend_uid: 10001,

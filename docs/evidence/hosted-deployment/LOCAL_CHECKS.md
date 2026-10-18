@@ -23,3 +23,19 @@ Reproduce using the build and smoke commands in [the deployment recipe](../../HO
 Railway is authenticated. The owner applied the three-service deployment and its two volumes; the database came online and the first API/sync builds failed Dockerfile validation. See [the failure and correction](RAILWAY_BUILD_FAILURE.md). Test email credentials are saved privately. The owner confirmed Free/Trial only with no paid billing; the account balance is not exposed by the connected tools.
 
 Remaining unverified: actual Railway application runtime/private DNS/TLS/WSS, first-boot model download, restart persistence on hosted volumes, real HTTPS email delivery, hosted real-provider agent runs, Sites integration/access boundary, capacity and backups, and all owner checklist results. CI passed for the email transport at `a800337094f8966a03caf03c5d028e07e0fc6b9d` ([run](https://github.com/ahmadirshaidat/tandem/actions/runs/39137522769)); the hosted Dockerfile correction requires its own CI result.
+
+## Private gateway checks (18 October 2026)
+
+The guarded production frontend image built successfully. Frontend lint passed;
+four Worker contract tests passed. The updated isolated stack smoke completed
+one full pass: [safe result metadata](local-gateway-stack.json). This run exercised
+HTTPS login and secure cookies through the gateway, unauthenticated API denial,
+direct frontend HTTP denial with absent/incorrect gateway credentials, direct
+WebSocket denial, E5 active, UID 10001 and an authenticated WSS document update
+persisted to PostgreSQL. Synthetic data only; no provider or email requests.
+
+The earlier remaining-runtime statement above is superseded for the three
+Railway backend services: all current deployments are SUCCESS/ONLINE, as recorded
+in [the recovery evidence](RAILWAY_BUILD_FAILURE.md#successful-recovery).
+Live Sites-to-Railway browser/WebSocket checks, hosted restart persistence, email
+receipt, agent provider configuration and owner acceptance remain unverified.
