@@ -2,6 +2,12 @@
 
 Slices 0–6 and provider compatibility are merged into `v1`. Slice 7 collaborative documents are implemented on `slice-7-documents`; see [the current report](docs/SLICE7_REPORT.md) for checks and open acceptance gates. Prior product-owner manual acceptance remains unrecorded; proceeding was explicitly authorized.
 
+## Manual acceptance and new-chat handoff
+
+The `main` branch is a manual-testing snapshot of the latest Slice 7 code; `v1` remains the canonical acceptance branch and PR #4 remains draft pending owner results. Select `main` explicitly in a new chat or clone with `git clone --branch main https://github.com/ahmadirshaidat/tandem.git`.
+
+Use [the owner checklist](docs/MANUAL_ACCEPTANCE.md) to record manual Slices 5–7 results; every item starts as Not tested. [The Sites/new-chat handoff](docs/SITES_MANUAL_TEST_HANDOFF.md) explains the required full-stack runtime and contains a copyable prompt. A testing branch or CI pass does not establish owner acceptance. Slice 8 remains gated by recorded results and the accepted Slice 7 merge into `v1`.
+
 ## Requirements
 
 Python 3.12, [uv](https://docs.astral.sh/uv/), Node.js 24, Docker with Compose v2. PostgreSQL runs in Docker; no LLM credentials are required. The test database user needs CREATE DATABASE permission (the local Compose user has it).
