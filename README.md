@@ -300,6 +300,6 @@ Documents persist offline using IndexedDB and a cached shell. Reconnect merges a
 
 Compose now starts a small non-root Node document-sync service with the backend. Native development also needs `npm ci --prefix sync` and `backend/.venv/bin/python infra/run_document_sync.py` in a separate terminal. The cloud build helper builds both images. `--skip-build` requires both images to exist; a normal desktop launcher invocation builds both. The desktop launcher uses sync port 8003, API 8001 and frontend 3001; native/cloud defaults are sync 8002/API 8000/frontend 3000. Configure `FRONTEND_URL` for the actual browser origin. `DOCUMENT_SYNC_SECRET` may override the server-only derived service credential; it never belongs in frontend variables.
 
-Windows CI checks launcher syntax, native npm process dispatch, and service-readiness behavior. This is a smoke check; a full `node infra/dev.mjs` run with Docker Desktop on a real Windows computer remains unverified.
+Windows CI checks launcher syntax, native npm process dispatch, and service-readiness behavior (8/8 smoke tests passed on `79fa662`). This is a smoke check; a full `node infra/dev.mjs` run with Docker Desktop on a real Windows computer remains unverified.
 
 See [Slice 7 report](docs/SLICE7_REPORT.md) and ADRs 0027–0031 for measured server comparison, sync/open/indexing results, limits and remaining acceptance. No public deployment or Slice 8 work is included.

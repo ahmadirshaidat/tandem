@@ -1,0 +1,1012 @@
+{
+  "measured_utc": "2026-10-18T12:17:38.786Z",
+  "mode": "synthetic_production_browser_profile",
+  "document_utf8_bytes": 52826,
+  "generation": "none",
+  "conditions": "Production Next server; unthrottled local Chromium; three fresh contexts and one warm page per context; service workers blocked; no CPU/network throttling. Cold context is not a cold server or a cold OS cache. Timeline stages overlap and must not be added.",
+  "original_2627ms_run": "No original per-stage trace was captured; these new measurements cannot establish the exact cause of that historical total.",
+  "samples": [
+    {
+      "pair": 1,
+      "temperature": "cold_context",
+      "host_navigation_to_locator_ms": 2317.24,
+      "editor_dom_ms": 1760.3000000000466,
+      "content_ms": 2156.4000000000233,
+      "socket_created_ms": 1866.3000000000466,
+      "socket_open_ms": 1977.0999999999767,
+      "first_state_ms": 2014.3000000000466,
+      "first_state_utf8_bytes": 71260,
+      "indexeddb_open_ms": [
+        170.69999999995343
+      ],
+      "navigation_response_end_ms": 160.09999999997672,
+      "dom_content_loaded_ms": 361.4000000000233,
+      "scripts": [
+        {
+          "file": "2wstbt1m_8gi7.js",
+          "response_end_ms": 310,
+          "duration_ms": 120,
+          "encoded_bytes": 48249,
+          "decoded_bytes": 178061,
+          "transfer_bytes": 48549
+        },
+        {
+          "file": "0s7mvllxht1mo.js",
+          "response_end_ms": 388.5,
+          "duration_ms": 198.5,
+          "encoded_bytes": 71899,
+          "decoded_bytes": 229597,
+          "transfer_bytes": 72199
+        },
+        {
+          "file": "turbopack-3-ry682tkyiqk.js",
+          "response_end_ms": 414.5999999999767,
+          "duration_ms": 224.59999999997672,
+          "encoded_bytes": 3940,
+          "decoded_bytes": 10030,
+          "transfer_bytes": 4240
+        },
+        {
+          "file": "3eyuirf0i08gg.js",
+          "response_end_ms": 408.0999999999767,
+          "duration_ms": 218,
+          "encoded_bytes": 6674,
+          "decoded_bytes": 20323,
+          "transfer_bytes": 6974
+        },
+        {
+          "file": "0e-v0oha-gjr6.js",
+          "response_end_ms": 465.69999999995343,
+          "duration_ms": 275.5999999999767,
+          "encoded_bytes": 5828,
+          "decoded_bytes": 21434,
+          "transfer_bytes": 6128
+        },
+        {
+          "file": "3d-pi9v8ps32d.js",
+          "response_end_ms": 453,
+          "duration_ms": 262.80000000004657,
+          "encoded_bytes": 3606,
+          "decoded_bytes": 9430,
+          "transfer_bytes": 3906
+        },
+        {
+          "file": "40dt55pp1zcia.js",
+          "response_end_ms": 478.9000000000233,
+          "duration_ms": 288.70000000006985,
+          "encoded_bytes": 16285,
+          "decoded_bytes": 47098,
+          "transfer_bytes": 16585
+        },
+        {
+          "file": "1mcdh8iio40jz.js",
+          "response_end_ms": 605.0999999999767,
+          "duration_ms": 414.9000000000233,
+          "encoded_bytes": 245591,
+          "decoded_bytes": 812979,
+          "transfer_bytes": 245891
+        }
+      ],
+      "apis": [
+        {
+          "category": "/api/auth/me",
+          "start_ms": 1292.0999999999767,
+          "response_end_ms": 1304.3000000000466,
+          "duration_ms": 12.20000000006985,
+          "encoded_bytes": 112,
+          "decoded_bytes": 112
+        },
+        {
+          "category": "/api/workspaces",
+          "start_ms": 1375.5,
+          "response_end_ms": 1398.1999999999534,
+          "duration_ms": 22.699999999953434,
+          "encoded_bytes": 142,
+          "decoded_bytes": 142
+        },
+        {
+          "category": "/api/workspaces/:wid/channels",
+          "start_ms": 1419.5999999999767,
+          "response_end_ms": 1621.9000000000233,
+          "duration_ms": 202.30000000004657,
+          "encoded_bytes": 290,
+          "decoded_bytes": 290
+        },
+        {
+          "category": "/api/workspaces/:wid/projects",
+          "start_ms": 1455.4000000000233,
+          "response_end_ms": 1622.0999999999767,
+          "duration_ms": 166.69999999995343,
+          "encoded_bytes": 295,
+          "decoded_bytes": 295
+        },
+        {
+          "category": "/api/workspaces/:wid/documents/:did",
+          "start_ms": 1458.0999999999767,
+          "response_end_ms": 1664.1999999999534,
+          "duration_ms": 206.09999999997672,
+          "encoded_bytes": 882,
+          "decoded_bytes": 106283
+        },
+        {
+          "category": "/api/workspaces/:wid/projects",
+          "start_ms": 1460.0999999999767,
+          "response_end_ms": 1677.0999999999767,
+          "duration_ms": 217,
+          "encoded_bytes": 295,
+          "decoded_bytes": 295
+        },
+        {
+          "category": "/api/workspaces/:wid/documents",
+          "start_ms": 1463.8000000000466,
+          "response_end_ms": 1625,
+          "duration_ms": 161.19999999995343,
+          "encoded_bytes": 321,
+          "decoded_bytes": 321
+        },
+        {
+          "category": "/api/workspaces/:wid/documents/:did/suggestions",
+          "start_ms": 1716.3000000000466,
+          "response_end_ms": 1792.5,
+          "duration_ms": 76.19999999995343,
+          "encoded_bytes": 18,
+          "decoded_bytes": 18
+        },
+        {
+          "category": "/api/workspaces/:wid/documents/:did/versions",
+          "start_ms": 1719.5999999999767,
+          "response_end_ms": 1815.6999999999534,
+          "duration_ms": 96.09999999997672,
+          "encoded_bytes": 243,
+          "decoded_bytes": 243
+        },
+        {
+          "category": "/api/workspaces/:wid/channels",
+          "start_ms": 1720.3000000000466,
+          "response_end_ms": 1815.4000000000233,
+          "duration_ms": 95.09999999997672,
+          "encoded_bytes": 290,
+          "decoded_bytes": 290
+        }
+      ],
+      "main_thread_script_ms": 983.73,
+      "main_thread_task_ms": 1945.62,
+      "layout_ms": 129.53
+    },
+    {
+      "pair": 1,
+      "temperature": "warm_context",
+      "host_navigation_to_locator_ms": 1970.64,
+      "editor_dom_ms": 1656.3999999999069,
+      "content_ms": 1727.5999999999767,
+      "socket_created_ms": 1728.2999999999302,
+      "socket_open_ms": 1806.3999999999069,
+      "first_state_ms": 1820.8999999999069,
+      "first_state_utf8_bytes": 71260,
+      "indexeddb_open_ms": [
+        140.30000000004657
+      ],
+      "navigation_response_end_ms": 12.199999999953434,
+      "dom_content_loaded_ms": 158.69999999995343,
+      "scripts": [
+        {
+          "file": "turbopack-3-ry682tkyiqk.js",
+          "response_end_ms": 164.19999999995343,
+          "duration_ms": 88.80000000004657,
+          "encoded_bytes": 3940,
+          "decoded_bytes": 10030,
+          "transfer_bytes": 0
+        },
+        {
+          "file": "0s7mvllxht1mo.js",
+          "response_end_ms": 166,
+          "duration_ms": 90.60000000009313,
+          "encoded_bytes": 71899,
+          "decoded_bytes": 229597,
+          "transfer_bytes": 0
+        },
+        {
+          "file": "2wstbt1m_8gi7.js",
+          "response_end_ms": 88.29999999993015,
+          "duration_ms": 12.900000000023283,
+          "encoded_bytes": 48249,
+          "decoded_bytes": 178061,
+          "transfer_bytes": 0
+        },
+        {
+          "file": "3eyuirf0i08gg.js",
+          "response_end_ms": 164.59999999997672,
+          "duration_ms": 89.09999999997672,
+          "encoded_bytes": 6674,
+          "decoded_bytes": 20323,
+          "transfer_bytes": 0
+        },
+        {
+          "file": "0e-v0oha-gjr6.js",
+          "response_end_ms": 164.59999999997672,
+          "duration_ms": 89.09999999997672,
+          "encoded_bytes": 5828,
+          "decoded_bytes": 21434,
+          "transfer_bytes": 0
+        },
+        {
+          "file": "3d-pi9v8ps32d.js",
+          "response_end_ms": 164.69999999995343,
+          "duration_ms": 89.09999999997672,
+          "encoded_bytes": 3606,
+          "decoded_bytes": 9430,
+          "transfer_bytes": 0
+        },
+        {
+          "file": "40dt55pp1zcia.js",
+          "response_end_ms": 166.39999999990687,
+          "duration_ms": 90.69999999995343,
+          "encoded_bytes": 16285,
+          "decoded_bytes": 47098,
+          "transfer_bytes": 0
+        },
+        {
+          "file": "1mcdh8iio40jz.js",
+          "response_end_ms": 194.39999999990687,
+          "duration_ms": 118.69999999995343,
+          "encoded_bytes": 245591,
+          "decoded_bytes": 812979,
+          "transfer_bytes": 0
+        }
+      ],
+      "apis": [
+        {
+          "category": "/api/auth/me",
+          "start_ms": 1078.0999999999767,
+          "response_end_ms": 1107.7999999999302,
+          "duration_ms": 29.699999999953434,
+          "encoded_bytes": 112,
+          "decoded_bytes": 112
+        },
+        {
+          "category": "/api/workspaces",
+          "start_ms": 1115.0999999999767,
+          "response_end_ms": 1161.1999999999534,
+          "duration_ms": 46.09999999997672,
+          "encoded_bytes": 142,
+          "decoded_bytes": 142
+        },
+        {
+          "category": "/api/workspaces/:wid/channels",
+          "start_ms": 1183.2999999999302,
+          "response_end_ms": 1480.8999999999069,
+          "duration_ms": 297.5999999999767,
+          "encoded_bytes": 290,
+          "decoded_bytes": 290
+        },
+        {
+          "category": "/api/workspaces/:wid/projects",
+          "start_ms": 1187.0999999999767,
+          "response_end_ms": 1292.1999999999534,
+          "duration_ms": 105.09999999997672,
+          "encoded_bytes": 295,
+          "decoded_bytes": 295
+        },
+        {
+          "category": "/api/workspaces/:wid/documents/:did",
+          "start_ms": 1193.5,
+          "response_end_ms": 1491,
+          "duration_ms": 297.5,
+          "encoded_bytes": 882,
+          "decoded_bytes": 106283
+        },
+        {
+          "category": "/api/workspaces/:wid/projects",
+          "start_ms": 1196.5999999999767,
+          "response_end_ms": 1485.5999999999767,
+          "duration_ms": 289,
+          "encoded_bytes": 295,
+          "decoded_bytes": 295
+        },
+        {
+          "category": "/api/workspaces/:wid/documents",
+          "start_ms": 1200.2999999999302,
+          "response_end_ms": 1491.0999999999767,
+          "duration_ms": 290.80000000004657,
+          "encoded_bytes": 321,
+          "decoded_bytes": 321
+        },
+        {
+          "category": "/api/workspaces/:wid/documents/:did/suggestions",
+          "start_ms": 1604.5,
+          "response_end_ms": 1695.8999999999069,
+          "duration_ms": 91.39999999990687,
+          "encoded_bytes": 18,
+          "decoded_bytes": 18
+        },
+        {
+          "category": "/api/workspaces/:wid/documents/:did/versions",
+          "start_ms": 1606.2999999999302,
+          "response_end_ms": 1691,
+          "duration_ms": 84.70000000006985,
+          "encoded_bytes": 453,
+          "decoded_bytes": 453
+        },
+        {
+          "category": "/api/workspaces/:wid/channels",
+          "start_ms": 1610.1999999999534,
+          "response_end_ms": 1704.1999999999534,
+          "duration_ms": 94,
+          "encoded_bytes": 290,
+          "decoded_bytes": 290
+        }
+      ],
+      "main_thread_script_ms": 835.46,
+      "main_thread_task_ms": 1691.23,
+      "layout_ms": 148.23
+    },
+    {
+      "pair": 2,
+      "temperature": "cold_context",
+      "host_navigation_to_locator_ms": 915.39,
+      "editor_dom_ms": 713.5999999999767,
+      "content_ms": 861.1999999999534,
+      "socket_created_ms": 767.0999999999767,
+      "socket_open_ms": 804.0999999999767,
+      "first_state_ms": 810.8000000000466,
+      "first_state_utf8_bytes": 71260,
+      "indexeddb_open_ms": [
+        85.80000000004657
+      ],
+      "navigation_response_end_ms": 44.699999999953434,
+      "dom_content_loaded_ms": 113.40000000002328,
+      "scripts": [
+        {
+          "file": "2wstbt1m_8gi7.js",
+          "response_end_ms": 115.19999999995343,
+          "duration_ms": 31.899999999906868,
+          "encoded_bytes": 48249,
+          "decoded_bytes": 178061,
+          "transfer_bytes": 48549
+        },
+        {
+          "file": "3eyuirf0i08gg.js",
+          "response_end_ms": 158.09999999997672,
+          "duration_ms": 74.69999999995343,
+          "encoded_bytes": 6674,
+          "decoded_bytes": 20323,
+          "transfer_bytes": 6974
+        },
+        {
+          "file": "turbopack-3-ry682tkyiqk.js",
+          "response_end_ms": 156.90000000002328,
+          "duration_ms": 73.5,
+          "encoded_bytes": 3940,
+          "decoded_bytes": 10030,
+          "transfer_bytes": 4240
+        },
+        {
+          "file": "0e-v0oha-gjr6.js",
+          "response_end_ms": 157.30000000004657,
+          "duration_ms": 73.90000000002328,
+          "encoded_bytes": 5828,
+          "decoded_bytes": 21434,
+          "transfer_bytes": 6128
+        },
+        {
+          "file": "0s7mvllxht1mo.js",
+          "response_end_ms": 250.69999999995343,
+          "duration_ms": 167.29999999993015,
+          "encoded_bytes": 71899,
+          "decoded_bytes": 229597,
+          "transfer_bytes": 72199
+        },
+        {
+          "file": "3d-pi9v8ps32d.js",
+          "response_end_ms": 158.5,
+          "duration_ms": 75,
+          "encoded_bytes": 3606,
+          "decoded_bytes": 9430,
+          "transfer_bytes": 3906
+        },
+        {
+          "file": "1mcdh8iio40jz.js",
+          "response_end_ms": 272.5,
+          "duration_ms": 189,
+          "encoded_bytes": 245591,
+          "decoded_bytes": 812979,
+          "transfer_bytes": 245891
+        },
+        {
+          "file": "40dt55pp1zcia.js",
+          "response_end_ms": 170.80000000004657,
+          "duration_ms": 87.20000000006985,
+          "encoded_bytes": 16285,
+          "decoded_bytes": 47098,
+          "transfer_bytes": 16585
+        }
+      ],
+      "apis": [
+        {
+          "category": "/api/auth/me",
+          "start_ms": 544.0999999999767,
+          "response_end_ms": 554.1999999999534,
+          "duration_ms": 10.099999999976717,
+          "encoded_bytes": 112,
+          "decoded_bytes": 112
+        },
+        {
+          "category": "/api/workspaces",
+          "start_ms": 567.5,
+          "response_end_ms": 575.8000000000466,
+          "duration_ms": 8.300000000046566,
+          "encoded_bytes": 142,
+          "decoded_bytes": 142
+        },
+        {
+          "category": "/api/workspaces/:wid/channels",
+          "start_ms": 599.3000000000466,
+          "response_end_ms": 644.1999999999534,
+          "duration_ms": 44.89999999990687,
+          "encoded_bytes": 290,
+          "decoded_bytes": 290
+        },
+        {
+          "category": "/api/workspaces/:wid/projects",
+          "start_ms": 600.3000000000466,
+          "response_end_ms": 626.1999999999534,
+          "duration_ms": 25.899999999906868,
+          "encoded_bytes": 295,
+          "decoded_bytes": 295
+        },
+        {
+          "category": "/api/workspaces/:wid/documents/:did",
+          "start_ms": 601.1999999999534,
+          "response_end_ms": 637.4000000000233,
+          "duration_ms": 36.20000000006985,
+          "encoded_bytes": 882,
+          "decoded_bytes": 106283
+        },
+        {
+          "category": "/api/workspaces/:wid/projects",
+          "start_ms": 601.6999999999534,
+          "response_end_ms": 631.4000000000233,
+          "duration_ms": 29.70000000006985,
+          "encoded_bytes": 295,
+          "decoded_bytes": 295
+        },
+        {
+          "category": "/api/workspaces/:wid/documents",
+          "start_ms": 602.8000000000466,
+          "response_end_ms": 642.3000000000466,
+          "duration_ms": 39.5,
+          "encoded_bytes": 321,
+          "decoded_bytes": 321
+        },
+        {
+          "category": "/api/workspaces/:wid/documents/:did/suggestions",
+          "start_ms": 703.1999999999534,
+          "response_end_ms": 752.1999999999534,
+          "duration_ms": 49,
+          "encoded_bytes": 18,
+          "decoded_bytes": 18
+        },
+        {
+          "category": "/api/workspaces/:wid/documents/:did/versions",
+          "start_ms": 704.0999999999767,
+          "response_end_ms": 746.3000000000466,
+          "duration_ms": 42.20000000006985,
+          "encoded_bytes": 663,
+          "decoded_bytes": 663
+        },
+        {
+          "category": "/api/workspaces/:wid/channels",
+          "start_ms": 704.8000000000466,
+          "response_end_ms": 752.4000000000233,
+          "duration_ms": 47.59999999997672,
+          "encoded_bytes": 290,
+          "decoded_bytes": 290
+        }
+      ],
+      "main_thread_script_ms": 345.38,
+      "main_thread_task_ms": 787.92,
+      "layout_ms": 79.1
+    },
+    {
+      "pair": 2,
+      "temperature": "warm_context",
+      "host_navigation_to_locator_ms": 1058.4,
+      "editor_dom_ms": 863.6999999999534,
+      "content_ms": 942.0999999999767,
+      "socket_created_ms": 942.6999999999534,
+      "socket_open_ms": 994.8999999999069,
+      "first_state_ms": 1032.8999999999069,
+      "first_state_utf8_bytes": 71260,
+      "indexeddb_open_ms": [
+        102.09999999997672
+      ],
+      "navigation_response_end_ms": 26.5,
+      "dom_content_loaded_ms": 71.89999999990687,
+      "scripts": [
+        {
+          "file": "2wstbt1m_8gi7.js",
+          "response_end_ms": 59.39999999990687,
+          "duration_ms": 21.099999999976717,
+          "encoded_bytes": 48249,
+          "decoded_bytes": 178061,
+          "transfer_bytes": 0
+        },
+        {
+          "file": "0s7mvllxht1mo.js",
+          "response_end_ms": 61.29999999993015,
+          "duration_ms": 23,
+          "encoded_bytes": 71899,
+          "decoded_bytes": 229597,
+          "transfer_bytes": 0
+        },
+        {
+          "file": "turbopack-3-ry682tkyiqk.js",
+          "response_end_ms": 85.29999999993015,
+          "duration_ms": 46.90000000002328,
+          "encoded_bytes": 3940,
+          "decoded_bytes": 10030,
+          "transfer_bytes": 0
+        },
+        {
+          "file": "0e-v0oha-gjr6.js",
+          "response_end_ms": 86.29999999993015,
+          "duration_ms": 47.79999999993015,
+          "encoded_bytes": 5828,
+          "decoded_bytes": 21434,
+          "transfer_bytes": 0
+        },
+        {
+          "file": "3d-pi9v8ps32d.js",
+          "response_end_ms": 86.39999999990687,
+          "duration_ms": 47.89999999990687,
+          "encoded_bytes": 3606,
+          "decoded_bytes": 9430,
+          "transfer_bytes": 0
+        },
+        {
+          "file": "3eyuirf0i08gg.js",
+          "response_end_ms": 86.19999999995343,
+          "duration_ms": 47.699999999953434,
+          "encoded_bytes": 6674,
+          "decoded_bytes": 20323,
+          "transfer_bytes": 0
+        },
+        {
+          "file": "1mcdh8iio40jz.js",
+          "response_end_ms": 128.09999999997672,
+          "duration_ms": 89.59999999997672,
+          "encoded_bytes": 245591,
+          "decoded_bytes": 812979,
+          "transfer_bytes": 0
+        },
+        {
+          "file": "40dt55pp1zcia.js",
+          "response_end_ms": 86.69999999995343,
+          "duration_ms": 48.09999999997672,
+          "encoded_bytes": 16285,
+          "decoded_bytes": 47098,
+          "transfer_bytes": 0
+        }
+      ],
+      "apis": [
+        {
+          "category": "/api/auth/me",
+          "start_ms": 537.5,
+          "response_end_ms": 556.3999999999069,
+          "duration_ms": 18.899999999906868,
+          "encoded_bytes": 112,
+          "decoded_bytes": 112
+        },
+        {
+          "category": "/api/workspaces",
+          "start_ms": 564.6999999999534,
+          "response_end_ms": 580.3999999999069,
+          "duration_ms": 15.699999999953434,
+          "encoded_bytes": 142,
+          "decoded_bytes": 142
+        },
+        {
+          "category": "/api/workspaces/:wid/channels",
+          "start_ms": 628.2999999999302,
+          "response_end_ms": 729.7999999999302,
+          "duration_ms": 101.5,
+          "encoded_bytes": 290,
+          "decoded_bytes": 290
+        },
+        {
+          "category": "/api/workspaces/:wid/projects",
+          "start_ms": 630,
+          "response_end_ms": 729.6999999999534,
+          "duration_ms": 99.69999999995343,
+          "encoded_bytes": 295,
+          "decoded_bytes": 295
+        },
+        {
+          "category": "/api/workspaces/:wid/documents/:did",
+          "start_ms": 634.2999999999302,
+          "response_end_ms": 778.5,
+          "duration_ms": 144.20000000006985,
+          "encoded_bytes": 882,
+          "decoded_bytes": 106283
+        },
+        {
+          "category": "/api/workspaces/:wid/projects",
+          "start_ms": 635.5,
+          "response_end_ms": 743.7999999999302,
+          "duration_ms": 108.29999999993015,
+          "encoded_bytes": 295,
+          "decoded_bytes": 295
+        },
+        {
+          "category": "/api/workspaces/:wid/documents",
+          "start_ms": 636.6999999999534,
+          "response_end_ms": 758.5999999999767,
+          "duration_ms": 121.90000000002328,
+          "encoded_bytes": 321,
+          "decoded_bytes": 321
+        },
+        {
+          "category": "/api/workspaces/:wid/documents/:did/suggestions",
+          "start_ms": 855.5,
+          "response_end_ms": 903.5,
+          "duration_ms": 48,
+          "encoded_bytes": 18,
+          "decoded_bytes": 18
+        },
+        {
+          "category": "/api/workspaces/:wid/documents/:did/versions",
+          "start_ms": 856.1999999999534,
+          "response_end_ms": 938.7999999999302,
+          "duration_ms": 82.59999999997672,
+          "encoded_bytes": 873,
+          "decoded_bytes": 873
+        },
+        {
+          "category": "/api/workspaces/:wid/channels",
+          "start_ms": 857,
+          "response_end_ms": 940.5,
+          "duration_ms": 83.5,
+          "encoded_bytes": 290,
+          "decoded_bytes": 290
+        }
+      ],
+      "main_thread_script_ms": 475.57,
+      "main_thread_task_ms": 997.3,
+      "layout_ms": 127.26
+    },
+    {
+      "pair": 3,
+      "temperature": "cold_context",
+      "host_navigation_to_locator_ms": 1003.15,
+      "editor_dom_ms": 759.5999999999767,
+      "content_ms": 926.8000000000466,
+      "socket_created_ms": 830.9000000000233,
+      "socket_open_ms": 857.8000000000466,
+      "first_state_ms": 874.5999999999767,
+      "first_state_utf8_bytes": 71260,
+      "indexeddb_open_ms": [
+        100.20000000006985
+      ],
+      "navigation_response_end_ms": 8.300000000046566,
+      "dom_content_loaded_ms": 216.59999999997672,
+      "scripts": [
+        {
+          "file": "2wstbt1m_8gi7.js",
+          "response_end_ms": 139.90000000002328,
+          "duration_ms": 102.70000000006985,
+          "encoded_bytes": 48249,
+          "decoded_bytes": 178061,
+          "transfer_bytes": 48549
+        },
+        {
+          "file": "0s7mvllxht1mo.js",
+          "response_end_ms": 205.5,
+          "duration_ms": 168.30000000004657,
+          "encoded_bytes": 71899,
+          "decoded_bytes": 229597,
+          "transfer_bytes": 72199
+        },
+        {
+          "file": "turbopack-3-ry682tkyiqk.js",
+          "response_end_ms": 200.09999999997672,
+          "duration_ms": 162.79999999993015,
+          "encoded_bytes": 3940,
+          "decoded_bytes": 10030,
+          "transfer_bytes": 4240
+        },
+        {
+          "file": "3eyuirf0i08gg.js",
+          "response_end_ms": 200.90000000002328,
+          "duration_ms": 163.59999999997672,
+          "encoded_bytes": 6674,
+          "decoded_bytes": 20323,
+          "transfer_bytes": 6974
+        },
+        {
+          "file": "3d-pi9v8ps32d.js",
+          "response_end_ms": 206.40000000002328,
+          "duration_ms": 169,
+          "encoded_bytes": 3606,
+          "decoded_bytes": 9430,
+          "transfer_bytes": 3906
+        },
+        {
+          "file": "0e-v0oha-gjr6.js",
+          "response_end_ms": 206.19999999995343,
+          "duration_ms": 168.79999999993015,
+          "encoded_bytes": 5828,
+          "decoded_bytes": 21434,
+          "transfer_bytes": 6128
+        },
+        {
+          "file": "1mcdh8iio40jz.js",
+          "response_end_ms": 257.30000000004657,
+          "duration_ms": 219.90000000002328,
+          "encoded_bytes": 245591,
+          "decoded_bytes": 812979,
+          "transfer_bytes": 245891
+        },
+        {
+          "file": "40dt55pp1zcia.js",
+          "response_end_ms": 209.40000000002328,
+          "duration_ms": 163.20000000006985,
+          "encoded_bytes": 16285,
+          "decoded_bytes": 47098,
+          "transfer_bytes": 16585
+        }
+      ],
+      "apis": [
+        {
+          "category": "/api/auth/me",
+          "start_ms": 532,
+          "response_end_ms": 550.9000000000233,
+          "duration_ms": 18.900000000023283,
+          "encoded_bytes": 112,
+          "decoded_bytes": 112
+        },
+        {
+          "category": "/api/workspaces",
+          "start_ms": 569.6999999999534,
+          "response_end_ms": 612,
+          "duration_ms": 42.300000000046566,
+          "encoded_bytes": 142,
+          "decoded_bytes": 142
+        },
+        {
+          "category": "/api/workspaces/:wid/channels",
+          "start_ms": 633,
+          "response_end_ms": 683.5,
+          "duration_ms": 50.5,
+          "encoded_bytes": 290,
+          "decoded_bytes": 290
+        },
+        {
+          "category": "/api/workspaces/:wid/projects",
+          "start_ms": 634.4000000000233,
+          "response_end_ms": 672.3000000000466,
+          "duration_ms": 37.90000000002328,
+          "encoded_bytes": 295,
+          "decoded_bytes": 295
+        },
+        {
+          "category": "/api/workspaces/:wid/documents/:did",
+          "start_ms": 636.5999999999767,
+          "response_end_ms": 675.3000000000466,
+          "duration_ms": 38.70000000006985,
+          "encoded_bytes": 882,
+          "decoded_bytes": 106283
+        },
+        {
+          "category": "/api/workspaces/:wid/projects",
+          "start_ms": 637.3000000000466,
+          "response_end_ms": 679.6999999999534,
+          "duration_ms": 42.39999999990687,
+          "encoded_bytes": 295,
+          "decoded_bytes": 295
+        },
+        {
+          "category": "/api/workspaces/:wid/documents",
+          "start_ms": 638.0999999999767,
+          "response_end_ms": 663.4000000000233,
+          "duration_ms": 25.300000000046566,
+          "encoded_bytes": 321,
+          "decoded_bytes": 321
+        },
+        {
+          "category": "/api/workspaces/:wid/documents/:did/suggestions",
+          "start_ms": 749.5,
+          "response_end_ms": 799.9000000000233,
+          "duration_ms": 50.40000000002328,
+          "encoded_bytes": 18,
+          "decoded_bytes": 18
+        },
+        {
+          "category": "/api/workspaces/:wid/documents/:did/versions",
+          "start_ms": 750.6999999999534,
+          "response_end_ms": 811.6999999999534,
+          "duration_ms": 61,
+          "encoded_bytes": 346,
+          "decoded_bytes": 1083
+        },
+        {
+          "category": "/api/workspaces/:wid/channels",
+          "start_ms": 751.4000000000233,
+          "response_end_ms": 811.9000000000233,
+          "duration_ms": 60.5,
+          "encoded_bytes": 290,
+          "decoded_bytes": 290
+        }
+      ],
+      "main_thread_script_ms": 345.34,
+      "main_thread_task_ms": 822.73,
+      "layout_ms": 106.23
+    },
+    {
+      "pair": 3,
+      "temperature": "warm_context",
+      "host_navigation_to_locator_ms": 718.85,
+      "editor_dom_ms": 562.1999999999534,
+      "content_ms": 605,
+      "socket_created_ms": 605.5,
+      "socket_open_ms": 671.2999999999302,
+      "first_state_ms": 679.7999999999302,
+      "first_state_utf8_bytes": 71260,
+      "indexeddb_open_ms": [
+        62.699999999953434
+      ],
+      "navigation_response_end_ms": 12.199999999953434,
+      "dom_content_loaded_ms": 76.89999999990687,
+      "scripts": [
+        {
+          "file": "turbopack-3-ry682tkyiqk.js",
+          "response_end_ms": 80.19999999995343,
+          "duration_ms": 18.599999999976717,
+          "encoded_bytes": 3940,
+          "decoded_bytes": 10030,
+          "transfer_bytes": 0
+        },
+        {
+          "file": "0s7mvllxht1mo.js",
+          "response_end_ms": 80.39999999990687,
+          "duration_ms": 18.79999999993015,
+          "encoded_bytes": 71899,
+          "decoded_bytes": 229597,
+          "transfer_bytes": 0
+        },
+        {
+          "file": "2wstbt1m_8gi7.js",
+          "response_end_ms": 69.29999999993015,
+          "duration_ms": 7.699999999953434,
+          "encoded_bytes": 48249,
+          "decoded_bytes": 178061,
+          "transfer_bytes": 0
+        },
+        {
+          "file": "3eyuirf0i08gg.js",
+          "response_end_ms": 80.19999999995343,
+          "duration_ms": 18.5,
+          "encoded_bytes": 6674,
+          "decoded_bytes": 20323,
+          "transfer_bytes": 0
+        },
+        {
+          "file": "0e-v0oha-gjr6.js",
+          "response_end_ms": 80.29999999993015,
+          "duration_ms": 18,
+          "encoded_bytes": 5828,
+          "decoded_bytes": 21434,
+          "transfer_bytes": 0
+        },
+        {
+          "file": "3d-pi9v8ps32d.js",
+          "response_end_ms": 80.29999999993015,
+          "duration_ms": 17.900000000023283,
+          "encoded_bytes": 3606,
+          "decoded_bytes": 9430,
+          "transfer_bytes": 0
+        },
+        {
+          "file": "1mcdh8iio40jz.js",
+          "response_end_ms": 91.69999999995343,
+          "duration_ms": 29.300000000046566,
+          "encoded_bytes": 245591,
+          "decoded_bytes": 812979,
+          "transfer_bytes": 0
+        },
+        {
+          "file": "40dt55pp1zcia.js",
+          "response_end_ms": 84.59999999997672,
+          "duration_ms": 21.900000000023283,
+          "encoded_bytes": 16285,
+          "decoded_bytes": 47098,
+          "transfer_bytes": 0
+        }
+      ],
+      "apis": [
+        {
+          "category": "/api/auth/me",
+          "start_ms": 324.5,
+          "response_end_ms": 360.19999999995343,
+          "duration_ms": 35.699999999953434,
+          "encoded_bytes": 112,
+          "decoded_bytes": 112
+        },
+        {
+          "category": "/api/workspaces",
+          "start_ms": 378.79999999993015,
+          "response_end_ms": 389.79999999993015,
+          "duration_ms": 11,
+          "encoded_bytes": 142,
+          "decoded_bytes": 142
+        },
+        {
+          "category": "/api/workspaces/:wid/channels",
+          "start_ms": 410.5999999999767,
+          "response_end_ms": 489.69999999995343,
+          "duration_ms": 79.09999999997672,
+          "encoded_bytes": 290,
+          "decoded_bytes": 290
+        },
+        {
+          "category": "/api/workspaces/:wid/projects",
+          "start_ms": 412.0999999999767,
+          "response_end_ms": 493.0999999999767,
+          "duration_ms": 81,
+          "encoded_bytes": 295,
+          "decoded_bytes": 295
+        },
+        {
+          "category": "/api/workspaces/:wid/documents/:did",
+          "start_ms": 414.0999999999767,
+          "response_end_ms": 510.19999999995343,
+          "duration_ms": 96.09999999997672,
+          "encoded_bytes": 882,
+          "decoded_bytes": 106283
+        },
+        {
+          "category": "/api/workspaces/:wid/projects",
+          "start_ms": 414.5999999999767,
+          "response_end_ms": 494.5999999999767,
+          "duration_ms": 80,
+          "encoded_bytes": 295,
+          "decoded_bytes": 295
+        },
+        {
+          "category": "/api/workspaces/:wid/documents",
+          "start_ms": 415.69999999995343,
+          "response_end_ms": 489.5999999999767,
+          "duration_ms": 73.90000000002328,
+          "encoded_bytes": 321,
+          "decoded_bytes": 321
+        },
+        {
+          "category": "/api/workspaces/:wid/documents/:did/suggestions",
+          "start_ms": 555.8999999999069,
+          "response_end_ms": 582.7999999999302,
+          "duration_ms": 26.900000000023283,
+          "encoded_bytes": 18,
+          "decoded_bytes": 18
+        },
+        {
+          "category": "/api/workspaces/:wid/documents/:did/versions",
+          "start_ms": 556.3999999999069,
+          "response_end_ms": 585.5999999999767,
+          "duration_ms": 29.20000000006985,
+          "encoded_bytes": 374,
+          "decoded_bytes": 1293
+        },
+        {
+          "category": "/api/workspaces/:wid/channels",
+          "start_ms": 556.8999999999069,
+          "response_end_ms": 582.5,
+          "duration_ms": 25.600000000093132,
+          "encoded_bytes": 290,
+          "decoded_bytes": 290
+        }
+      ],
+      "main_thread_script_ms": 295.43,
+      "main_thread_task_ms": 650,
+      "layout_ms": 112.79
+    }
+  ]
+}

@@ -1,12 +1,16 @@
 # Slice 7: collaborative documents — implementation and acceptance
 
-17 October 2026 (Asia/Amman). Branch `slice-7-documents`, based on `v1` merge `99f0b9f`; [draft PR #4](https://github.com/ahmadirshaidat/tandem/pull/4).
+Implemented 17 October 2026; acceptance follow-up updated 18 October 2026 (Asia/Amman). Branch `slice-7-documents`, based on `v1` merge `99f0b9f`; [draft PR #4](https://github.com/ahmadirshaidat/tandem/pull/4).
 
 ## Acceptance decision
 
 Implementation is delivered for review; **keep the PR draft pending owner acceptance and the limits below**. The user explicitly instructed proceeding and merging the green Slice 6 PR #3 while prior manual owner checks were still unrecorded. Those manual Slice 5/6 checks are not recorded as a pass. PR #3 is merged; no Slice 8 work or public/AWS deployment is included.
 
 Latest live outcomes and hosted CI are recorded below. Deterministic fake-provider tests are distinct from real Groq acceptance. No provider/model changes were used to avoid quota.
+
+## Merge order verified
+
+[PR #3](https://github.com/ahmadirshaidat/tandem/pull/3) was merged into `v1` on 17 October at 23:00:15 Asia/Amman, merge `99f0b9f60fecad8fd902598a8e2646b1967973d2`. [PR #4](https://github.com/ahmadirshaidat/tandem/pull/4) targets `v1`, is based on that merge, and remains open/draft. It has not been merged. This verifies dependency order, not the unrecorded owner UI acceptance. [Safe CI/merge metadata](slice7-ci-investigation.json).
 
 ## Delivered behavior
 
@@ -33,6 +37,32 @@ Choose a small Node/Yjs transport and stateless transformation service, keeping 
 [Raw spike evidence](slice7-server-spike.json), [ADR 0027](adr/0027-document-sync-server.md). These small-message spikes use a synthetic authorization guard and exclude PostgreSQL/production auth; their latencies are not the product SLA. Python used less memory. The installed pycrdt 0.14.9 binding lacks public XML-text relative-position creation/resolution support needed for the proposed anchoring implementation; Yjs exposes it directly. This favors the Node integration, not a claim that Python synchronization is incorrect. Costs are a second service/image and a backend round trip per sender/recipient.
 
 The initial server-mediated harness matched any broadcast to the next command and produced invalid false-convergence/missing-denial results. Request-ID correlation corrected the harness. [Superseded output](slice7-server-spike-superseded.json) is retained; it is not evidence against either engine. No failing assertion was weakened.
+
+## Document-open analysis added 18 October
+
+The original **2,627.03 ms** navigation-to-visible measurement had no per-stage trace. It cannot retrospectively be attributed to one operation. A new metadata-only profiler, `node infra/measure_document_open.mjs`, separates bundle download, API timings, IndexedDB readiness, editor DOM, first authorized Yjs state and visible content. [Six raw samples](slice7-document-open-profile.json) retain no cookies, response bodies, document text or private IDs.
+
+Production Next server and unthrottled local Chromium, three fresh contexts each followed by one warm-context page; service workers blocked. A fresh context is not a cold process/OS cache. All six samples use the same synthetic 52.8 KB document; no generation calls. This highly repetitive fixture compresses unusually well and does not represent arbitrary document compression.
+
+| Stage in first fresh-context sample | Observed |
+| --- | --- |
+| Navigation to visible locator, host timer | 2,317.24 ms |
+| Initial HTML response complete | 160.10 ms after navigation |
+| Loaded JavaScript, total | 1,328,952 decoded bytes; 402,072 encoded bytes |
+| Largest shared chunk | 812,979 decoded / 245,591 encoded bytes; download complete at 605.10 ms |
+| First `/auth/me` request starts | 1,292.10 ms; request itself 12.20 ms |
+| Workspace request | Starts 1,375.50 ms; 22.70 ms |
+| Document REST request | Starts 1,458.10 ms; 206.10 ms; 106,283 decoded bytes (882 compressed for this repetitive fixture) |
+| First editor DOM / IndexedDB open | 1,760.30 ms / 170.70 ms duration |
+| Socket created / first authorized state | 1,866.30 ms / 2,014.30 ms; first state frame 71,260 UTF-8 bytes |
+| First state to text appearing in DOM | 142.10 ms; includes Yjs/Tiptap processing and rendering |
+| CDP main-thread script / all task time | 983.73 ms / 1,945.62 ms; includes all shared app code, not isolated editor construction |
+
+Stages overlap and must not be added. Browser content appeared at 2,156.40 ms; the host locator timer includes browser/driver observation overhead. The fresh-context totals were 2,317.24 / 915.39 / 1,003.15 ms (median **1,003.15 ms**). Warm-context totals were 1,970.64 / 1,058.40 / 718.85 ms (median **1,058.40 ms**); warm was not consistently faster, and cached IndexedDB text can appear before the new socket state. Six samples are too few for a performance guarantee or a reliable p95.
+
+The evidence points to substantial shared-bundle execution/hydration and a serial auth → workspace → document bootstrap before sync starts; fetching a 52.8 KB state alone does not explain the total. The app statically imports Documents into `WorkspaceApp`, so the shared bundle includes the editor alongside other workspace features. The document REST response contains derived plain text plus Markdown, and Yjs state is then loaded separately. Editor bootstrap also waits for IndexedDB before provider setup. These are measured/inferred contributors, not proof of the historical 2.63-second run's exact cause.
+
+**Proposals only, not implemented:** lazy-load editor code for document routes; narrow the metadata response to avoid unnecessary derived-text duplication; reduce duplicate project/channel reads; and instrument editor construction separately before changing provider initialization. Preserve offline/cached-shell behavior, current authorization and state integrity in any later optimization. The current measurement does not isolate Tiptap's constructor CPU time.
 
 ## Production-path performance
 
@@ -67,7 +97,7 @@ This is one local run, not a capacity/SLA claim. It includes concurrent indexing
 | Document checks against the final Compose backend + sync containers | **3 passed, 25.8 s**; includes expired access-cookie renewal and subsequent persisted editing |
 | Cloud Docker build and Compose startup | Backend and document-sync images built; PostgreSQL/backend/sync all healthy after the non-root file-ownership fix |
 
-Current-head hosted status: see [PR #4 checks](https://github.com/ahmadirshaidat/tandem/pull/4/checks). [Run 47](https://github.com/ahmadirshaidat/tandem/actions/runs/39067608163) passed at `f25d9ca`: **163 backend tests, 35 frontend tests and 10 browser tests**. The final session-renewal changes add an eleventh browser check; consult the current PR head checks for their hosted result.
+The delivered implementation at `d9df90e` passed [hosted run 50](https://github.com/ahmadirshaidat/tandem/actions/runs/39068164321): **163 backend, 35 frontend and 11 browser tests**, including session renewal. Its only check annotation is a Playwright **notice** reporting 11 passes. Current follow-up status is available at [PR #4 checks](https://github.com/ahmadirshaidat/tandem/pull/4/checks); the new launcher smoke job is separate from full Windows/Docker Desktop acceptance.
 
 Browser coverage includes concurrent edits inside the same word and paragraph, convergence, offline plus online edits, cold offline reload, current-permission merge/rejection, private membership revocation, Viewer update denial, session revocation, suggestion approval, version UI, literal HTML/XSS remaining inert, and 390 px mixed Arabic content. Backend tests cover scoped references, private REST endpoints, role boundaries, memory toggle/indexing/deletion, malformed/oversized updates, stale/tampered/double-approved Suggestions and version attribution/restore. Node tests cover relative-anchor Unicode behavior separately from fake generation. Not every operational failure mode is covered.
 
@@ -95,6 +125,17 @@ PLAYWRIGHT_CHROMIUM_EXECUTABLE=/usr/bin/chromium npx playwright test e2e/documen
 ```
 
 Local browser tests use the OS Chromium executable; hosted CI installs Playwright Chromium. Generation is explicitly fake for browser/integration runs; live commands below run separately in real mode. Cloud startup was awaited before the successful final browser invocation.
+
+## Two reported CI errors: identified and already corrected
+
+The user's pasted errors match two historical failed runs, not the final green run:
+
+| Run | Actual error | Correction and subsequent evidence |
+| --- | --- | --- |
+| [43](https://github.com/ahmadirshaidat/tandem/actions/runs/39067074306) | `ModuleNotFoundError: app.documents.schemas` during event export; the new file was omitted from the commit | `59e9617` added `backend/app/documents/schemas.py`; run 44 passed |
+| [46](https://github.com/ahmadirshaidat/tandem/actions/runs/39067480168) | Ruff would reformat `infra/check_document_live.py` and `infra/run_document_sync.py` | `f25d9ca` applied `backend/pyproject.toml`; runs 47–50 passed |
+
+Both were real delivery errors, not flaky browser failures. The same event-export and configured Ruff commands passed again locally on 18 October. The final run's PostgreSQL service logs also contain expected constraint rejections from tests of immutable audit history, duplicate email and cross-workspace foreign keys; those are separate from these two CI failures. None of the checks, assertions or PostgreSQL logging was disabled. [Safe investigation metadata](slice7-ci-investigation.json).
 
 ## Failures investigated and corrections
 
@@ -133,7 +174,15 @@ These create isolated synthetic workspaces and use the existing channel agent/pr
 
 [Editor with cursors](screenshots/slice7/editor-live-cursors.png), [Suggestions](screenshots/slice7/suggestions.png), [Version history](screenshots/slice7/version-history.png), [Private document](screenshots/slice7/private-document.png), [390 px offline Arabic/mixed document](screenshots/slice7/mobile-document-offline.png). Captured from the actual two-session browser flow with E5 active and explicitly fake generation. They are not screenshots of real-provider answers.
 
-The design canvas request returned `URLError`; no visual canvas comparison is claimed. UI uses `UI_SPEC.md` and existing tokens/components. Screenshots show light theme; physical devices, native Windows launcher execution, exact canvas match and long-duration accessibility/session soak tests remain unverified. The mobile evidence is Chromium emulation.
+The design canvas request returned `URLError`; no visual canvas comparison is claimed. UI uses `UI_SPEC.md` and existing tokens/components. Screenshots show light theme; physical devices, full Windows Docker Desktop app startup, exact canvas match and long-duration accessibility/session soak tests remain unverified. The mobile evidence is Chromium emulation.
+
+## Launcher verification
+
+`node infra/dev.mjs` uses Compose to start **db, backend and document-sync**, building both app images unless `--skip-build` is supplied. Docker Desktop supplies the Node service; no separate host `npm ci --prefix sync` is needed for this launcher workflow. Native development without the containerized Node service still needs the separate command documented in README.
+
+[Resolved desktop Compose metadata](slice7-launcher-configuration.json) verifies API 8001, database 5433 and document-sync 8003; backend → Node traffic uses `http://document-sync:8002`, Node → authority uses `http://backend:8000`, and the service waits for backend health. Frontend document rewrites use host port 8003 on desktop. The launcher now probes both API/CSRF and document-sync health before reporting ready; a healthy API alone cannot pass.
+
+Eight launcher tests pass locally, including actual native npm process dispatch, paths containing spaces, help, and sync-health failure handling. The separate [`windows-latest` smoke job](https://github.com/ahmadirshaidat/tandem/actions/runs/39126826111/job/117673603282) passed **8/8** on `79fa662`, including actual native npm dispatch and launcher help. This covers Windows dispatch/readiness code, **not** a Docker Desktop end-to-end run. On Linux/cloud, `node infra/dev.mjs --cloud --no-open --skip-install --skip-build` successfully reused the production frontend after all three services became healthy, preserving existing configuration/data. Full Windows Docker Desktop execution remains unverified.
 
 ## Files and operation
 
@@ -142,6 +191,7 @@ The design canvas request returned `URLError`; no visual canvas comparison is cl
 - `sync/{server,crdt}.mjs`, locked dependencies, non-root Dockerfile, Compose/cloud/desktop launcher configuration.
 - `frontend/src/components/documents.tsx`, `frontend/src/lib/document-sync.ts`, document route/navigation, channel conversion control, Memory toggle, document CSS and offline shell.
 - Backend/document protocol tests, `sync/crdt.test.mjs`, `frontend/e2e/documents.spec.ts`, spike/live/performance helpers and evidence.
+- Follow-up profiling helper `infra/measure_document_open.mjs`, launcher probes/tests `infra/dev-runtime{,.test}.mjs`, Windows CI smoke job, safe CI/launcher metadata and document-open timings.
 - ADRs [0027](adr/0027-document-sync-server.md), [0028](adr/0028-document-state-and-compaction.md), [0029](adr/0029-document-suggestion-anchors.md), [0030](adr/0030-document-history.md), [0031](adr/0031-document-privacy-and-offline.md).
 
 Docker: `docker compose up -d --build --wait` starts database/backend/sync; run the frontend as in README. Cloud: `python3 infra/cloud_build.py` then `python3 infra/cloud_start.py`; both backend and sync use supported build proxy/CA trust. Native: `uv sync --project backend --frozen`, `npm ci --prefix sync`, run `backend/.venv/bin/python infra/run_document_sync.py` beside the backend and frontend. Desktop launcher uses document port 8003 alongside API 8001/frontend 3001. Set the actual browser `FRONTEND_URL` consistently; do not expose secrets to frontend variables.
@@ -153,8 +203,8 @@ Docker: `docker compose up -d --build --wait` starts database/backend/sync; run 
 - Gemini fallback has not been revalidated; no provider was substituted for Groq. Physical-device/Windows/canvas checks above remain unverified.
 - One backend/sync instance only. Reauthorization polls at 500 ms, and a recipient is checked before each fanout; no distributed fanout, multi-instance consistency or large-workspace load guarantee is claimed.
 - Defaults are 64 KiB/update, 1 MiB state/text, 240 frames/minute/connection and 120-second idle reconnect. Large offline bursts can exceed frame limits; local copies remain available. Browser storage capacity/failure and extended outage stress are not exhaustively tested.
-- Suggestions replace a unique text range within a single XML text node; structural/cross-block rewrites are not supported. Staleness is checked before applying. Agent document text is bounded to 10,000 characters and headings to 40; retrieve narrower memory context for large documents. Shared document search conservatively excludes private documents; explicit `get_document` additionally requires a destination audience that can all read the private document.
+- **Accepted MVP capability limit:** Suggestions replace a unique text range within a single XML text node. They cannot span paragraphs, headings or differently formatted text nodes, or perform structural rewrites; an Agent “improve document” request must produce narrower Suggestions. This scope acceptance is separate from still-unverified manual flow acceptance. Staleness is checked before applying. Agent document text is bounded to 10,000 characters and headings to 40; retrieve narrower memory context for large documents. Shared document search conservatively excludes private documents; explicit `get_document` additionally requires a destination audience that can all read the private document.
 - Automatic last-editor-leave snapshots are best effort on normal disconnect; persisted state is saved on every accepted update. A process crash may miss the final history boundary, not the persisted edit. Retention/restore and CRDT state size need longer-running tests.
 - The UI converts one selected message at a time; the REST conversion accepts multiple selections. No document threads, images, file embeds, format import or Word/PDF export were added.
 
-Proposed next slice is notifications/usability polish plus hardening before real users, after owner acceptance. No Slice 8 implementation is included.
+Proposed Slice 8 direction is **MVP hardening and measurement**, with notifications deferred: email ownership verification, real SMTP validation, a shared limiter, production settings and backup/restore, measurement of the four PRD success hypotheses, and a security review before a pilot with two real developers. Define the acceptance checklist before implementation; do not treat a report as manual owner acceptance. No Slice 8 implementation is included.
