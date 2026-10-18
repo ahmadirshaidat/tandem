@@ -4,9 +4,10 @@ import json
 from urllib.error import HTTPError, URLError
 
 import pytest
+from pydantic import SecretStr, ValidationError
+
 from app.core import mail
 from app.core.config import Settings, settings
-from pydantic import SecretStr, ValidationError
 
 
 def configured(**changes):
